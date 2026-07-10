@@ -188,6 +188,29 @@
   details.breakdown summary{ cursor:pointer; font-size:13px; font-weight:600; padding:6px 0; }
   .result-card.water summary{ color:var(--leaf-pale); }
   .result-card.fert summary{ color:#E3C9A8; }
+
+  details.measure-guide{
+    margin:14px 0 16px; border:1.5px solid var(--line); border-radius:var(--radius-sm);
+    background:var(--surface-soft); overflow:hidden;
+  }
+  details.measure-guide summary{
+    cursor:pointer; font-size:13.5px; font-weight:600; color:var(--leaf);
+    padding:12px 14px; list-style:none; display:flex; align-items:center; gap:8px;
+    -webkit-tap-highlight-color:transparent;
+  }
+  details.measure-guide summary::-webkit-details-marker{ display:none; }
+  details.measure-guide summary::before{ content:"📏"; font-size:15px; }
+  details.measure-guide summary::after{
+    content:""; margin-left:auto; width:8px; height:8px;
+    border-right:2px solid var(--muted); border-bottom:2px solid var(--muted);
+    transform:rotate(45deg); transition:.2s ease;
+  }
+  details.measure-guide[open] summary::after{ transform:rotate(-135deg); }
+  details.measure-guide .guide-body{ padding:2px 14px 16px; }
+  details.measure-guide svg{ width:100%; height:auto; display:block; margin:2px 0 14px; }
+  details.measure-guide ol{ margin:0; padding-left:20px; font-size:13px; color:var(--ink); line-height:1.65; }
+  details.measure-guide li{ margin-bottom:7px; }
+  details.measure-guide li:last-child{ margin-bottom:0; }
   .breakdown-table{ font-size:13px; color:#E4E9D6; margin-top:6px; }
   .breakdown-table div{ display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px dashed rgba(255,255,255,.15); gap:10px; }
   .breakdown-table div span:first-child{ color:#C7D3B2; }
@@ -207,6 +230,7 @@
   }
 
   footer{ text-align:center; font-size:12px; color:var(--muted); margin-top:28px; padding:0 20px; }
+  .update-date{ text-align:center; font-size:11.5px; color:var(--muted); margin-top:6px; opacity:.85; }
 
   .credit-box{
     display:flex; align-items:center; gap:12px;
@@ -359,37 +383,76 @@
     </div>
 
     <div class="card hidden" id="canopyCard">
-      <h2><span class="num">4</span><span data-i18n="canopyCardH2">ขนาดทรงพุ่ม</span></h2>
-      <p class="hint" data-i18n="canopyCardHint">ใช้แปลงปริมาณน้ำจาก มม. เป็นลิตร/ต้น ตามพื้นที่ทรงพุ่มโดยประมาณ</p>
-      <div class="toggle-group" id="canopyGroup">
-        <div class="toggle-btn" data-value="small" data-area="1.8">
-          <svg viewBox="0 0 40 40"><circle cx="20" cy="16" r="7" fill="#7B9A4E"/><rect x="18" y="22" width="4" height="12" fill="#6B4226"/></svg>
-          <div class="t-label" data-i18n="canopySmall">เล็ก</div><div class="t-sub">&lt; 2 ม.</div>
+      <h2><span class="num">4</span><span data-i18n="canopyCardH2">ขนาดทรงพุ่มและน้ำฝน</span></h2>
+      <p class="hint" data-i18n="canopyCardHint">เลือกรัศมีทรงพุ่มเพื่อคำนวณพื้นที่ (พื้นที่ = π × รัศมี²) และกรอกปริมาณน้ำฝนวันนี้เพื่อหักลบจากปริมาณน้ำที่ต้องรด</p>
+
+      <details class="measure-guide">
+        <summary data-i18n="measureGuideSummary">ดูวิธีวัดรัศมีทรงพุ่ม</summary>
+        <div class="guide-body">
+          <svg viewBox="0 0 320 230" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="arrowGold" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 Z" fill="#C08A1E"/>
+              </marker>
+            </defs>
+            <text x="10" y="18" font-family="Sarabun,sans-serif" font-size="11" fill="#6C7A5F" data-i18n="measureGuideTopView">มุมมองจากด้านบน</text>
+
+            <circle cx="140" cy="125" r="76" fill="#DCE7C9" stroke="#7B9A4E" stroke-width="2"/>
+            <circle cx="112" cy="100" r="4" fill="#7B9A4E" opacity=".45"/>
+            <circle cx="170" cy="150" r="4" fill="#7B9A4E" opacity=".45"/>
+            <circle cx="100" cy="150" r="3" fill="#7B9A4E" opacity=".4"/>
+            <circle cx="175" cy="95" r="3" fill="#7B9A4E" opacity=".4"/>
+
+            <line x1="140" y1="125" x2="140" y2="55" stroke="#C08A1E" stroke-width="3" stroke-linecap="round" marker-end="url(#arrowGold)"/>
+            <circle cx="140" cy="107" r="2.3" fill="#C08A1E"/>
+            <circle cx="140" cy="90" r="2.3" fill="#C08A1E"/>
+            <circle cx="140" cy="73" r="2.3" fill="#C08A1E"/>
+
+            <circle cx="140" cy="125" r="7" fill="#6B4226" stroke="#4A2C18" stroke-width="1"/>
+
+            <text x="151" y="90" font-family="Kanit,sans-serif" font-size="15" font-weight="600" fill="#96700F" data-i18n="measureGuideRadiusLabel">รัศมี (r)</text>
+
+            <line x1="140" y1="52" x2="215" y2="30" stroke="#6C7A5F" stroke-width="1" stroke-dasharray="3 2"/>
+            <text x="219" y="28" font-family="Sarabun,sans-serif" font-size="12" fill="#3E5B2C" data-i18n="measureGuideEdgeLabel">ขอบเงาใบ (Drip line)</text>
+            <text x="219" y="43" font-family="Sarabun,sans-serif" font-size="10.5" fill="#6C7A5F" data-i18n="measureGuideEdgeSub">จุดที่ทรงพุ่มสิ้นสุด</text>
+
+            <line x1="133" y1="127" x2="60" y2="127" stroke="#6C7A5F" stroke-width="1" stroke-dasharray="3 2"/>
+            <text x="10" y="131" font-family="Sarabun,sans-serif" font-size="12" fill="#6B4226" data-i18n="measureGuideTrunkLabel">โคนต้น</text>
+
+            <text x="10" y="212" font-family="Sarabun,sans-serif" font-size="10.5" fill="#6C7A5F" data-i18n="measureGuideStepsHint">จุดสีทองบนเส้น = จังหวะก้าวเดินวัดระยะ</text>
+          </svg>
+          <ol>
+            <li data-i18n="measureGuideStep1">ยืนที่โคนต้น (ลำต้น) ของอะโวคาโด</li>
+            <li data-i18n="measureGuideStep2">เดินตรงออกไปตามแนวนอนจนถึง "ขอบเงาใบ" หรือจุดที่ทรงพุ่มสิ้นสุด</li>
+            <li data-i18n="measureGuideStep3">วัดระยะจากโคนต้นถึงขอบเงาใบด้วยสายวัด หรือนับก้าวเดิน (ผู้ใหญ่ 1 ก้าว ≈ 70–80 ซม.)</li>
+            <li data-i18n="measureGuideStep4">วัดซ้ำ 2–4 ทิศ (เหนือ ใต้ ตะวันออก ตะวันตก) แล้วหาค่าเฉลี่ย เพราะทรงพุ่มมักไม่กลมสมบูรณ์</li>
+            <li data-i18n="measureGuideStep5">เลือกค่ารัศมีในแอปให้ใกล้เคียงกับค่าเฉลี่ยที่วัดได้มากที่สุด</li>
+          </ol>
         </div>
-        <div class="toggle-btn active" data-value="medium" data-area="7.1">
-          <svg viewBox="0 0 40 40"><circle cx="20" cy="14" r="10" fill="#7B9A4E"/><rect x="18" y="22" width="4" height="12" fill="#6B4226"/></svg>
-          <div class="t-label" data-i18n="canopyMedium">กลาง</div><div class="t-sub">2–4 ม.</div>
+      </details>
+
+      <div class="row2">
+        <div class="field">
+          <label class="field-label" for="canopyRadius" data-i18n="canopyRadiusLabel">รัศมีทรงพุ่ม</label>
+          <div class="select-wrap">
+            <select id="canopyRadius"></select>
+          </div>
         </div>
-        <div class="toggle-btn" data-value="large" data-area="19.6">
-          <svg viewBox="0 0 40 40"><circle cx="20" cy="13" r="13" fill="#7B9A4E"/><rect x="18" y="24" width="4" height="10" fill="#6B4226"/></svg>
-          <div class="t-label" data-i18n="canopyLarge">ใหญ่</div><div class="t-sub">&gt; 4 ม.</div>
+        <div class="field">
+          <label class="field-label" for="rainfall" data-i18n="rainfallLabel">น้ำฝนวันนี้</label>
+          <div class="unit-input">
+            <input type="number" id="rainfall" placeholder="0" min="0" step="0.1" value="0">
+            <span class="unit-tag" data-i18n="rainfallUnit">มม.</span>
+          </div>
         </div>
       </div>
+      <p class="hint" id="canopyAreaPreview" style="margin:10px 0 0;"></p>
     </div>
 
     <div class="card hidden" id="soilCard">
       <h2><span class="num">5</span><span data-i18n="soilCardH2">ลักษณะดิน</span></h2>
-      <p class="hint" data-i18n="soilCardHint">ดินหนัก (อุ้มน้ำ) ให้น้ำห่างวันกว่าดินเบาได้ในบางระยะ</p>
-      <div class="toggle-group cols-2" id="soilGroup">
-        <div class="toggle-btn active" data-value="light">
-          <svg viewBox="0 0 40 40"><circle cx="12" cy="24" r="2.5" fill="#C08A1E"/><circle cx="20" cy="20" r="2.5" fill="#C08A1E"/><circle cx="28" cy="25" r="2.5" fill="#C08A1E"/><circle cx="16" cy="28" r="2.5" fill="#C08A1E"/><circle cx="24" cy="30" r="2.5" fill="#C08A1E"/></svg>
-          <div class="t-label" data-i18n="soilLight">ดินเบา</div><div class="t-sub" data-i18n="soilLightSub">ทราย / ร่วนปนทราย</div>
-        </div>
-        <div class="toggle-btn" data-value="heavy">
-          <svg viewBox="0 0 40 40"><rect x="10" y="16" width="20" height="18" rx="2" fill="#6B4226"/><line x1="10" y1="22" x2="30" y2="22" stroke="#4A2C18" stroke-width="1.5"/><line x1="10" y1="28" x2="30" y2="28" stroke="#4A2C18" stroke-width="1.5"/></svg>
-          <div class="t-label" data-i18n="soilHeavy">ดินหนัก</div><div class="t-sub" data-i18n="soilHeavySub">ร่วนเหนียว / เหนียว</div>
-        </div>
-      </div>
+      <p class="hint" data-i18n="soilCardHint">เลือกเนื้อดินของสวน — แต่ละชนิดมีอัตราการซึมน้ำและความถี่การให้น้ำที่แนะนำต่างกัน</p>
+      <div class="stage-list" id="soilList"></div>
     </div>
 
     <div class="card">
@@ -504,6 +567,8 @@
       <div class="credit-affil" data-i18n="creditAffil">ภาควิชาพืชสวน คณะเกษตร กำแพงแสน<br>มหาวิทยาลัยเกษตรศาสตร์</div>
     </div>
   </div>
+
+  <div class="update-date" data-i18n="lastUpdated">อัปเดตล่าสุด: 10/07/2026</div>
 </div>
 
 <script>
@@ -536,13 +601,32 @@
       gpsBtnLabel: 'ดึง ETo อัตโนมัติจากพิกัด GPS',
       etoLabel: 'ค่า ETo ราย 10 วัน',
       etoUnit: 'มม./10 วัน',
-      canopyCardH2: 'ขนาดทรงพุ่ม',
-      canopyCardHint: 'ใช้แปลงปริมาณน้ำจาก มม. เป็นลิตร/ต้น ตามพื้นที่ทรงพุ่มโดยประมาณ',
-      canopySmall: 'เล็ก', canopyMedium: 'กลาง', canopyLarge: 'ใหญ่',
+      canopyCardH2: 'ขนาดทรงพุ่มและน้ำฝน',
+      canopyCardHint: 'เลือกรัศมีทรงพุ่มเพื่อคำนวณพื้นที่ (พื้นที่ = π × รัศมี²) และกรอกปริมาณน้ำฝนวันนี้เพื่อหักลบจากปริมาณน้ำที่ต้องรด',
+      canopyRadiusLabel: 'รัศมีทรงพุ่ม',
+      unitMeter: 'ม.',
+      rainfallLabel: 'น้ำฝนวันนี้', rainfallUnit: 'มม.',
+      canopyAreaPreviewPrefix: 'พื้นที่ทรงพุ่มโดยประมาณ',
+      measureGuideSummary: 'ดูวิธีวัดรัศมีทรงพุ่ม',
+      measureGuideTopView: 'มุมมองจากด้านบน',
+      measureGuideRadiusLabel: 'รัศมี (r)',
+      measureGuideEdgeLabel: 'ขอบเงาใบ (Drip line)',
+      measureGuideEdgeSub: 'จุดที่ทรงพุ่มสิ้นสุด',
+      measureGuideTrunkLabel: 'โคนต้น',
+      measureGuideStepsHint: 'จุดสีทองบนเส้น = จังหวะก้าวเดินวัดระยะ',
+      measureGuideStep1: 'ยืนที่โคนต้น (ลำต้น) ของอะโวคาโด',
+      measureGuideStep2: 'เดินตรงออกไปตามแนวนอนจนถึง "ขอบเงาใบ" หรือจุดที่ทรงพุ่มสิ้นสุด',
+      measureGuideStep3: 'วัดระยะจากโคนต้นถึงขอบเงาใบด้วยสายวัด หรือนับก้าวเดิน (ผู้ใหญ่ 1 ก้าว ≈ 70–80 ซม.)',
+      measureGuideStep4: 'วัดซ้ำ 2–4 ทิศ (เหนือ ใต้ ตะวันออก ตะวันตก) แล้วหาค่าเฉลี่ย เพราะทรงพุ่มมักไม่กลมสมบูรณ์',
+      measureGuideStep5: 'เลือกค่ารัศมีในแอปให้ใกล้เคียงกับค่าเฉลี่ยที่วัดได้มากที่สุด',
       soilCardH2: 'ลักษณะดิน',
-      soilCardHint: 'ดินหนัก (อุ้มน้ำ) ให้น้ำห่างวันกว่าดินเบาได้ในบางระยะ',
-      soilLight: 'ดินเบา', soilLightSub: 'ทราย / ร่วนปนทราย',
-      soilHeavy: 'ดินหนัก', soilHeavySub: 'ร่วนเหนียว / เหนียว',
+      soilCardHint: 'เลือกเนื้อดินของสวน — แต่ละชนิดมีอัตราการซึมน้ำและความถี่การให้น้ำที่แนะนำต่างกัน',
+      soilClay: 'ดินเหนียว', soilClayLoam: 'ดินเหนียวร่วม', soilLoam: 'ดินร่วน',
+      soilSandyLoam: 'ดินร่วนปนทราย', soilSand: 'ดินทราย',
+      soilInfiltrationShort: 'ซึมน้ำ', unitMmPerHr: 'มม./ชม.',
+      runoffWarning: '⚠️ อัตราการให้น้ำของสปริงเกอร์ (' ,
+      runoffWarningMid: ' มม./ชม.) สูงกว่าอัตราการซึมน้ำของดิน (',
+      runoffWarningEnd: ' มม./ชม.) น้ำอาจไหลนองผิวดิน แนะนำแบ่งรดเป็นหลายรอบสั้นๆ คั่นด้วยการพักให้น้ำซึมก่อน',
       sprinklerCardH2: 'ระบบสปริงเกอร์ต่อต้น',
       sprinklerCardHint: 'ข้อมูลจากสเปกหัวสปริงเกอร์ที่ติดตั้งจริงในสวน',
       headsLabel: 'จำนวนหัวต่อต้น',
@@ -567,6 +651,7 @@
       creditName: 'พัฒนาโดย ดร. ปณวัตร สิขัณฑกสมิต',
       creditAffil: 'ภาควิชาพืชสวน คณะเกษตร กำแพงแสน<br>มหาวิทยาลัยเกษตรศาสตร์',
       footerText: 'เครื่องมือช่วยประมาณการให้น้ำและปุ๋ย · สำหรับใช้เป็นแนวทางเบื้องต้นเท่านั้น',
+      lastUpdated: 'อัปเดตล่าสุด: 10/07/2026',
 
       alertHeadsFlow: 'กรุณากรอกจำนวนหัวสปริงเกอร์และอัตราการไหลให้ครบถ้วน (ต้องมากกว่า 0)',
       alertEto: 'กรุณากรอกค่า ETo ให้ครบถ้วน (ต้องมากกว่า 0)',
@@ -581,9 +666,14 @@
       rowGrowthStage: 'ระยะการเจริญเติบโต', rowKc: 'Kc (Netafim, อิง ETo)',
       rowEtoEntered: 'ETo ที่กรอก', unitMm10d: 'มม./10 วัน',
       rowEtcAdjusted: 'ETc ที่ปรับแล้ว',
+      rowRainfallSub: 'หักน้ำฝนวันนี้',
+      rowNetEtc: 'ETc สุทธิ (หลังหักน้ำฝน)',
+      rowCanopyRadius: 'รัศมีทรงพุ่ม',
       rowCanopyArea: 'พื้นที่ทรงพุ่มโดยประมาณ', unitM2: 'ตร.ม.',
+      rowSoilType: 'ชนิดดิน', rowInfiltration: 'อัตราการซึมน้ำของดิน',
+      rowAppRate: 'อัตราการให้น้ำจากสปริงเกอร์',
       rowWaterPer10d: 'ปริมาณน้ำ/10 วัน',
-      rowFreqTable: 'ความถี่ (จากตาราง Netafim)', every: 'ทุก', days: 'วัน',
+      rowFreqTable: 'ความถี่ (ตามชนิดดิน)', every: 'ทุก', days: 'วัน',
       rowWaterPerEvent: 'ปริมาณน้ำ/ครั้ง',
 
       unitKgPerTree: 'กก. / ต้น',
@@ -634,13 +724,32 @@
       gpsBtnLabel: 'Auto-fetch ETo from GPS location',
       etoLabel: 'ETo Value (10-day period)',
       etoUnit: 'mm/10 days',
-      canopyCardH2: 'Canopy Size',
-      canopyCardHint: 'Used to convert water depth (mm) into liters/tree based on approximate canopy area',
-      canopySmall: 'Small', canopyMedium: 'Medium', canopyLarge: 'Large',
+      canopyCardH2: 'Canopy Size & Rainfall',
+      canopyCardHint: 'Choose the canopy radius to compute area (area = π × radius²), and enter today\'s rainfall to subtract from the water needed',
+      canopyRadiusLabel: 'Canopy Radius',
+      unitMeter: 'm',
+      rainfallLabel: 'Rainfall Today', rainfallUnit: 'mm',
+      canopyAreaPreviewPrefix: 'Approx. canopy area',
+      measureGuideSummary: 'How to measure canopy radius',
+      measureGuideTopView: 'Top view',
+      measureGuideRadiusLabel: 'Radius (r)',
+      measureGuideEdgeLabel: 'Canopy edge (Drip line)',
+      measureGuideEdgeSub: 'Where the foliage ends',
+      measureGuideTrunkLabel: 'Trunk',
+      measureGuideStepsHint: 'Gold dots on the line = pacing steps to measure distance',
+      measureGuideStep1: 'Stand at the base of the avocado trunk',
+      measureGuideStep2: 'Walk in a straight line out to the "drip line" — where the canopy foliage ends',
+      measureGuideStep3: 'Measure the distance from the trunk to the drip line with a tape, or count paces (1 adult pace ≈ 70–80 cm)',
+      measureGuideStep4: 'Repeat in 2–4 directions (N, S, E, W) and take the average, since canopies are rarely a perfect circle',
+      measureGuideStep5: 'Choose the radius option in the app closest to your measured average',
       soilCardH2: 'Soil Type',
-      soilCardHint: 'Heavy soil (moisture-retentive) can be watered less frequently than light soil in some stages',
-      soilLight: 'Light Soil', soilLightSub: 'Sand / sandy loam',
-      soilHeavy: 'Heavy Soil', soilHeavySub: 'Clay loam / clay',
+      soilCardHint: 'Choose your orchard\'s soil texture — each type has a different infiltration rate and recommended irrigation frequency',
+      soilClay: 'Clay', soilClayLoam: 'Clay loam', soilLoam: 'Loam',
+      soilSandyLoam: 'Sandy loam', soilSand: 'Sand',
+      soilInfiltrationShort: 'Infiltration', unitMmPerHr: 'mm/hr',
+      runoffWarning: '⚠️ The sprinkler application rate (',
+      runoffWarningMid: ' mm/hr) exceeds this soil\'s infiltration rate (',
+      runoffWarningEnd: ' mm/hr). Water may pool or run off — consider splitting into several shorter cycles with soak breaks in between.',
       sprinklerCardH2: 'Sprinkler System per Tree',
       sprinklerCardHint: 'Based on the actual sprinkler head specs installed in your orchard',
       headsLabel: 'Heads per Tree',
@@ -665,6 +774,7 @@
       creditName: 'Developed by Dr. Panawat Sikhandakasmita',
       creditAffil: 'Department of Horticulture, Faculty of Agriculture at Kamphaeng Saen<br>Kasetsart University',
       footerText: 'A tool for estimating irrigation and fertilizer needs · For general guidance only',
+      lastUpdated: 'Last updated: 10/07/2026',
 
       alertHeadsFlow: 'Please enter the number of sprinkler heads and flow rate (must be greater than 0)',
       alertEto: 'Please enter the ETo value (must be greater than 0)',
@@ -679,9 +789,14 @@
       rowGrowthStage: 'Growth stage', rowKc: 'Kc (Netafim, ETo-based)',
       rowEtoEntered: 'ETo entered', unitMm10d: 'mm/10 days',
       rowEtcAdjusted: 'Adjusted ETc',
+      rowRainfallSub: 'Rainfall subtracted today',
+      rowNetEtc: 'Net ETc (after rainfall)',
+      rowCanopyRadius: 'Canopy radius',
       rowCanopyArea: 'Approx. canopy area', unitM2: 'm²',
+      rowSoilType: 'Soil type', rowInfiltration: 'Soil infiltration rate',
+      rowAppRate: 'Sprinkler application rate',
       rowWaterPer10d: 'Water/10 days',
-      rowFreqTable: 'Frequency (from Netafim table)', every: 'Every', days: 'day(s)',
+      rowFreqTable: 'Frequency (by soil type)', every: 'Every', days: 'day(s)',
       rowWaterPerEvent: 'Water/event',
 
       unitKgPerTree: 'kg / tree',
@@ -739,6 +854,9 @@
 
     renderMonths();
     renderStages();
+    renderRadiusOptions();
+    renderSoils();
+    updateCanopyAreaPreview();
 
     try{ localStorage.setItem('avocado_app_lang', lang); }catch(e){}
   }
@@ -764,12 +882,22 @@
     {id:6, name:'เก็บเกี่ยว + สร้างตาดอก',       name_en:'Harvest + flower differentiation', kc:0.50, light:1, heavy:3, days:95, N:50, P:10, K:50}
   ];
 
+  const SOILS = [
+    {id:'clay',       nameKey:'soilClay',       infiltration:7.5,  interval:2},
+    {id:'clay_loam',  nameKey:'soilClayLoam',   infiltration:15,   interval:2},
+    {id:'loam',       nameKey:'soilLoam',       infiltration:25,   interval:1},
+    {id:'sandy_loam', nameKey:'soilSandyLoam',  infiltration:35,   interval:1},
+    {id:'sand',       nameKey:'soilSand',       infiltration:45,   interval:1}
+  ];
+  const RADII = [1,2,3,4,5,6];
+
   const SPRINKLER_FACTOR = 1.2;
   const RAI_M2 = 1600;
   const HA_M2 = 10000;
 
   let mode = 'young';
   let selectedStage = 3;
+  let selectedSoil = 'loam';
   let activeTab = 'water';
   let currentLang = 'th';
 
@@ -807,6 +935,53 @@
     });
   }
   renderStages();
+
+  const canopyRadiusSel = document.getElementById('canopyRadius');
+  function renderRadiusOptions(){
+    const prevVal = canopyRadiusSel.value;
+    canopyRadiusSel.innerHTML = '';
+    RADII.forEach(function(r){
+      const opt = document.createElement('option');
+      opt.value = r;
+      opt.textContent = r + ' ' + t('unitMeter');
+      canopyRadiusSel.appendChild(opt);
+    });
+    canopyRadiusSel.value = prevVal !== '' ? prevVal : '3';
+  }
+
+  function getCanopyArea(){
+    const r = parseFloat(canopyRadiusSel.value) || 0;
+    return Math.PI * r * r;
+  }
+
+  function updateCanopyAreaPreview(){
+    const area = getCanopyArea();
+    document.getElementById('canopyAreaPreview').textContent =
+      t('canopyAreaPreviewPrefix') + ' ≈ ' + area.toFixed(1) + ' ' + t('unitM2');
+  }
+
+  const soilListEl = document.getElementById('soilList');
+  function renderSoils(){
+    soilListEl.innerHTML = '';
+    SOILS.forEach(function(s, idx){
+      const item = document.createElement('div');
+      item.className = 'stage-item' + (s.id===selectedSoil ? ' active' : '');
+      item.dataset.soil = s.id;
+      const label = t(s.nameKey);
+      const subText = t('soilInfiltrationShort') + ' ' + s.infiltration + ' ' + t('unitMmPerHr')
+        + ' · ' + t('every') + ' ' + s.interval + ' ' + t('days');
+      item.innerHTML =
+        '<div class="s-left"><div class="s-num">' + (idx+1) + '</div>' +
+        '<div><div class="s-name">' + label + '</div>' +
+        '<div class="s-kc" style="margin-top:2px;">' + subText + '</div></div></div>';
+      item.addEventListener('click', function(){
+        soilListEl.querySelectorAll('.stage-item').forEach(function(el){ el.classList.remove('active'); });
+        item.classList.add('active');
+        selectedSoil = s.id;
+      });
+      soilListEl.appendChild(item);
+    });
+  }
 
   const modeGroup = document.getElementById('modeGroup');
   modeGroup.querySelectorAll('.mode-btn').forEach(function(btn){
@@ -851,8 +1026,10 @@
       });
     });
   }
-  setupToggle('canopyGroup');
-  setupToggle('soilGroup');
+  renderRadiusOptions();
+  renderSoils();
+  updateCanopyAreaPreview();
+  document.getElementById('canopyRadius').addEventListener('change', updateCanopyAreaPreview);
 
   function calculateWater(){
     const heads = parseFloat(document.getElementById('heads').value);
@@ -897,40 +1074,52 @@
     }
     const stage = STAGES.find(function(s){ return s.id===selectedStage; });
     const stageName = currentLang === 'en' ? stage.name_en : stage.name;
-    const canopyBtn = document.querySelector('#canopyGroup .toggle-btn.active');
-    const soilBtn = document.querySelector('#soilGroup .toggle-btn.active');
-    const canopyArea = parseFloat(canopyBtn.dataset.area);
-    const canopyValue = canopyBtn.dataset.value;
-    const soilValue = soilBtn.dataset.value;
-    const intervalDays = soilValue === 'light' ? stage.light : stage.heavy;
+    const soil = SOILS.find(function(s){ return s.id===selectedSoil; });
+    const radius = parseFloat(canopyRadiusSel.value) || 0;
+    const canopyArea = getCanopyArea();
+    const rainfall = parseFloat(document.getElementById('rainfall').value) || 0;
+    const intervalDays = soil.interval;
 
     const etcPeriodMm = eto * stage.kc * SPRINKLER_FACTOR;
-    const litersPerPeriod = etcPeriodMm * canopyArea;
+    const netEtcPeriodMm = Math.max(0, etcPeriodMm - rainfall);
+    const litersPerPeriod = netEtcPeriodMm * canopyArea;
     const eventsPerPeriod = 10 / intervalDays;
     const litersPerEvent = litersPerPeriod / eventsPerPeriod;
     const minutesPerEvent = (litersPerEvent / totalFlowLph) * 60;
 
-    const canopyLabelsTh = {small:'เล็ก', medium:'กลาง', large:'ใหญ่'};
-    const canopyLabelsEn = {small:'Small', medium:'Medium', large:'Large'};
-    const soilLabelsTh = {light:'ดินเบา', heavy:'ดินหนัก'};
-    const soilLabelsEn = {light:'Light Soil', heavy:'Heavy Soil'};
-    const canopyLabel = (currentLang === 'en' ? canopyLabelsEn : canopyLabelsTh)[canopyValue];
-    const soilLabel = (currentLang === 'en' ? soilLabelsEn : soilLabelsTh)[soilValue];
+    // Sprinkler application rate vs soil infiltration rate (runoff risk check)
+    const appRateMmPerHr = canopyArea > 0 ? (totalFlowLph / canopyArea) : 0;
+    const runoffRisk = appRateMmPerHr > soil.infiltration;
 
-    const noteTh = 'ระยะ<b>' + stageName + '</b> ทรงพุ่ม<b>' + canopyLabel + '</b> บน<b>' + soilLabel + '</b> ต้องการน้ำประมาณ <b>' + litersPerPeriod.toFixed(1) + ' ลิตร/ต้น/10 วัน</b> — เปิดสปริงเกอร์ครั้งละ <b>' + Math.round(minutesPerEvent) + ' นาที ทุก ' + intervalDays + ' วัน</b>';
-    const noteEn = '<b>' + stageName + '</b> stage, <b>' + canopyLabel + '</b> canopy on <b>' + soilLabel + '</b> needs approximately <b>' + litersPerPeriod.toFixed(1) + ' liters/tree/10 days</b> — run the sprinkler for <b>' + Math.round(minutesPerEvent) + ' minutes every ' + intervalDays + ' day(s)</b>';
+    const soilLabel = t(soil.nameKey);
+
+    const noteTh = 'ระยะ<b>' + stageName + '</b> รัศมีทรงพุ่ม <b>' + radius + ' ม.</b> บน<b>' + soilLabel + '</b> ต้องการน้ำประมาณ <b>' + litersPerPeriod.toFixed(1) + ' ลิตร/ต้น/10 วัน</b> — เปิดสปริงเกอร์ครั้งละ <b>' + Math.round(minutesPerEvent) + ' นาที ทุก ' + intervalDays + ' วัน</b>'
+      + (rainfall > 0 ? ' (หักน้ำฝนวันนี้ ' + rainfall + ' มม. แล้ว)' : '');
+    const noteEn = '<b>' + stageName + '</b> stage, canopy radius <b>' + radius + ' m</b> on <b>' + soilLabel + '</b> needs approximately <b>' + litersPerPeriod.toFixed(1) + ' liters/tree/10 days</b> — run the sprinkler for <b>' + Math.round(minutesPerEvent) + ' minutes every ' + intervalDays + ' day(s)</b>'
+      + (rainfall > 0 ? ' (after subtracting ' + rainfall + ' mm of rainfall today)' : '');
+
+    let combinedNote = currentLang === 'en' ? noteEn : noteTh;
+    if(runoffRisk){
+      combinedNote += '<br><br>' + t('runoffWarning') + appRateMmPerHr.toFixed(1) + t('runoffWarningMid') + soil.infiltration + t('runoffWarningEnd');
+    }
 
     renderWater({
       minutes: minutesPerEvent,
       freqDays: intervalDays,
-      note: currentLang === 'en' ? noteEn : noteTh,
+      note: combinedNote,
       rows: [
         [t('rowGrowthStage'), stageName],
         [t('rowKc'), stage.kc.toFixed(2)],
         [t('rowSprinklerAdj'), '× ' + SPRINKLER_FACTOR],
         [t('rowEtoEntered'), eto + ' ' + t('unitMm10d')],
         [t('rowEtcAdjusted'), etcPeriodMm.toFixed(2) + ' ' + t('unitMm10d')],
-        [t('rowCanopyArea'), canopyArea + ' ' + t('unitM2')],
+        [t('rowRainfallSub'), rainfall.toFixed(1) + ' ' + t('rainfallUnit')],
+        [t('rowNetEtc'), netEtcPeriodMm.toFixed(2) + ' ' + t('unitMm10d')],
+        [t('rowCanopyRadius'), radius + ' ' + t('unitMeter')],
+        [t('rowCanopyArea'), canopyArea.toFixed(1) + ' ' + t('unitM2')],
+        [t('rowSoilType'), soilLabel],
+        [t('rowInfiltration'), soil.infiltration + ' ' + t('unitMmPerHr')],
+        [t('rowAppRate'), appRateMmPerHr.toFixed(1) + ' ' + t('unitMmPerHr')],
         [t('rowWaterPer10d'), litersPerPeriod.toFixed(1) + ' ' + t('unitLPerTree')],
         [t('rowFreqTable'), t('every') + ' ' + intervalDays + ' ' + t('days')],
         [t('rowWaterPerEvent'), litersPerEvent.toFixed(1) + ' ' + t('unitLPerTree')],
@@ -1165,3 +1354,5 @@
 
 </body>
 </html>
+
+Update: canopy radius + rainfall + soil types (10/07/2026)
