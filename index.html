@@ -95,6 +95,38 @@
 
   .toggle-group{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
   .toggle-group.cols-2{ grid-template-columns:repeat(2,1fr); }
+
+  .radius-group{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+  .radius-btn{
+    border:1.5px solid var(--line); background:var(--surface-soft); border-radius:var(--radius-sm);
+    padding:10px 4px 8px; text-align:center; cursor:pointer; transition:.15s ease; -webkit-tap-highlight-color:transparent;
+  }
+  .radius-btn svg{ display:block; margin:0 auto 2px; }
+  .radius-btn .r-num{ font-family:'Kanit',sans-serif; font-size:14.5px; font-weight:600; color:var(--ink); line-height:1.15; }
+  .radius-btn .r-unit{ font-size:10px; color:var(--muted); font-weight:500; }
+  .radius-btn.active{ border-color:var(--leaf); background:var(--leaf-pale); box-shadow:0 0 0 1px var(--leaf) inset; }
+  .radius-btn.active .r-num{ color:var(--leaf); }
+  .radius-btn.active svg .r-canopy{ fill:#C5DBA0; stroke:var(--leaf); }
+  .radius-btn:active{ transform:scale(.96); }
+
+  .fert-recommend-box{
+    margin-bottom:16px; padding:12px 12px 4px; border:1.5px solid var(--pit-pale);
+    border-radius:var(--radius-sm); background:#FBF6EF;
+  }
+  .fert-recommend-label{ font-size:12.5px; font-weight:600; color:var(--pit); margin-bottom:2px; display:flex; align-items:center; gap:5px; }
+  .fert-reason{ font-size:12px; color:var(--muted); margin:0 0 10px; line-height:1.5; }
+  .fert-chip-row{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+  .fert-chip{
+    flex:1 1 auto; min-width:78px; border:1.5px solid var(--line); background:#fff; border-radius:10px;
+    padding:8px 10px; text-align:center; cursor:pointer; transition:.15s ease; -webkit-tap-highlight-color:transparent;
+  }
+  .fert-chip.primary{ border-color:#D8B27A; }
+  .fc-formula{ font-family:'Kanit',sans-serif; font-size:14.5px; font-weight:700; color:var(--ink); }
+  .fc-tag{ font-size:10px; color:var(--muted); font-weight:500; margin-top:2px; }
+  .fert-chip.primary .fc-tag{ color:#96700F; }
+  .fert-chip.selected{ border-color:var(--pit); background:var(--pit-pale); box-shadow:0 0 0 1px var(--pit) inset; }
+  .fert-chip.selected .fc-formula{ color:var(--pit); }
+  .fert-chip:active{ transform:scale(.96); }
   .toggle-btn{
     border:1.5px solid var(--line); background:var(--surface-soft); border-radius:var(--radius-sm);
     padding:14px 6px 10px; text-align:center; cursor:pointer; font-family:'Sarabun',sans-serif;
@@ -431,19 +463,15 @@
         </div>
       </details>
 
-      <div class="row2">
-        <div class="field">
-          <label class="field-label" for="canopyRadius" data-i18n="canopyRadiusLabel">รัศมีทรงพุ่ม</label>
-          <div class="select-wrap">
-            <select id="canopyRadius"></select>
-          </div>
-        </div>
-        <div class="field">
-          <label class="field-label" for="rainfall" data-i18n="rainfallLabel">น้ำฝนวันนี้</label>
-          <div class="unit-input">
-            <input type="number" id="rainfall" placeholder="0" min="0" step="0.1" value="0">
-            <span class="unit-tag" data-i18n="rainfallUnit">มม.</span>
-          </div>
+      <div class="field">
+        <label class="field-label" data-i18n="canopyRadiusLabel">รัศมีทรงพุ่ม</label>
+        <div class="radius-group" id="canopyRadiusGroup"></div>
+      </div>
+      <div class="field">
+        <label class="field-label" for="rainfall" data-i18n="rainfallLabel">ปริมาณน้ำฝน</label>
+        <div class="unit-input">
+          <input type="number" id="rainfall" placeholder="0" min="0" step="0.1" value="0">
+          <span class="unit-tag" data-i18n="rainfallUnit">มม.</span>
         </div>
       </div>
       <p class="hint" id="canopyAreaPreview" style="margin:10px 0 0;"></p>
@@ -471,6 +499,12 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">7</span><span data-i18n="stressCardH2">สถานการณ์น้ำของแปลง</span></h2>
+      <p class="hint" data-i18n="stressCardHint">เลือกสถานการณ์น้ำต้นทุนของแปลง เพื่อปรับลดปริมาณน้ำที่คำนวณได้ในช่วงขาดแคลนน้ำ</p>
+      <div class="stage-list" id="stressList"></div>
     </div>
 
     <button class="calc-btn water" onclick="calculateWater()">
@@ -526,6 +560,12 @@
     <div class="card">
       <h2><span class="num pit">4</span><span data-i18n="fertFormCardH2">สูตรปุ๋ยที่ใช้</span></h2>
       <p class="hint" data-i18n="fertFormCardHint">กรอกสัดส่วน N-P<sub>2</sub>O<sub>5</sub>-K<sub>2</sub>O บนหน้าถุงปุ๋ย เช่น ปุ๋ยสูตร 15-15-15</p>
+
+      <div class="fert-recommend-box">
+        <div class="fert-recommend-label">🌾 <span data-i18n="fertRecommendLabel2">สูตรปุ๋ยที่แนะนำสำหรับระยะนี้</span></div>
+        <div id="fertChips"></div>
+      </div>
+
       <div class="field">
         <label class="field-label" data-i18n="fertFormLabel">สูตรปุ๋ย (N - P₂O₅ - K₂O)</label>
         <div class="row3">
@@ -605,7 +645,7 @@
       canopyCardHint: 'เลือกรัศมีทรงพุ่มเพื่อคำนวณพื้นที่ (พื้นที่ = π × รัศมี²) และกรอกปริมาณน้ำฝนวันนี้เพื่อหักลบจากปริมาณน้ำที่ต้องรด',
       canopyRadiusLabel: 'รัศมีทรงพุ่ม',
       unitMeter: 'ม.',
-      rainfallLabel: 'น้ำฝนวันนี้', rainfallUnit: 'มม.',
+      rainfallLabel: 'ปริมาณน้ำฝน', rainfallUnit: 'มม.',
       canopyAreaPreviewPrefix: 'พื้นที่ทรงพุ่มโดยประมาณ',
       measureGuideSummary: 'ดูวิธีวัดรัศมีทรงพุ่ม',
       measureGuideTopView: 'มุมมองจากด้านบน',
@@ -632,6 +672,11 @@
       headsLabel: 'จำนวนหัวต่อต้น',
       flowLabel: 'อัตราการไหล/หัว',
       flowUnit: 'ล./ชม.',
+      stressCardH2: 'สถานการณ์น้ำของแปลง',
+      stressCardHint: 'เลือกสถานการณ์น้ำต้นทุนของแปลง เพื่อปรับลดปริมาณน้ำที่คำนวณได้ในช่วงขาดแคลนน้ำ',
+      stressNormalLabel: 'สถานการณ์ปกติ', stressNormalSub: 'ให้น้ำ 100% ของค่าที่คำนวณได้',
+      stressModerateLabel: 'มีแนวโน้มวิกฤต', stressModerateSub: 'ให้น้ำ 80% ของค่าที่คำนวณได้',
+      stressCriticalLabel: 'สถานการณ์วิกฤต', stressCriticalSub: 'ให้น้ำ 60% ของค่าที่คำนวณได้',
       calcWaterBtn: 'คำนวณเวลาให้น้ำ',
       waterResultEyebrow: 'ผลการคำนวณน้ำ',
       minutesUnit: 'นาที / ครั้ง', minutesCap: 'เวลาเปิดสปริงเกอร์',
@@ -643,6 +688,16 @@
       spaceRowLabel: 'ระยะระหว่างแถว',
       fertFormCardH2: 'สูตรปุ๋ยที่ใช้',
       fertFormCardHint: 'กรอกสัดส่วน N-P<sub>2</sub>O<sub>5</sub>-K<sub>2</sub>O บนหน้าถุงปุ๋ย เช่น ปุ๋ยสูตร 15-15-15',
+      fertRecommendLabel2: 'สูตรปุ๋ยที่แนะนำสำหรับระยะนี้',
+      fertTagPrimary: 'แนะนำ', fertTagAlt: 'ทางเลือก',
+      fertReasonS1: 'ระยะแตกตาดอก/เริ่มช่อดอก ต้องการฟอสฟอรัส-โพแทสเซียมสูงเพื่อกระตุ้นการออกดอก',
+      fertReasonS2: 'ระยะดอกบานถึงติดผล ยังเน้น P-K สูงเพื่อประคองการติดดอก-ติดผล',
+      fertReasonS3: 'ระยะผลอ่อนเจริญเติบโต เริ่มต้องการไนโตรเจนมากขึ้นเพื่อเร่งการเจริญของผล',
+      fertReasonS4: 'ระยะผลเจริญเติบโตเต็มที่ ต้องการไนโตรเจน-โพแทสเซียมเพื่อขยายขนาดผล',
+      fertReasonS5: 'ระยะผลโต + เริ่มสร้างตาดอกใหม่ ต้องการทั้งโพแทสเซียมบำรุงผลและฟอสฟอรัสเริ่มสร้างตาดอก',
+      fertReasonS6: 'ระยะเก็บเกี่ยว + สร้างตาดอก เน้นฟื้นฟูต้นหลังเก็บเกี่ยวและกระตุ้นดอกรอบใหม่',
+      fertReasonYoungVeg: 'ช่วงเจริญเติบโตทางลำต้น-ใบ ใช้สูตรเสมอภาคบำรุงต้นให้แข็งแรง',
+      fertReasonYoungPreFlower: 'ช่วงปลายปีที่ 3 ใกล้ออกดอกครั้งแรก เริ่มใช้สูตร P-K สูงเพื่อเตรียมความพร้อม',
       fertFormLabel: 'สูตรปุ๋ย (N - P₂O₅ - K₂O)',
       calcFertBtn: 'คำนวณปุ๋ย',
       fertResultEyebrow: 'ผลการคำนวณปุ๋ย',
@@ -659,7 +714,8 @@
       alertFertFormula: 'กรุณากรอกสูตรปุ๋ยอย่างน้อย 1 ธาตุ',
 
       rowRefLTD: 'ค่าอ้างอิง (L/T/D) — Netafim', unitLPerTreeDay: 'ล./ต้น/วัน',
-      rowSprinklerAdj: 'ปรับเพิ่ม 20% (มินิสปริงเกอร์)',
+      rowSprinklerAdj: 'ปรับเพิ่ม 15% (มินิสปริงเกอร์)',
+      rowWaterStress: 'สถานการณ์น้ำของแปลง',
       rowAdjustedWaterDay: 'ปริมาณน้ำ/วันที่ปรับแล้ว', unitLPerTree: 'ล./ต้น',
       rowFrequency: 'ความถี่', everyDay: 'ทุกวัน',
       rowTotalFlow: 'อัตราการไหลรวม', unitLPerHr: 'ล./ชม.',
@@ -682,6 +738,13 @@
       rowTargetN: 'เป้าหมาย N (Netafim)', rowTargetP: 'เป้าหมาย P2O5 (Netafim)', rowTargetK: 'เป้าหมาย K2O (Netafim)',
       unitKgPerHa: 'กก./ha',
       rowFertN: 'ปุ๋ยที่ต้องใส่ (เกณฑ์ N)', rowFertP: 'ปุ๋ยที่ต้องใส่ (เกณฑ์ P2O5)', rowFertK: 'ปุ๋ยที่ต้องใส่ (เกณฑ์ K2O)',
+      rowActualN: 'N ที่ได้รับจริง', rowActualP: 'P2O5 ที่ได้รับจริง', rowActualK: 'K2O ที่ได้รับจริง',
+      ratioOk: 'ตรงเป้า', ratioTimes: 'เท่าของเป้า',
+      fertOversupplyNone: 'ธาตุอื่นในสูตรได้รับใกล้เคียงเป้าหมาย',
+      fertOversupplyMild: 'ธาตุอื่นในสูตรได้รับเกินเป้าหมายเล็กน้อย (สูงสุดประมาณ',
+      fertOversupplyHigh: '⚠️ ธาตุ',
+      fertOversupplyHighMid: 'ในสูตรนี้จะได้รับเกินเป้าหมายค่อนข้างมาก (สูงสุดประมาณ',
+      fertOversupplyEnd: 'เท่า) ควรพิจารณาเลือกสูตรปุ๋ยที่มีสัดส่วนใกล้เคียงเป้าหมายมากกว่า หรือแบ่งใส่หลายครั้งด้วยสูตรต่างกัน',
       unitKg: 'กก.',
       noPctN: '- (ไม่ได้กรอก %N)', noPctP: '- (ไม่ได้กรอก %P2O5)', noPctK: '- (ไม่ได้กรอก %K2O)',
 
@@ -693,6 +756,10 @@
       gpsNoData: 'ไม่พบข้อมูลที่ใช้งานได้ในช่วง 25 วันล่าสุด',
       gpsSuccess: 'สำเร็จ', gpsAvgFrom: 'เฉลี่ยจาก', gpsDaysRange: 'วันล่าสุด, ช่วง',
       gpsFilledIn: 'กรอกลงในช่องด้านล่างให้แล้ว ตรวจสอบ/แก้ไขได้ตามต้องการ',
+      gpsLowConfidence: '⚠️ พบข้อมูลใช้งานได้เพียง',
+      gpsLowConfidenceMid: 'วันจาก 25 วันล่าสุด (ข้อมูลดาวเทียมอาจยังมาไม่ครบ) ค่า ETo ที่คำนวณได้จึงมีความไม่แน่นอนสูง แนะนำให้ตรวจสอบกับค่าจากกรมอุตุนิยมวิทยา หรือรอลองดึงใหม่อีกครั้งภายหลัง',
+      gpsTooFewDays: 'พบข้อมูลใช้งานได้เพียง',
+      gpsTooFewDaysEnd: 'วันในช่วง 25 วันล่าสุด ซึ่งน้อยเกินไปที่จะประมาณค่า ETo ได้อย่างน่าเชื่อถือ กรุณากรอกค่า ETo ด้วยตนเองจากกรมอุตุนิยมวิทยาแทน',
       gpsErrorPrefix: 'เกิดข้อผิดพลาด:', gpsManualFallback: 'กรุณากรอก ETo ด้วยตนเองแทน',
       gpsLocationDenied: 'ไม่สามารถเข้าถึงตำแหน่งได้:',
       gpsErr1: 'ถูกปฏิเสธสิทธิ์ตำแหน่ง (ต้องเปิดผ่าน https:// และอนุญาตสิทธิ์ตำแหน่งในเบราว์เซอร์)',
@@ -728,7 +795,7 @@
       canopyCardHint: 'Choose the canopy radius to compute area (area = π × radius²), and enter today\'s rainfall to subtract from the water needed',
       canopyRadiusLabel: 'Canopy Radius',
       unitMeter: 'm',
-      rainfallLabel: 'Rainfall Today', rainfallUnit: 'mm',
+      rainfallLabel: 'Rainfall Amount', rainfallUnit: 'mm',
       canopyAreaPreviewPrefix: 'Approx. canopy area',
       measureGuideSummary: 'How to measure canopy radius',
       measureGuideTopView: 'Top view',
@@ -755,6 +822,11 @@
       headsLabel: 'Heads per Tree',
       flowLabel: 'Flow Rate per Head',
       flowUnit: 'L/hr',
+      stressCardH2: 'Water Situation of the Plot',
+      stressCardHint: 'Choose the water-supply situation of the plot to scale down the calculated water amount during shortages',
+      stressNormalLabel: 'Normal', stressNormalSub: 'Apply 100% of the calculated amount',
+      stressModerateLabel: 'Emerging Shortage', stressModerateSub: 'Apply 80% of the calculated amount',
+      stressCriticalLabel: 'Critical Shortage', stressCriticalSub: 'Apply 60% of the calculated amount',
       calcWaterBtn: 'Calculate Irrigation Time',
       waterResultEyebrow: 'Irrigation Result',
       minutesUnit: 'minutes / event', minutesCap: 'Sprinkler run time',
@@ -766,6 +838,16 @@
       spaceRowLabel: 'Distance Between Rows',
       fertFormCardH2: 'Fertilizer Formula Used',
       fertFormCardHint: 'Enter the N-P<sub>2</sub>O<sub>5</sub>-K<sub>2</sub>O ratio printed on your fertilizer bag, e.g. formula 15-15-15',
+      fertRecommendLabel2: 'Recommended formulas for this period',
+      fertTagPrimary: 'Recommended', fertTagAlt: 'Alternative',
+      fertReasonS1: 'The floral bud break / inflorescence stage needs high phosphorus-potassium to induce flowering',
+      fertReasonS2: 'The flowering-to-fruit-set stage still favors high P-K to support flower and fruit retention',
+      fertReasonS3: 'The fruitlet growth stage starts needing more nitrogen to drive fruit development',
+      fertReasonS4: 'The fruit growth stage needs nitrogen-potassium to help the fruit size up',
+      fertReasonS5: 'The fruit growth + flower differentiation stage needs both potassium for the fruit and phosphorus for new flower buds',
+      fertReasonS6: 'The harvest + flower differentiation stage focuses on tree recovery and inducing the next flowering flush',
+      fertReasonYoungVeg: 'During vegetative growth, a balanced formula helps build a strong trunk and canopy',
+      fertReasonYoungPreFlower: 'Late in year 3, as the tree nears its first flowering, switch to a high P-K formula to prepare',
       fertFormLabel: 'Fertilizer Formula (N - P₂O₅ - K₂O)',
       calcFertBtn: 'Calculate Fertilizer',
       fertResultEyebrow: 'Fertilizer Result',
@@ -782,7 +864,8 @@
       alertFertFormula: 'Please enter at least one nutrient in the fertilizer formula',
 
       rowRefLTD: 'Reference value (L/T/D) — Netafim', unitLPerTreeDay: 'L/tree/day',
-      rowSprinklerAdj: '+20% adjustment (mini-sprinkler)',
+      rowSprinklerAdj: '+15% adjustment (mini-sprinkler)',
+      rowWaterStress: 'Plot water situation',
       rowAdjustedWaterDay: 'Adjusted water/day', unitLPerTree: 'L/tree',
       rowFrequency: 'Frequency', everyDay: 'Every day',
       rowTotalFlow: 'Total flow rate', unitLPerHr: 'L/hr',
@@ -805,6 +888,13 @@
       rowTargetN: 'N target (Netafim)', rowTargetP: 'P2O5 target (Netafim)', rowTargetK: 'K2O target (Netafim)',
       unitKgPerHa: 'kg/ha',
       rowFertN: 'Fertilizer needed (N basis)', rowFertP: 'Fertilizer needed (P2O5 basis)', rowFertK: 'Fertilizer needed (K2O basis)',
+      rowActualN: 'Actual N delivered', rowActualP: 'Actual P2O5 delivered', rowActualK: 'Actual K2O delivered',
+      ratioOk: 'on target', ratioTimes: '&times; target',
+      fertOversupplyNone: 'Other nutrients in this formula are close to target',
+      fertOversupplyMild: 'Other nutrients in this formula are slightly oversupplied (up to about',
+      fertOversupplyHigh: '⚠️',
+      fertOversupplyHighMid: 'in this formula will be considerably oversupplied (up to about',
+      fertOversupplyEnd: 'the target) — consider a formula whose ratio is closer to target, or split applications using different formulas',
       unitKg: 'kg',
       noPctN: '- (no %N entered)', noPctP: '- (no %P2O5 entered)', noPctK: '- (no %K2O entered)',
 
@@ -816,6 +906,10 @@
       gpsNoData: 'No usable data found in the last 25 days',
       gpsSuccess: 'Success', gpsAvgFrom: 'averaged from', gpsDaysRange: 'recent days, range',
       gpsFilledIn: 'Filled into the field below. Check/edit as needed.',
+      gpsLowConfidence: '⚠️ Only',
+      gpsLowConfidenceMid: 'usable day(s) found out of the last 25 (satellite data may not be fully updated yet). The estimated ETo is therefore uncertain — please cross-check against the Thai Meteorological Department, or try fetching again later.',
+      gpsTooFewDays: 'Only',
+      gpsTooFewDaysEnd: 'usable day(s) found in the last 25 days, which is too few for a reliable ETo estimate. Please enter ETo manually from the Meteorological Department instead.',
       gpsErrorPrefix: 'Error:', gpsManualFallback: 'Please enter ETo manually instead',
       gpsLocationDenied: 'Could not access location:',
       gpsErr1: 'Location permission denied (must be opened via https:// with location permission allowed in the browser)',
@@ -854,9 +948,11 @@
 
     renderMonths();
     renderStages();
-    renderRadiusOptions();
+    renderRadiusButtons();
     renderSoils();
+    renderStress();
     updateCanopyAreaPreview();
+    renderFertChips();
 
     try{ localStorage.setItem('avocado_app_lang', lang); }catch(e){}
   }
@@ -889,15 +985,54 @@
     {id:'sandy_loam', nameKey:'soilSandyLoam',  infiltration:35,   interval:1},
     {id:'sand',       nameKey:'soilSand',       infiltration:45,   interval:1}
   ];
-  const RADII = [1,2,3,4,5,6];
+  const RADII = [1, 1.5, 2, 2.5, 3, 3.5, 4];
 
-  const SPRINKLER_FACTOR = 1.2;
+  // Common commercial NPK compound fertilizer grades sold in Thailand for fruit trees
+  const FERT_FORMULAS = {
+    f151515: {n:15, p:15, k:15, label:'15-15-15'},
+    f161616: {n:16, p:16, k:16, label:'16-16-16'},
+    f131321: {n:13, p:13, k:21, label:'13-13-21'},
+    f82424:  {n:8,  p:24, k:24, label:'8-24-24'},
+    f92424:  {n:9,  p:24, k:24, label:'9-24-24'},
+    f122412: {n:12, p:24, k:12, label:'12-24-12'}
+  };
+
+  // Recommended formula options per mature growth stage, following general horticultural
+  // practice for avocado (P-K high to induce flowering, N high during fruit growth)
+  const STAGE_FERT_MAP = {
+    1: {items:[{f:'f82424',tag:'primary'},{f:'f92424',tag:'alt'},{f:'f122412',tag:'alt'}], reasonKey:'fertReasonS1'},
+    2: {items:[{f:'f122412',tag:'primary'},{f:'f82424',tag:'alt'},{f:'f131321',tag:'alt'}], reasonKey:'fertReasonS2'},
+    3: {items:[{f:'f151515',tag:'primary'},{f:'f131321',tag:'alt'},{f:'f161616',tag:'alt'}], reasonKey:'fertReasonS3'},
+    4: {items:[{f:'f151515',tag:'primary'},{f:'f131321',tag:'alt'},{f:'f161616',tag:'alt'}], reasonKey:'fertReasonS4'},
+    5: {items:[{f:'f131321',tag:'primary'},{f:'f82424',tag:'alt'},{f:'f122412',tag:'alt'}], reasonKey:'fertReasonS5'},
+    6: {items:[{f:'f151515',tag:'primary'},{f:'f82424',tag:'alt'},{f:'f92424',tag:'alt'}], reasonKey:'fertReasonS6'}
+  };
+
+  function getYoungFertMap(year, monthIdx){
+    // Year 3, Oct-Dec (index 9-11): approaching first flowering — favor P-K
+    if(year === 3 && monthIdx >= 9){
+      return {items:[{f:'f122412',tag:'primary'},{f:'f82424',tag:'alt'},{f:'f151515',tag:'alt'}], reasonKey:'fertReasonYoungPreFlower'};
+    }
+    return {items:[{f:'f151515',tag:'primary'},{f:'f161616',tag:'alt'}], reasonKey:'fertReasonYoungVeg'};
+  }
+
+  const SPRINKLER_FACTOR = 1.15;
   const RAI_M2 = 1600;
   const HA_M2 = 10000;
+
+  // Water-stress scenarios for the plot — scales the calculated irrigation amount down
+  // during water shortages, on top of the normal ETo/LTD-based calculation
+  const WATER_STRESS_SCENARIOS = [
+    {id:'normal',   factor:1.0, labelKey:'stressNormalLabel',   subKey:'stressNormalSub'},
+    {id:'moderate', factor:0.8, labelKey:'stressModerateLabel', subKey:'stressModerateSub'},
+    {id:'critical', factor:0.6, labelKey:'stressCriticalLabel', subKey:'stressCriticalSub'}
+  ];
 
   let mode = 'young';
   let selectedStage = 3;
   let selectedSoil = 'loam';
+  let selectedRadius = 3;
+  let selectedStress = 'normal';
   let activeTab = 'water';
   let currentLang = 'th';
 
@@ -930,28 +1065,83 @@
         document.querySelectorAll('.stage-item').forEach(function(el){ el.classList.remove('active'); });
         item.classList.add('active');
         selectedStage = s.id;
+        renderFertChips();
       });
       stageListEl.appendChild(item);
     });
   }
   renderStages();
 
-  const canopyRadiusSel = document.getElementById('canopyRadius');
-  function renderRadiusOptions(){
-    const prevVal = canopyRadiusSel.value;
-    canopyRadiusSel.innerHTML = '';
-    RADII.forEach(function(r){
-      const opt = document.createElement('option');
-      opt.value = r;
-      opt.textContent = r + ' ' + t('unitMeter');
-      canopyRadiusSel.appendChild(opt);
+  const fertChipsEl = document.getElementById('fertChips');
+  function getCurrentFertMap(){
+    if(mode === 'young'){
+      const year = parseInt(document.getElementById('year').value) || 1;
+      const monthIdx = parseInt(youngMonthSel.value) || 0;
+      return getYoungFertMap(year, monthIdx);
+    }
+    return STAGE_FERT_MAP[selectedStage] || {items:[], reasonKey:''};
+  }
+
+  function renderFertChips(){
+    const map = getCurrentFertMap();
+    const reasonHtml = map.reasonKey ? '<p class="fert-reason">' + t(map.reasonKey) + '</p>' : '';
+    let chipsHtml = '<div class="fert-chip-row">';
+    map.items.forEach(function(it){
+      const f = FERT_FORMULAS[it.f];
+      const tagLabel = it.tag === 'primary' ? t('fertTagPrimary') : t('fertTagAlt');
+      chipsHtml += '<div class="fert-chip ' + it.tag + '" data-n="' + f.n + '" data-p="' + f.p + '" data-k="' + f.k + '">' +
+        '<div class="fc-formula">' + f.label + '</div><div class="fc-tag">' + tagLabel + '</div></div>';
     });
-    canopyRadiusSel.value = prevVal !== '' ? prevVal : '3';
+    chipsHtml += '</div>';
+    fertChipsEl.innerHTML = reasonHtml + chipsHtml;
+    fertChipsEl.querySelectorAll('.fert-chip').forEach(function(chip){
+      chip.addEventListener('click', function(){
+        fertChipsEl.querySelectorAll('.fert-chip').forEach(function(c){ c.classList.remove('selected'); });
+        chip.classList.add('selected');
+        document.getElementById('fertN').value = chip.dataset.n;
+        document.getElementById('fertP').value = chip.dataset.p;
+        document.getElementById('fertK').value = chip.dataset.k;
+      });
+    });
+  }
+  renderFertChips();
+
+  document.getElementById('year').addEventListener('change', renderFertChips);
+  youngMonthSel.addEventListener('change', renderFertChips);
+
+  const canopyRadiusGroup = document.getElementById('canopyRadiusGroup');
+
+  function radiusIconSVG(r){
+    const minR = 1, maxR = 4, minVis = 7, maxVis = 15.5;
+    const clamped = Math.min(Math.max(r, minR), maxR);
+    const vis = minVis + (clamped - minR) / (maxR - minR) * (maxVis - minVis);
+    const cx = 18, cy = 15;
+    const trunkTop = cy + vis - 2.5;
+    return '<svg viewBox="0 0 36 40" width="34" height="38">' +
+        '<circle class="r-canopy" cx="' + cx + '" cy="' + cy + '" r="' + vis.toFixed(1) + '" fill="#DCE7C9" stroke="#7B9A4E" stroke-width="1.4"/>' +
+        '<rect x="' + (cx - 1.6) + '" y="' + trunkTop.toFixed(1) + '" width="3.2" height="9" rx="1" fill="#6B4226"/>' +
+      '</svg>';
+  }
+
+  function renderRadiusButtons(){
+    canopyRadiusGroup.innerHTML = '';
+    RADII.forEach(function(r){
+      const btn = document.createElement('div');
+      btn.className = 'radius-btn' + (r === selectedRadius ? ' active' : '');
+      btn.dataset.radius = r;
+      btn.innerHTML = radiusIconSVG(r) + '<div class="r-num">' + r + '</div><div class="r-unit">' + t('unitMeter') + '</div>';
+      btn.addEventListener('click', function(){
+        canopyRadiusGroup.querySelectorAll('.radius-btn').forEach(function(el){ el.classList.remove('active'); });
+        btn.classList.add('active');
+        selectedRadius = r;
+        updateCanopyAreaPreview();
+      });
+      canopyRadiusGroup.appendChild(btn);
+    });
   }
 
   function getCanopyArea(){
-    const r = parseFloat(canopyRadiusSel.value) || 0;
-    return Math.PI * r * r;
+    return Math.PI * selectedRadius * selectedRadius;
   }
 
   function updateCanopyAreaPreview(){
@@ -983,6 +1173,28 @@
     });
   }
 
+  const stressListEl = document.getElementById('stressList');
+  function renderStress(){
+    stressListEl.innerHTML = '';
+    WATER_STRESS_SCENARIOS.forEach(function(s){
+      const item = document.createElement('div');
+      item.className = 'stage-item' + (s.id===selectedStress ? ' active' : '');
+      item.dataset.stress = s.id;
+      const label = t(s.labelKey);
+      const subText = t(s.subKey);
+      item.innerHTML =
+        '<div class="s-left"><div class="s-num">' + Math.round(s.factor*100) + '%</div>' +
+        '<div><div class="s-name">' + label + '</div>' +
+        '<div class="s-kc" style="margin-top:2px;">' + subText + '</div></div></div>';
+      item.addEventListener('click', function(){
+        stressListEl.querySelectorAll('.stage-item').forEach(function(el){ el.classList.remove('active'); });
+        item.classList.add('active');
+        selectedStress = s.id;
+      });
+      stressListEl.appendChild(item);
+    });
+  }
+
   const modeGroup = document.getElementById('modeGroup');
   modeGroup.querySelectorAll('.mode-btn').forEach(function(btn){
     btn.addEventListener('click', function(){
@@ -990,6 +1202,7 @@
       btn.classList.add('active');
       mode = btn.dataset.mode;
       updateModeVisibility();
+      renderFertChips();
       document.getElementById('waterResult').style.display = 'none';
       document.getElementById('fertResult').style.display = 'none';
     });
@@ -1026,10 +1239,10 @@
       });
     });
   }
-  renderRadiusOptions();
+  renderRadiusButtons();
   renderSoils();
+  renderStress();
   updateCanopyAreaPreview();
-  document.getElementById('canopyRadius').addEventListener('change', updateCanopyAreaPreview);
 
   function calculateWater(){
     const heads = parseFloat(document.getElementById('heads').value);
@@ -1040,17 +1253,25 @@
     }
     const totalFlowLph = heads * flow;
 
+    const stress = WATER_STRESS_SCENARIOS.find(function(s){ return s.id===selectedStress; }) || WATER_STRESS_SCENARIOS[0];
+    const stressFactor = stress.factor;
+    const stressLabel = t(stress.labelKey);
+    const stressRow = stressFactor === 1
+      ? [t('rowWaterStress'), stressLabel]
+      : [t('rowWaterStress'), stressLabel + ' (× ' + stressFactor + ')'];
+
     if(mode === 'young'){
       const year = parseInt(document.getElementById('year').value);
       const monthIdx = parseInt(youngMonthSel.value);
       const monthName = (currentLang === 'en' ? MONTHS_EN : MONTHS)[monthIdx];
       const ltd = YOUNG_LTD[year][monthIdx];
       const ltdAdjusted = ltd * SPRINKLER_FACTOR;
+      const ltdFinal = ltdAdjusted * stressFactor;
       const intervalDays = 1;
-      const minutesPerEvent = (ltdAdjusted / totalFlowLph) * 60;
+      const minutesPerEvent = (ltdFinal / totalFlowLph) * 60;
 
-      const noteTh = 'ต้นปีที่ <b>' + year + '</b> เดือน<b>' + monthName + '</b> ต้องการน้ำประมาณ <b>' + ltdAdjusted.toFixed(1) + ' ลิตร/ต้น/วัน</b> — เปิดสปริงเกอร์ทุกวัน ครั้งละ <b>' + Math.round(minutesPerEvent) + ' นาที</b>';
-      const noteEn = '<b>Year ' + year + '</b> tree, <b>' + monthName + '</b> needs approximately <b>' + ltdAdjusted.toFixed(1) + ' liters/tree/day</b> — run the sprinkler every day for <b>' + Math.round(minutesPerEvent) + ' minutes</b>';
+      const noteTh = 'ต้นปีที่ <b>' + year + '</b> เดือน<b>' + monthName + '</b> ต้องการน้ำประมาณ <b>' + ltdFinal.toFixed(1) + ' ลิตร/ต้น/วัน</b> — เปิดสปริงเกอร์ทุกวัน ครั้งละ <b>' + Math.round(minutesPerEvent) + ' นาที</b>';
+      const noteEn = '<b>Year ' + year + '</b> tree, <b>' + monthName + '</b> needs approximately <b>' + ltdFinal.toFixed(1) + ' liters/tree/day</b> — run the sprinkler every day for <b>' + Math.round(minutesPerEvent) + ' minutes</b>';
 
       renderWater({
         minutes: minutesPerEvent,
@@ -1059,7 +1280,8 @@
         rows: [
           [t('rowRefLTD'), ltd + ' ' + t('unitLPerTreeDay')],
           [t('rowSprinklerAdj'), '× ' + SPRINKLER_FACTOR],
-          [t('rowAdjustedWaterDay'), ltdAdjusted.toFixed(1) + ' ' + t('unitLPerTree')],
+          stressRow,
+          [t('rowAdjustedWaterDay'), ltdFinal.toFixed(1) + ' ' + t('unitLPerTree')],
           [t('rowFrequency'), t('everyDay')],
           [t('rowTotalFlow'), totalFlowLph + ' ' + t('unitLPerHr')]
         ]
@@ -1075,14 +1297,15 @@
     const stage = STAGES.find(function(s){ return s.id===selectedStage; });
     const stageName = currentLang === 'en' ? stage.name_en : stage.name;
     const soil = SOILS.find(function(s){ return s.id===selectedSoil; });
-    const radius = parseFloat(canopyRadiusSel.value) || 0;
+    const radius = selectedRadius;
     const canopyArea = getCanopyArea();
     const rainfall = parseFloat(document.getElementById('rainfall').value) || 0;
     const intervalDays = soil.interval;
 
     const etcPeriodMm = eto * stage.kc * SPRINKLER_FACTOR;
     const netEtcPeriodMm = Math.max(0, etcPeriodMm - rainfall);
-    const litersPerPeriod = netEtcPeriodMm * canopyArea;
+    const litersPerPeriodBase = netEtcPeriodMm * canopyArea;
+    const litersPerPeriod = litersPerPeriodBase * stressFactor;
     const eventsPerPeriod = 10 / intervalDays;
     const litersPerEvent = litersPerPeriod / eventsPerPeriod;
     const minutesPerEvent = (litersPerEvent / totalFlowLph) * 60;
@@ -1115,6 +1338,7 @@
         [t('rowEtcAdjusted'), etcPeriodMm.toFixed(2) + ' ' + t('unitMm10d')],
         [t('rowRainfallSub'), rainfall.toFixed(1) + ' ' + t('rainfallUnit')],
         [t('rowNetEtc'), netEtcPeriodMm.toFixed(2) + ' ' + t('unitMm10d')],
+        stressRow,
         [t('rowCanopyRadius'), radius + ' ' + t('unitMeter')],
         [t('rowCanopyArea'), canopyArea.toFixed(1) + ' ' + t('unitM2')],
         [t('rowSoilType'), soilLabel],
@@ -1197,12 +1421,49 @@
       else if(recommended === prodK) limiting = 'K₂O';
     }
 
+    // Actual delivered amount of each nutrient at the recommended product dose,
+    // and how many times over its own target that represents (only for nutrients
+    // actually present in the entered formula, i.e. fert% > 0).
+    const deliveredN = (recommended !== null && fertN > 0) ? recommended * (fertN/100) : null;
+    const deliveredP = (recommended !== null && fertP > 0) ? recommended * (fertP/100) : null;
+    const deliveredK = (recommended !== null && fertK > 0) ? recommended * (fertK/100) : null;
+    const ratioN = (deliveredN !== null && N_tree > 0) ? deliveredN / N_tree : null;
+    const ratioP = (deliveredP !== null && P_tree > 0) ? deliveredP / P_tree : null;
+    const ratioK = (deliveredK !== null && K_tree > 0) ? deliveredK / K_tree : null;
+
+    // Find the largest oversupply ratio among the non-limiting nutrients (the limiting
+    // nutrient itself will always be ~1.0x by construction) and which nutrients it applies to.
+    const ratioEntries = [
+      {label:'N', ratio: ratioN},
+      {label:'P₂O₅', ratio: ratioP},
+      {label:'K₂O', ratio: ratioK}
+    ].filter(function(e){ return e.ratio !== null && isFinite(e.ratio); });
+    const OVERSUPPLY_MILD = 1.15;
+    const OVERSUPPLY_HIGH = 2.0;
+    const overRatios = ratioEntries.filter(function(e){ return e.ratio > OVERSUPPLY_MILD; });
+    const maxOverRatio = overRatios.length ? Math.max.apply(null, overRatios.map(function(e){ return e.ratio; })) : 1;
+    const highOverNutrients = overRatios.filter(function(e){ return e.ratio >= OVERSUPPLY_HIGH; }).map(function(e){ return e.label; });
+
+    let oversupplyHtml;
+    if(overRatios.length === 0){
+      oversupplyHtml = t('fertOversupplyNone');
+    } else if(highOverNutrients.length > 0){
+      oversupplyHtml = t('fertOversupplyHigh') + ' <b>' + highOverNutrients.join(', ') + '</b> ' + t('fertOversupplyHighMid') + ' <b>' + maxOverRatio.toFixed(1) + '</b> ' + t('fertOversupplyEnd');
+    } else {
+      oversupplyHtml = t('fertOversupplyMild') + ' <b>' + maxOverRatio.toFixed(1) + '</b> ' + t('fertOversupplyEnd');
+    }
+
     document.getElementById('outFert').textContent = recommended !== null ? recommended.toFixed(2) : '–';
     document.getElementById('outFertUnit').textContent = t('unitKgPerTree') + ' ' + periodLabel;
 
-    const noteTh = 'สวนความหนาแน่น <b>' + Math.round(treesPerRai) + ' ต้น/ไร่</b> (' + Math.round(treesPerHa) + ' ต้น/เฮกตาร์) ช่วง <b>' + periodLabel + '</b> — ใส่ปุ๋ยสูตรที่กรอกไว้ประมาณ <b>' + (recommended!==null ? recommended.toFixed(2)+' กก./ต้น' : '-') + '</b> เพื่อให้ธาตุ <b>' + limiting + '</b> ครบตามเป้า (ธาตุอื่นในสูตรอาจได้รับเกินความต้องการเล็กน้อย ควรเลือกสูตรปุ๋ยที่มีสัดส่วนใกล้เคียงเป้าหมายที่สุด)';
-    const noteEn = 'At a density of <b>' + Math.round(treesPerRai) + ' trees/rai</b> (' + Math.round(treesPerHa) + ' trees/hectare) during <b>' + periodLabel + '</b> — apply approximately <b>' + (recommended!==null ? recommended.toFixed(2)+' kg/tree' : '-') + '</b> of the fertilizer formula entered, to meet the <b>' + limiting + '</b> target (other nutrients may be slightly oversupplied; choose a fertilizer formula whose ratio is as close as possible to the target)';
+    const noteTh = 'สวนความหนาแน่น <b>' + Math.round(treesPerRai) + ' ต้น/ไร่</b> (' + Math.round(treesPerHa) + ' ต้น/เฮกตาร์) ช่วง <b>' + periodLabel + '</b> — ใส่ปุ๋ยสูตรที่กรอกไว้ประมาณ <b>' + (recommended!==null ? recommended.toFixed(2)+' กก./ต้น' : '-') + '</b> เพื่อให้ธาตุ <b>' + limiting + '</b> ครบตามเป้า<br><br>' + oversupplyHtml;
+    const noteEn = 'At a density of <b>' + Math.round(treesPerRai) + ' trees/rai</b> (' + Math.round(treesPerHa) + ' trees/hectare) during <b>' + periodLabel + '</b> — apply approximately <b>' + (recommended!==null ? recommended.toFixed(2)+' kg/tree' : '-') + '</b> of the fertilizer formula entered, to meet the <b>' + limiting + '</b> target<br><br>' + oversupplyHtml;
     document.getElementById('fertNote').innerHTML = currentLang === 'en' ? noteEn : noteTh;
+
+    function ratioText(ratio){
+      if(ratio === null || !isFinite(ratio)) return null;
+      return Math.abs(ratio - 1) < 0.03 ? t('ratioOk') : (ratio.toFixed(1) + '&times; ' + t('ratioTimes'));
+    }
 
     document.getElementById('fertBreakdown').innerHTML =
       '<div><span>' + t('rowAreaPerTree') + '</span><span>' + areaPerTree.toFixed(1) + ' ' + t('unitM2') + '</span></div>' +
@@ -1212,7 +1473,10 @@
       '<div><span>' + t('rowTargetK') + '</span><span>' + K_ha + ' ' + t('unitKgPerHa') + ' &rarr; ' + K_tree.toFixed(3) + ' ' + t('unitKgPerTree') + '</span></div>' +
       '<div><span>' + t('rowFertN') + '</span><span>' + (prodN !== null ? prodN.toFixed(2)+' '+t('unitKg') : t('noPctN')) + '</span></div>' +
       '<div><span>' + t('rowFertP') + '</span><span>' + (prodP !== null ? prodP.toFixed(2)+' '+t('unitKg') : t('noPctP')) + '</span></div>' +
-      '<div><span>' + t('rowFertK') + '</span><span>' + (prodK !== null ? prodK.toFixed(2)+' '+t('unitKg') : t('noPctK')) + '</span></div>';
+      '<div><span>' + t('rowFertK') + '</span><span>' + (prodK !== null ? prodK.toFixed(2)+' '+t('unitKg') : t('noPctK')) + '</span></div>' +
+      (deliveredN !== null ? '<div><span>' + t('rowActualN') + '</span><span>' + deliveredN.toFixed(3) + ' ' + t('unitKg') + ' (' + ratioText(ratioN) + ')</span></div>' : '') +
+      (deliveredP !== null ? '<div><span>' + t('rowActualP') + '</span><span>' + deliveredP.toFixed(3) + ' ' + t('unitKg') + ' (' + ratioText(ratioP) + ')</span></div>' : '') +
+      (deliveredK !== null ? '<div><span>' + t('rowActualK') + '</span><span>' + deliveredK.toFixed(3) + ' ' + t('unitKg') + ' (' + ratioText(ratioK) + ')</span></div>' : '');
 
     const card = document.getElementById('fertResult');
     card.style.display = 'block';
@@ -1325,12 +1589,28 @@
             throw new Error(t('gpsNoData'));
           }
 
+          // A 10-day ETo total extrapolated from very few valid days is unreliable
+          // (e.g. NASA POWER reporting lag can leave most of the recent window unfilled).
+          // Below MIN_DAYS_HARD we refuse to auto-fill at all; between that and
+          // MIN_DAYS_SOFT we fill in the value but flag it clearly as low-confidence.
+          const MIN_DAYS_HARD = 3;
+          const MIN_DAYS_SOFT = 7;
+
+          if(validDays.length < MIN_DAYS_HARD){
+            throw new Error(t('gpsTooFewDays') + ' ' + validDays.length + ' ' + t('gpsTooFewDaysEnd'));
+          }
+
           const last10 = validDays.slice(-10);
           const etoDaily = last10.map(day => calcEtoPM(day.tmax, day.tmin, day.rh, day.ws, day.rs, lat, elevation, dayOfYear(day.date)));
           const etoSum10 = (etoDaily.reduce((s,v) => s+v, 0)) * (10 / etoDaily.length);
 
           document.getElementById('eto').value = etoSum10.toFixed(1);
-          setGpsStatus(t('gpsSuccess') + ' — ETo ' + etoSum10.toFixed(1) + ' ' + t('unitMm10d') + ' (' + t('gpsAvgFrom') + ' ' + last10.length + ' ' + t('gpsDaysRange') + ' ' + last10[0].date + '–' + last10[last10.length-1].date + ') ' + t('gpsFilledIn'), 'success');
+
+          if(last10.length < MIN_DAYS_SOFT){
+            setGpsStatus(t('gpsLowConfidence') + ' ' + last10.length + ' ' + t('gpsLowConfidenceMid'), 'error');
+          } else {
+            setGpsStatus(t('gpsSuccess') + ' — ETo ' + etoSum10.toFixed(1) + ' ' + t('unitMm10d') + ' (' + t('gpsAvgFrom') + ' ' + last10.length + ' ' + t('gpsDaysRange') + ' ' + last10[0].date + '–' + last10[last10.length-1].date + ') ' + t('gpsFilledIn'), 'success');
+          }
 
         } catch(err){
           setGpsStatus(t('gpsErrorPrefix') + ' ' + err.message + ' — ' + t('gpsManualFallback'), 'error');
