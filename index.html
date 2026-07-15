@@ -346,7 +346,7 @@
   <!-- ช่วงอายุ (ใช้ร่วมกันทั้งสองแท็บ) -->
   <div class="card">
     <h2><span class="num">1</span><span data-i18n="modeCardH2">ช่วงอายุของต้น</span></h2>
-    <p class="hint" data-i18n="modeCardHint">ใช้กำหนดทั้งค่าน้ำและค่าปุ๋ย เพราะ Netafim อ้างอิงช่วงอายุ/ระยะเดียวกัน</p>
+    <p class="hint" data-i18n="modeCardHint">ใช้กำหนดทั้งการให้น้ำและการใส่ปุ๋ยตามช่วงอายุ/ระยะของต้น</p>
     <div class="mode-group" id="modeGroup">
       <div class="mode-btn active" data-mode="young">
         <div class="t-label" data-i18n="modeYoungLabel">🌱 ต้นยังไม่ให้ผล</div>
@@ -501,12 +501,6 @@
       </div>
     </div>
 
-    <div class="card">
-      <h2><span class="num">7</span><span data-i18n="stressCardH2">สถานการณ์น้ำของแปลง</span></h2>
-      <p class="hint" data-i18n="stressCardHint">เลือกสถานการณ์น้ำต้นทุนของแปลง เพื่อปรับลดปริมาณน้ำที่คำนวณได้ในช่วงขาดแคลนน้ำ</p>
-      <div class="stage-list" id="stressList"></div>
-    </div>
-
     <button class="calc-btn water" onclick="calculateWater()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2 C15 2 18 8 18 14 C18 19 15 22 12 22 C9 22 6 19 6 14 C6 8 9 2 12 2Z" stroke="#2A1B05" stroke-width="1.8"/></svg>
       <span data-i18n="calcWaterBtn">คำนวณเวลาให้น้ำ</span>
@@ -536,33 +530,34 @@
 
   <!-- ===== แท็บปุ๋ย ===== -->
   <div id="fertTab" class="hidden">
+
+    <!-- Round selector (producing trees only) -->
+    <div class="card" id="roundCard">
+      <h2><span class="num pit">3</span><span data-i18n="roundCardH2">ช่วงการใส่ปุ๋ย (แบ่งใส่ 4 ครั้ง/ปี)</span></h2>
+      <p class="hint" data-i18n="roundCardHint">ไม้ผลไม่ได้ใส่ปุ๋ยทุกเดือน แต่แบ่งใส่ตามระยะพัฒนาการปีละ 3–4 ครั้ง เลือกช่วงที่ต้นอยู่ตอนนี้</p>
+      <div class="stage-list" id="roundList"></div>
+    </div>
+
+    <!-- Canopy diameter drives per-tree dose (Thai canopy-diameter rule) -->
     <div class="card">
-      <h2><span class="num pit">3</span><span data-i18n="spaceCardH2">ระยะปลูก</span></h2>
-      <p class="hint" data-i18n="spaceCardHint">ใช้คำนวณจำนวนต้นต่อไร่ เพื่อแปลงปริมาณปุ๋ยจาก กก./ha เป็น กก./ต้น</p>
-      <div class="row2">
-        <div class="field">
-          <label class="field-label" for="spaceTree" data-i18n="spaceTreeLabel">ระยะระหว่างต้น</label>
-          <div class="unit-input">
-            <input type="number" id="spaceTree" placeholder="เช่น 6" min="0" step="0.1">
-            <span class="unit-tag">ม.</span>
-          </div>
+      <h2><span class="num pit">4</span><span data-i18n="canopyDiamCardH2">ขนาดทรงพุ่ม</span></h2>
+      <p class="hint" data-i18n="canopyDiamCardHint">ใช้กำหนดปริมาณปุ๋ยต่อต้น ตามหลัก “เส้นผ่านศูนย์กลางทรงพุ่ม (เมตร)” ที่ใช้กับไม้ผลของไทย</p>
+      <div class="field">
+        <label class="field-label" for="canopyDiam" data-i18n="canopyDiamLabel">เส้นผ่านศูนย์กลางทรงพุ่ม</label>
+        <div class="unit-input">
+          <input type="number" id="canopyDiam" placeholder="เช่น 4" min="0" step="0.1">
+          <span class="unit-tag" data-i18n="unitMeter">ม.</span>
         </div>
-        <div class="field">
-          <label class="field-label" for="spaceRow" data-i18n="spaceRowLabel">ระยะระหว่างแถว</label>
-          <div class="unit-input">
-            <input type="number" id="spaceRow" placeholder="เช่น 7" min="0" step="0.1">
-            <span class="unit-tag">ม.</span>
-          </div>
-        </div>
+        <p class="hint" id="fertDosePreview" style="margin:8px 0 0;"></p>
       </div>
     </div>
 
     <div class="card">
-      <h2><span class="num pit">4</span><span data-i18n="fertFormCardH2">สูตรปุ๋ยที่ใช้</span></h2>
-      <p class="hint" data-i18n="fertFormCardHint">กรอกสัดส่วน N-P<sub>2</sub>O<sub>5</sub>-K<sub>2</sub>O บนหน้าถุงปุ๋ย เช่น ปุ๋ยสูตร 15-15-15</p>
+      <h2><span class="num pit">5</span><span data-i18n="fertFormCardH2">สูตรปุ๋ยที่จะใช้</span></h2>
+      <p class="hint" data-i18n="fertFormCardHint">เลือกสูตรที่แนะนำสำหรับช่วงนี้ หรือกรอกสัดส่วน N-P<sub>2</sub>O<sub>5</sub>-K<sub>2</sub>O จากหน้าถุงเอง</p>
 
       <div class="fert-recommend-box">
-        <div class="fert-recommend-label">🌾 <span data-i18n="fertRecommendLabel2">สูตรปุ๋ยที่แนะนำสำหรับระยะนี้</span></div>
+        <div class="fert-recommend-label">🌾 <span data-i18n="fertRecommendLabel2">สูตรปุ๋ยที่แนะนำสำหรับช่วงนี้</span></div>
         <div id="fertChips"></div>
       </div>
 
@@ -585,14 +580,14 @@
       <div class="eyebrow" data-i18n="fertResultEyebrow">ผลการคำนวณปุ๋ย</div>
       <div class="result-grid" style="grid-template-columns:1fr;">
         <div class="result-box wide">
-          <div style="font-size:13px;color:#E3C9A8;margin-bottom:4px;" data-i18n="fertRecommendLabel">ปริมาณปุ๋ยที่แนะนำ (อิงธาตุที่ต้องการมากสุด)</div>
+          <div style="font-size:13px;color:#E3C9A8;margin-bottom:4px;" id="fertResultCaption" data-i18n="fertRecommendLabel">ปริมาณปุ๋ยที่ใส่ในครั้งนี้</div>
           <div class="big" id="outFert">–</div>
-          <div class="unit" id="outFertUnit">กก. / ต้น / ช่วง</div>
+          <div class="unit" id="outFertUnit">กก. / ต้น / ครั้ง</div>
         </div>
       </div>
       <div class="result-note" id="fertNote"></div>
       <details class="breakdown">
-        <summary data-i18n="viewDetailsFert">ดูรายละเอียดการคำนวณปุ๋ย</summary>
+        <summary data-i18n="viewDetailsFert">ดูรายละเอียดและโปรแกรมทั้งปี</summary>
         <div class="breakdown-table" id="fertBreakdown"></div>
       </details>
     </div>
@@ -608,7 +603,7 @@
     </div>
   </div>
 
-  <div class="update-date" data-i18n="lastUpdated">อัปเดตล่าสุด: 10/07/2026</div>
+  <div class="update-date" data-i18n="lastUpdated">อัปเดตล่าสุด: 15/07/2026</div>
 </div>
 
 <script>
@@ -672,11 +667,6 @@
       headsLabel: 'จำนวนหัวต่อต้น',
       flowLabel: 'อัตราการไหล/หัว',
       flowUnit: 'ล./ชม.',
-      stressCardH2: 'สถานการณ์น้ำของแปลง',
-      stressCardHint: 'เลือกสถานการณ์น้ำต้นทุนของแปลง เพื่อปรับลดปริมาณน้ำที่คำนวณได้ในช่วงขาดแคลนน้ำ',
-      stressNormalLabel: 'สถานการณ์ปกติ', stressNormalSub: 'ให้น้ำ 100% ของค่าที่คำนวณได้',
-      stressModerateLabel: 'มีแนวโน้มวิกฤต', stressModerateSub: 'ให้น้ำ 80% ของค่าที่คำนวณได้',
-      stressCriticalLabel: 'สถานการณ์วิกฤต', stressCriticalSub: 'ให้น้ำ 60% ของค่าที่คำนวณได้',
       calcWaterBtn: 'คำนวณเวลาให้น้ำ',
       waterResultEyebrow: 'ผลการคำนวณน้ำ',
       minutesUnit: 'นาที / ครั้ง', minutesCap: 'เวลาเปิดสปริงเกอร์',
@@ -688,25 +678,62 @@
       spaceRowLabel: 'ระยะระหว่างแถว',
       fertFormCardH2: 'สูตรปุ๋ยที่ใช้',
       fertFormCardHint: 'กรอกสัดส่วน N-P<sub>2</sub>O<sub>5</sub>-K<sub>2</sub>O บนหน้าถุงปุ๋ย เช่น ปุ๋ยสูตร 15-15-15',
-      fertRecommendLabel2: 'สูตรปุ๋ยที่แนะนำสำหรับระยะนี้',
+      fertRecommendLabel2: 'สูตรปุ๋ยที่แนะนำสำหรับช่วงนี้',
       fertTagPrimary: 'แนะนำ', fertTagAlt: 'ทางเลือก',
-      fertReasonS1: 'ระยะแตกตาดอก/เริ่มช่อดอก ต้องการฟอสฟอรัส-โพแทสเซียมสูงเพื่อกระตุ้นการออกดอก',
-      fertReasonS2: 'ระยะดอกบานถึงติดผล ยังเน้น P-K สูงเพื่อประคองการติดดอก-ติดผล',
-      fertReasonS3: 'ระยะผลอ่อนเจริญเติบโต เริ่มต้องการไนโตรเจนมากขึ้นเพื่อเร่งการเจริญของผล',
-      fertReasonS4: 'ระยะผลเจริญเติบโตเต็มที่ ต้องการไนโตรเจน-โพแทสเซียมเพื่อขยายขนาดผล',
-      fertReasonS5: 'ระยะผลโต + เริ่มสร้างตาดอกใหม่ ต้องการทั้งโพแทสเซียมบำรุงผลและฟอสฟอรัสเริ่มสร้างตาดอก',
-      fertReasonS6: 'ระยะเก็บเกี่ยว + สร้างตาดอก เน้นฟื้นฟูต้นหลังเก็บเกี่ยวและกระตุ้นดอกรอบใหม่',
-      fertReasonYoungVeg: 'ช่วงเจริญเติบโตทางลำต้น-ใบ ใช้สูตรเสมอภาคบำรุงต้นให้แข็งแรง',
-      fertReasonYoungPreFlower: 'ช่วงปลายปีที่ 3 ใกล้ออกดอกครั้งแรก เริ่มใช้สูตร P-K สูงเพื่อเตรียมความพร้อม',
+
+      // --- Fertilizer round program (producing trees) ---
+      roundCardH2: 'ช่วงการใส่ปุ๋ย (แบ่งใส่ 4 ครั้ง/ปี)',
+      roundCardHint: 'ไม้ผลไม่ได้ใส่ปุ๋ยทุกเดือน แต่แบ่งใส่ตามระยะพัฒนาการปีละ 3–4 ครั้ง เลือกช่วงที่ต้นอยู่ตอนนี้',
+      roundVeg: 'บำรุงต้น / ทำใบ',
+      roundVegTiming: 'หลังเก็บเกี่ยว–ตัดแต่งกิ่ง (เร่งใบชุดใหม่)',
+      roundVegReason: 'หลังเก็บเกี่ยวต้องฟื้นต้นและเร่งใบชุดใหม่ ใช้สูตรไนโตรเจนสูงเพื่อสร้างทรงพุ่มและใบให้สมบูรณ์',
+      roundBud: 'สะสมอาหาร / เปิดตาดอก',
+      roundBudTiming: 'ก่อนออกดอก 1–2 เดือน',
+      roundBudReason: 'ช่วงก่อนออกดอก เน้นฟอสฟอรัส-โพแทสเซียมสูงและลดไนโตรเจน เพื่อสะสมอาหารและกระตุ้นการสร้างตาดอก',
+      roundFruit: 'บำรุงผล / ขยายผล',
+      roundFruitTiming: 'หลังดอกบาน–ติดผล ~1 เดือน',
+      roundFruitReason: 'ระยะติดผล-ขยายผล ต้องการโพแทสเซียมสูงร่วมกับไนโตรเจนพอประมาณ เพื่อขยายขนาดผลและสร้างเนื้อ',
+      roundQuality: 'ปรับปรุงคุณภาพ',
+      roundQualityTiming: 'ก่อนเก็บเกี่ยว ~1–2 เดือน',
+      roundQualityReason: 'ช่วงก่อนเก็บเกี่ยว เน้นโพแทสเซียมสูงเพื่อเพิ่มคุณภาพ ความหวาน และสีเนื้อ โดยลดไนโตรเจนลง',
+
+      // --- Young-tree fertilizer ---
+      youngFertReasonY1: 'ต้นเล็กปีที่ 1 เน้นเร่งต้น-เร่งใบด้วยสูตรไนโตรเจนสูง แบ่งใส่ทีละน้อยหลายครั้ง',
+      youngFertReasonY2: 'ปีที่ 2 ยังเน้นสร้างทรงพุ่มและใบด้วยสูตรไนโตรเจนสูง เพิ่มปริมาณตามขนาดต้น',
+      youngFertReasonY3: 'ปีที่ 3 บำรุงต้นให้สมบูรณ์เต็มที่ เริ่มลดไนโตรเจนลงเล็กน้อยเตรียมเข้าสู่ระยะให้ผล',
+
+      // --- Canopy-diameter dosing ---
+      canopyDiamCardH2: 'ขนาดทรงพุ่ม',
+      canopyDiamCardHint: 'ใช้กำหนดปริมาณปุ๋ยต่อต้น ตามหลัก “เส้นผ่านศูนย์กลางทรงพุ่ม (เมตร)” ที่ใช้กับไม้ผลของไทย',
+      canopyDiamLabel: 'เส้นผ่านศูนย์กลางทรงพุ่ม',
+      fertDoseNeedDiam: 'กรอกเส้นผ่านศูนย์กลางทรงพุ่มเพื่อดูปริมาณปุ๋ยต่อต้น',
+      fertDosePreviewA: 'ทั้งปีประมาณ',
+      fertDosePreviewB: 'ครั้งนี้ประมาณ',
+      perTreePerYear: 'ต้น/ปี',
+      perTreePerRound: 'ต้น/ครั้ง',
+      perTreePerRoundShort: 'ต้น/ครั้ง',
+
+      // --- Fit warnings ---
+      fitVegWarn: '⚠️ ช่วงบำรุงต้นควรใช้สูตรที่ไนโตรเจน (N) สูงกว่าตัวอื่น เพื่อเร่งใบและทรงพุ่ม',
+      fitBudWarn: '⚠️ ช่วงเปิดตาดอกควรเลือกสูตรที่ฟอสฟอรัส-โพแทสเซียมสูงและไนโตรเจนต่ำ เพราะไนโตรเจนสูงจะทำให้แตกใบอ่อนแทนการออกดอก',
+      fitQualityWarn: '⚠️ ช่วงปรับปรุงคุณภาพก่อนเก็บเกี่ยวควรใช้สูตรที่โพแทสเซียม (K) สูง เพื่อเพิ่มคุณภาพและความหวาน',
+      fitBalancedNote: '💡 สูตรเสมอ (เช่น 15-15-15 / 16-16-16) เหมาะกับช่วงบำรุงต้นมากกว่า ช่วงนี้ควรเลือกสูตรแยกที่ตรงกับความต้องการของต้นจะได้ผลดีกว่า',
+
       fertFormLabel: 'สูตรปุ๋ย (N - P₂O₅ - K₂O)',
+      formula: 'สูตร',
       calcFertBtn: 'คำนวณปุ๋ย',
       fertResultEyebrow: 'ผลการคำนวณปุ๋ย',
-      fertRecommendLabel: 'ปริมาณปุ๋ยที่แนะนำ (อิงธาตุที่ต้องการมากสุด)',
-      viewDetailsFert: 'ดูรายละเอียดการคำนวณปุ๋ย',
+      fertRecommendLabel: 'ปริมาณปุ๋ยที่ใส่ในครั้งนี้',
+      viewDetailsFert: 'ดูรายละเอียดและโปรแกรมทั้งปี',
+      rowRoundDose: 'ปุ๋ยที่ใส่ครั้งนี้',
+      rowYearTotal: 'ปุ๋ยเคมีรวมทั้งปี (โดยประมาณ)',
+      rowYearProgram: 'โปรแกรมทั้งปี (สูตรแนะนำ · ปริมาณ/ครั้ง)',
+      doseRuleNote: 'ประมาณจาก: ปุ๋ยเคมี กก./ปี ≈ เส้นผ่านศูนย์กลางทรงพุ่ม (ม.) × 0.7 แล้วแบ่งตามสัดส่วนแต่ละครั้ง',
+      alertCanopyDiam: 'กรุณากรอกเส้นผ่านศูนย์กลางทรงพุ่ม (ต้องมากกว่า 0)',
       creditName: 'พัฒนาโดย ดร. ปณวัตร สิขัณฑกสมิต',
       creditAffil: 'ภาควิชาพืชสวน คณะเกษตร กำแพงแสน<br>มหาวิทยาลัยเกษตรศาสตร์',
       footerText: 'เครื่องมือช่วยประมาณการให้น้ำและปุ๋ย · สำหรับใช้เป็นแนวทางเบื้องต้นเท่านั้น',
-      lastUpdated: 'อัปเดตล่าสุด: 10/07/2026',
+      lastUpdated: 'อัปเดตล่าสุด: 15/07/2026',
 
       alertHeadsFlow: 'กรุณากรอกจำนวนหัวสปริงเกอร์และอัตราการไหลให้ครบถ้วน (ต้องมากกว่า 0)',
       alertEto: 'กรุณากรอกค่า ETo ให้ครบถ้วน (ต้องมากกว่า 0)',
@@ -714,8 +741,7 @@
       alertFertFormula: 'กรุณากรอกสูตรปุ๋ยอย่างน้อย 1 ธาตุ',
 
       rowRefLTD: 'ค่าอ้างอิง (L/T/D) — Netafim', unitLPerTreeDay: 'ล./ต้น/วัน',
-      rowSprinklerAdj: 'ปรับเพิ่ม 15% (มินิสปริงเกอร์)',
-      rowWaterStress: 'สถานการณ์น้ำของแปลง',
+      rowSprinklerAdj: 'ปรับเพิ่ม 20% (มินิสปริงเกอร์)',
       rowAdjustedWaterDay: 'ปริมาณน้ำ/วันที่ปรับแล้ว', unitLPerTree: 'ล./ต้น',
       rowFrequency: 'ความถี่', everyDay: 'ทุกวัน',
       rowTotalFlow: 'อัตราการไหลรวม', unitLPerHr: 'ล./ชม.',
@@ -822,11 +848,6 @@
       headsLabel: 'Heads per Tree',
       flowLabel: 'Flow Rate per Head',
       flowUnit: 'L/hr',
-      stressCardH2: 'Water Situation of the Plot',
-      stressCardHint: 'Choose the water-supply situation of the plot to scale down the calculated water amount during shortages',
-      stressNormalLabel: 'Normal', stressNormalSub: 'Apply 100% of the calculated amount',
-      stressModerateLabel: 'Emerging Shortage', stressModerateSub: 'Apply 80% of the calculated amount',
-      stressCriticalLabel: 'Critical Shortage', stressCriticalSub: 'Apply 60% of the calculated amount',
       calcWaterBtn: 'Calculate Irrigation Time',
       waterResultEyebrow: 'Irrigation Result',
       minutesUnit: 'minutes / event', minutesCap: 'Sprinkler run time',
@@ -838,25 +859,62 @@
       spaceRowLabel: 'Distance Between Rows',
       fertFormCardH2: 'Fertilizer Formula Used',
       fertFormCardHint: 'Enter the N-P<sub>2</sub>O<sub>5</sub>-K<sub>2</sub>O ratio printed on your fertilizer bag, e.g. formula 15-15-15',
-      fertRecommendLabel2: 'Recommended formulas for this period',
+      fertRecommendLabel2: 'Recommended formulas for this round',
       fertTagPrimary: 'Recommended', fertTagAlt: 'Alternative',
-      fertReasonS1: 'The floral bud break / inflorescence stage needs high phosphorus-potassium to induce flowering',
-      fertReasonS2: 'The flowering-to-fruit-set stage still favors high P-K to support flower and fruit retention',
-      fertReasonS3: 'The fruitlet growth stage starts needing more nitrogen to drive fruit development',
-      fertReasonS4: 'The fruit growth stage needs nitrogen-potassium to help the fruit size up',
-      fertReasonS5: 'The fruit growth + flower differentiation stage needs both potassium for the fruit and phosphorus for new flower buds',
-      fertReasonS6: 'The harvest + flower differentiation stage focuses on tree recovery and inducing the next flowering flush',
-      fertReasonYoungVeg: 'During vegetative growth, a balanced formula helps build a strong trunk and canopy',
-      fertReasonYoungPreFlower: 'Late in year 3, as the tree nears its first flowering, switch to a high P-K formula to prepare',
+
+      // --- Fertilizer round program (producing trees) ---
+      roundCardH2: 'Fertilizer round (split 4×/year)',
+      roundCardHint: 'Fruit trees are not fertilized every month — fertilizer is split into 3–4 rounds a year by growth stage. Pick the stage the tree is in now.',
+      roundVeg: 'Vegetative / leaf flush',
+      roundVegTiming: 'After harvest & pruning (push a new leaf flush)',
+      roundVegReason: 'After harvest the tree needs to recover and push a new leaf flush, so use a high-nitrogen grade to rebuild the canopy and leaves.',
+      roundBud: 'Nutrient storage / bud induction',
+      roundBudTiming: '1–2 months before flowering',
+      roundBudReason: 'Before flowering, favour high phosphorus-potassium and low nitrogen to build reserves and induce flower buds.',
+      roundFruit: 'Fruit development / sizing',
+      roundFruitTiming: '~1 month after bloom / fruit set',
+      roundFruitReason: 'During fruit set and sizing the tree needs high potassium with moderate nitrogen to size up the fruit and build flesh.',
+      roundQuality: 'Quality improvement',
+      roundQualityTiming: '~1–2 months before harvest',
+      roundQualityReason: 'Before harvest, emphasise high potassium to improve quality, sweetness and flesh colour, while cutting nitrogen back.',
+
+      // --- Young-tree fertilizer ---
+      youngFertReasonY1: 'Year 1 trees focus on pushing shoots and leaves with a high-nitrogen grade, applied little and often.',
+      youngFertReasonY2: 'Year 2 still builds canopy and leaves with a high-nitrogen grade, at a higher rate as the tree grows.',
+      youngFertReasonY3: 'Year 3 builds the tree to full vigour and eases nitrogen back slightly as it approaches bearing.',
+
+      // --- Canopy-diameter dosing ---
+      canopyDiamCardH2: 'Canopy size',
+      canopyDiamCardHint: 'Sets the per-tree dose using the "canopy diameter (m)" rule of thumb used for Thai fruit trees.',
+      canopyDiamLabel: 'Canopy diameter',
+      fertDoseNeedDiam: 'Enter canopy diameter to see the per-tree dose',
+      fertDosePreviewA: 'Whole year ≈',
+      fertDosePreviewB: 'this round ≈',
+      perTreePerYear: 'tree/yr',
+      perTreePerRound: 'tree/round',
+      perTreePerRoundShort: 'tree/round',
+
+      // --- Fit warnings ---
+      fitVegWarn: '⚠️ The vegetative round should use a grade with nitrogen (N) higher than the others, to push leaves and canopy.',
+      fitBudWarn: '⚠️ For bud induction, pick a grade high in phosphorus-potassium and low in nitrogen — high N drives leaf flushes instead of flowers.',
+      fitQualityWarn: '⚠️ The pre-harvest quality round should use a high-potassium (K) grade to improve quality and sweetness.',
+      fitBalancedNote: '💡 Balanced grades (e.g. 15-15-15 / 16-16-16) suit the vegetative round better. For this round, a split grade matched to the tree\'s need works better.',
+
       fertFormLabel: 'Fertilizer Formula (N - P₂O₅ - K₂O)',
+      formula: 'formula',
       calcFertBtn: 'Calculate Fertilizer',
       fertResultEyebrow: 'Fertilizer Result',
-      fertRecommendLabel: 'Recommended fertilizer amount (based on the most limiting nutrient)',
-      viewDetailsFert: 'View fertilizer calculation details',
+      fertRecommendLabel: 'Fertilizer to apply this round',
+      viewDetailsFert: 'View details & full-year program',
+      rowRoundDose: 'Applied this round',
+      rowYearTotal: 'Total chemical fertilizer/year (approx.)',
+      rowYearProgram: 'Full-year program (recommended grade · amount/round)',
+      doseRuleNote: 'Estimated from: chemical fertilizer kg/yr ≈ canopy diameter (m) × 0.7, split by each round\'s share',
+      alertCanopyDiam: 'Please enter the canopy diameter (must be greater than 0)',
       creditName: 'Developed by Dr. Panawat Sikhandakasmita',
       creditAffil: 'Department of Horticulture, Faculty of Agriculture at Kamphaeng Saen<br>Kasetsart University',
       footerText: 'A tool for estimating irrigation and fertilizer needs · For general guidance only',
-      lastUpdated: 'Last updated: 10/07/2026',
+      lastUpdated: 'Last updated: 15/07/2026',
 
       alertHeadsFlow: 'Please enter the number of sprinkler heads and flow rate (must be greater than 0)',
       alertEto: 'Please enter the ETo value (must be greater than 0)',
@@ -864,8 +922,7 @@
       alertFertFormula: 'Please enter at least one nutrient in the fertilizer formula',
 
       rowRefLTD: 'Reference value (L/T/D) — Netafim', unitLPerTreeDay: 'L/tree/day',
-      rowSprinklerAdj: '+15% adjustment (mini-sprinkler)',
-      rowWaterStress: 'Plot water situation',
+      rowSprinklerAdj: '+20% adjustment (mini-sprinkler)',
       rowAdjustedWaterDay: 'Adjusted water/day', unitLPerTree: 'L/tree',
       rowFrequency: 'Frequency', everyDay: 'Every day',
       rowTotalFlow: 'Total flow rate', unitLPerHr: 'L/hr',
@@ -941,18 +998,17 @@
     if(heads) heads.placeholder = lang === 'en' ? 'e.g. 2' : 'เช่น 2';
     const flow = document.getElementById('flow');
     if(flow) flow.placeholder = lang === 'en' ? 'e.g. 40' : 'เช่น 40';
-    const spaceTree = document.getElementById('spaceTree');
-    if(spaceTree) spaceTree.placeholder = lang === 'en' ? 'e.g. 6' : 'เช่น 6';
-    const spaceRow = document.getElementById('spaceRow');
-    if(spaceRow) spaceRow.placeholder = lang === 'en' ? 'e.g. 7' : 'เช่น 7';
+    const canopyDiam = document.getElementById('canopyDiam');
+    if(canopyDiam) canopyDiam.placeholder = lang === 'en' ? 'e.g. 4' : 'เช่น 4';
 
     renderMonths();
     renderStages();
     renderRadiusButtons();
     renderSoils();
-    renderStress();
     updateCanopyAreaPreview();
+    renderRounds();
     renderFertChips();
+    updateFertDosePreview();
 
     try{ localStorage.setItem('avocado_app_lang', lang); }catch(e){}
   }
@@ -961,12 +1017,6 @@
     1: [8,8,10,15,20,20,10,8,8,8,8,8],
     2: [10,15,15,20,25,25,20,10,10,10,10,10],
     3: [15,20,20,30,40,40,30,20,20,15,15,15]
-  };
-
-  const YOUNG_NPK = {
-    1: { N:[6,6,6,7,7,6,6,6,5,5,4,6],       P:[3,3,3,3,3,3,3,3,2,2,2,3],       K:[6,6,6,7,7,6,6,6,5,5,4,6] },
-    2: { N:[9,9,9,9,9,9,9,9,7,7,6,9],       P:[3,3,3,3,3,3,3,3,3,2,2,3],       K:[9,9,9,9,9,9,9,9,7,7,6,9] },
-    3: { N:[11,11,11,11,11,11,11,10,8.7,7.8,7.1,10], P:[3.5,3.5,3.6,3.7,3.7,3.5,3.6,3.5,2.9,2.6,2.4,3.4], K:[11,11,11,11,11,11,11,10,8.7,7.8,7.1,10] }
   };
 
   const STAGES = [
@@ -987,52 +1037,85 @@
   ];
   const RADII = [1, 1.5, 2, 2.5, 3, 3.5, 4];
 
-  // Common commercial NPK compound fertilizer grades sold in Thailand for fruit trees
+  // ===================================================================================
+  //  FERTILIZER PROGRAM — Thai fruit-tree practice (durian-based, DOA / กรมวิชาการเกษตร)
+  // ===================================================================================
+  //  Key differences from the old Netafim monthly-target model:
+  //   • Fertilizer is applied as 3–4 discrete ROUNDS per year (not every month),
+  //     each tied to a phenological stage — matching how Thai growers actually fertilize.
+  //   • Recommended grades are SPLIT grades matched to the job of each round
+  //     (high-N to flush leaves, high-P to build flower buds, high-K to fill fruit).
+  //     Balanced grades like 15-15-15 / 16-16-16 are NOT offered as the recommended pick.
+  //   • Per-tree dose is driven by canopy diameter, following the DOA durian rule of
+  //     thumb: total chemical fertilizer (kg/tree/yr) ≈ canopy diameter (m), then split
+  //     across the rounds. This is scaled for avocado, which is a lighter feeder.
+  //
+  //  References (Thai extension / DOA guidance for durian & tropical fruit trees):
+  //   - กรมวิชาการเกษตร: แบ่งใส่ปุ๋ยทุเรียน 4 ครั้ง/ปี (บำรุงต้น / สร้างตาดอก / บำรุงผล / ปรับปรุงคุณภาพ)
+  //   - สถาบันวิจัยพืชสวน & คำแนะนำทั่วไป: สูตร N สูงบำรุงต้น, 8-24-24 เปิดตาดอก,
+  //     15-9-20 / 15-5-20 บำรุงผล, 13-13-21 / 0-0-50 ปรับคุณภาพก่อนเก็บเกี่ยว
+  // -----------------------------------------------------------------------------------
+
+  // Commercial split-grade NPK fertilizers commonly sold in Thailand for fruit trees.
   const FERT_FORMULAS = {
-    f151515: {n:15, p:15, k:15, label:'15-15-15'},
-    f161616: {n:16, p:16, k:16, label:'16-16-16'},
-    f131321: {n:13, p:13, k:21, label:'13-13-21'},
+    f2577:   {n:25, p:7,  k:7,  label:'25-7-7'},
+    f1845:   {n:18, p:4,  k:5,  label:'18-4-5'},
+    f4600:   {n:46, p:0,  k:0,  label:'46-0-0'},
     f82424:  {n:8,  p:24, k:24, label:'8-24-24'},
     f92424:  {n:9,  p:24, k:24, label:'9-24-24'},
-    f122412: {n:12, p:24, k:12, label:'12-24-12'}
+    f122412: {n:12, p:24, k:12, label:'12-24-12'},
+    f15920:  {n:15, p:9,  k:20, label:'15-9-20'},
+    f15520:  {n:15, p:5,  k:20, label:'15-5-20'},
+    f131321: {n:13, p:13, k:21, label:'13-13-21'},
+    f121217: {n:12, p:12, k:17, label:'12-12-17'},
+    f00500:  {n:0,  p:0,  k:50, label:'0-0-50'}
   };
 
-  // Recommended formula options per mature growth stage, following general horticultural
-  // practice for avocado (P-K high to induce flowering, N high during fruit growth)
-  const STAGE_FERT_MAP = {
-    1: {items:[{f:'f82424',tag:'primary'},{f:'f92424',tag:'alt'},{f:'f122412',tag:'alt'}], reasonKey:'fertReasonS1'},
-    2: {items:[{f:'f122412',tag:'primary'},{f:'f82424',tag:'alt'},{f:'f131321',tag:'alt'}], reasonKey:'fertReasonS2'},
-    3: {items:[{f:'f151515',tag:'primary'},{f:'f131321',tag:'alt'},{f:'f161616',tag:'alt'}], reasonKey:'fertReasonS3'},
-    4: {items:[{f:'f151515',tag:'primary'},{f:'f131321',tag:'alt'},{f:'f161616',tag:'alt'}], reasonKey:'fertReasonS4'},
-    5: {items:[{f:'f131321',tag:'primary'},{f:'f82424',tag:'alt'},{f:'f122412',tag:'alt'}], reasonKey:'fertReasonS5'},
-    6: {items:[{f:'f151515',tag:'primary'},{f:'f82424',tag:'alt'},{f:'f92424',tag:'alt'}], reasonKey:'fertReasonS6'}
-  };
-
-  function getYoungFertMap(year, monthIdx){
-    // Year 3, Oct-Dec (index 9-11): approaching first flowering — favor P-K
-    if(year === 3 && monthIdx >= 9){
-      return {items:[{f:'f122412',tag:'primary'},{f:'f82424',tag:'alt'},{f:'f151515',tag:'alt'}], reasonKey:'fertReasonYoungPreFlower'};
+  // ---- Producing trees: 4 fertilizer rounds per year (DOA durian framework) ----------
+  //  Each round: recommended split grades + a dose FACTOR. The dose factor multiplies
+  //  the canopy-diameter base dose to give kg/tree FOR THAT ROUND.
+  //  round.share is only used to show what fraction of the yearly program the round is.
+  const FERT_ROUNDS = [
+    {
+      id:1, nameKey:'roundVeg', timingKey:'roundVegTiming',
+      items:[{f:'f2577',tag:'primary'},{f:'f1845',tag:'alt'},{f:'f4600',tag:'alt'}],
+      reasonKey:'roundVegReason', doseFactor:0.30
+    },
+    {
+      id:2, nameKey:'roundBud', timingKey:'roundBudTiming',
+      items:[{f:'f82424',tag:'primary'},{f:'f92424',tag:'alt'},{f:'f122412',tag:'alt'}],
+      reasonKey:'roundBudReason', doseFactor:0.25
+    },
+    {
+      id:3, nameKey:'roundFruit', timingKey:'roundFruitTiming',
+      items:[{f:'f15920',tag:'primary'},{f:'f15520',tag:'alt'},{f:'f131321',tag:'alt'}],
+      reasonKey:'roundFruitReason', doseFactor:0.25
+    },
+    {
+      id:4, nameKey:'roundQuality', timingKey:'roundQualityTiming',
+      items:[{f:'f131321',tag:'primary'},{f:'f00500',tag:'alt'},{f:'f121217',tag:'alt'}],
+      reasonKey:'roundQualityReason', doseFactor:0.20
     }
-    return {items:[{f:'f151515',tag:'primary'},{f:'f161616',tag:'alt'}], reasonKey:'fertReasonYoungVeg'};
-  }
+  ];
 
-  const SPRINKLER_FACTOR = 1.15;
+  // ---- Young (non-producing) trees: simple 3–4 split rounds/yr, vegetative focus ------
+  //  Dose scales with age (year 1 smallest). Same "split a few times a year" philosophy.
+  const YOUNG_FERT = {
+    1: {splits:4, kgPerTreePerYear:0.30, items:[{f:'f2577',tag:'primary'},{f:'f1845',tag:'alt'}], reasonKey:'youngFertReasonY1'},
+    2: {splits:4, kgPerTreePerYear:0.60, items:[{f:'f2577',tag:'primary'},{f:'f1845',tag:'alt'}], reasonKey:'youngFertReasonY2'},
+    3: {splits:4, kgPerTreePerYear:1.00, items:[{f:'f1845',tag:'primary'},{f:'f2577',tag:'alt'},{f:'f122412',tag:'alt'}], reasonKey:'youngFertReasonY3'}
+  };
+
+  let selectedRound = 1;
+
+  const SPRINKLER_FACTOR = 1.2;
   const RAI_M2 = 1600;
   const HA_M2 = 10000;
-
-  // Water-stress scenarios for the plot — scales the calculated irrigation amount down
-  // during water shortages, on top of the normal ETo/LTD-based calculation
-  const WATER_STRESS_SCENARIOS = [
-    {id:'normal',   factor:1.0, labelKey:'stressNormalLabel',   subKey:'stressNormalSub'},
-    {id:'moderate', factor:0.8, labelKey:'stressModerateLabel', subKey:'stressModerateSub'},
-    {id:'critical', factor:0.6, labelKey:'stressCriticalLabel', subKey:'stressCriticalSub'}
-  ];
 
   let mode = 'young';
   let selectedStage = 3;
   let selectedSoil = 'loam';
   let selectedRadius = 3;
-  let selectedStress = 'normal';
   let activeTab = 'water';
   let currentLang = 'th';
 
@@ -1072,17 +1155,44 @@
   }
   renderStages();
 
+  // ---- Fertilizer ROUND list (producing trees) --------------------------------------
+  const roundListEl = document.getElementById('roundList');
+  function renderRounds(){
+    if(!roundListEl) return;
+    roundListEl.innerHTML = '';
+    FERT_ROUNDS.forEach(function(r){
+      const item = document.createElement('div');
+      item.className = 'stage-item' + (r.id===selectedRound ? ' active' : '');
+      item.dataset.round = r.id;
+      const timing = t(r.timingKey);
+      item.innerHTML =
+        '<div class="s-left"><div class="s-num">' + r.id + '</div><div><div class="s-name">' + t(r.nameKey) + '</div>' +
+        '<div style="font-size:11.5px;color:var(--muted);margin-top:1px;">' + timing + '</div></div></div>' +
+        '<div class="s-kc">' + Math.round(r.doseFactor*100) + '%</div>';
+      item.addEventListener('click', function(){
+        roundListEl.querySelectorAll('.stage-item').forEach(function(el){ el.classList.remove('active'); });
+        item.classList.add('active');
+        selectedRound = r.id;
+        renderFertChips();
+        updateFertDosePreview();
+      });
+      roundListEl.appendChild(item);
+    });
+  }
+
   const fertChipsEl = document.getElementById('fertChips');
   function getCurrentFertMap(){
     if(mode === 'young'){
       const year = parseInt(document.getElementById('year').value) || 1;
-      const monthIdx = parseInt(youngMonthSel.value) || 0;
-      return getYoungFertMap(year, monthIdx);
+      const y = YOUNG_FERT[year] || YOUNG_FERT[1];
+      return {items:y.items, reasonKey:y.reasonKey};
     }
-    return STAGE_FERT_MAP[selectedStage] || {items:[], reasonKey:''};
+    const r = FERT_ROUNDS.find(function(x){ return x.id===selectedRound; }) || FERT_ROUNDS[0];
+    return {items:r.items, reasonKey:r.reasonKey};
   }
 
   function renderFertChips(){
+    if(!fertChipsEl) return;
     const map = getCurrentFertMap();
     const reasonHtml = map.reasonKey ? '<p class="fert-reason">' + t(map.reasonKey) + '</p>' : '';
     let chipsHtml = '<div class="fert-chip-row">';
@@ -1104,10 +1214,46 @@
       });
     });
   }
-  renderFertChips();
 
-  document.getElementById('year').addEventListener('change', renderFertChips);
-  youngMonthSel.addEventListener('change', renderFertChips);
+  // ---- Per-tree dose preview (canopy-diameter rule) ----------------------------------
+  //  Producing trees: yearly kg/tree ≈ canopy diameter (m) × AVO_DIAM_FACTOR, then a
+  //  given round takes doseFactor of that. Young trees: fixed kg/tree/yr ÷ splits.
+  const AVO_DIAM_FACTOR = 0.7; // avocado is a lighter feeder than durian (≈1.0)
+
+  function getRoundDoseKg(){
+    if(mode === 'young'){
+      const year = parseInt(document.getElementById('year').value) || 1;
+      const y = YOUNG_FERT[year] || YOUNG_FERT[1];
+      return { perRound: y.kgPerTreePerYear / y.splits, perYear: y.kgPerTreePerYear, splits: y.splits, round:null };
+    }
+    const diam = parseFloat(document.getElementById('canopyDiam').value);
+    const r = FERT_ROUNDS.find(function(x){ return x.id===selectedRound; }) || FERT_ROUNDS[0];
+    if(!diam || diam<=0) return { perRound:null, perYear:null, splits:FERT_ROUNDS.length, round:r };
+    const perYear = diam * AVO_DIAM_FACTOR;
+    return { perRound: perYear * r.doseFactor, perYear: perYear, splits: FERT_ROUNDS.length, round:r };
+  }
+
+  function updateFertDosePreview(){
+    const el = document.getElementById('fertDosePreview');
+    if(!el) return;
+    const d = getRoundDoseKg();
+    if(mode === 'young'){
+      el.innerHTML = '';
+      return;
+    }
+    if(d.perRound === null){
+      el.textContent = t('fertDoseNeedDiam');
+    } else {
+      el.innerHTML = t('fertDosePreviewA') + ' <b>' + d.perYear.toFixed(1) + ' ' + t('unitKg') + '/' + t('perTreePerYear') + '</b> — '
+        + t('fertDosePreviewB') + ' <b>' + d.perRound.toFixed(2) + ' ' + t('unitKg') + '/' + t('perTreePerRound') + '</b>';
+    }
+  }
+
+  renderRounds();
+  renderFertChips();
+  const canopyDiamEl = document.getElementById('canopyDiam');
+  if(canopyDiamEl) canopyDiamEl.addEventListener('input', updateFertDosePreview);
+  document.getElementById('year').addEventListener('change', function(){ renderFertChips(); updateFertDosePreview(); });
 
   const canopyRadiusGroup = document.getElementById('canopyRadiusGroup');
 
@@ -1173,28 +1319,6 @@
     });
   }
 
-  const stressListEl = document.getElementById('stressList');
-  function renderStress(){
-    stressListEl.innerHTML = '';
-    WATER_STRESS_SCENARIOS.forEach(function(s){
-      const item = document.createElement('div');
-      item.className = 'stage-item' + (s.id===selectedStress ? ' active' : '');
-      item.dataset.stress = s.id;
-      const label = t(s.labelKey);
-      const subText = t(s.subKey);
-      item.innerHTML =
-        '<div class="s-left"><div class="s-num">' + Math.round(s.factor*100) + '%</div>' +
-        '<div><div class="s-name">' + label + '</div>' +
-        '<div class="s-kc" style="margin-top:2px;">' + subText + '</div></div></div>';
-      item.addEventListener('click', function(){
-        stressListEl.querySelectorAll('.stage-item').forEach(function(el){ el.classList.remove('active'); });
-        item.classList.add('active');
-        selectedStress = s.id;
-      });
-      stressListEl.appendChild(item);
-    });
-  }
-
   const modeGroup = document.getElementById('modeGroup');
   modeGroup.querySelectorAll('.mode-btn').forEach(function(btn){
     btn.addEventListener('click', function(){
@@ -1215,6 +1339,13 @@
     document.getElementById('etoCard').classList.toggle('hidden', isYoung);
     document.getElementById('canopyCard').classList.toggle('hidden', isYoung);
     document.getElementById('soilCard').classList.toggle('hidden', isYoung);
+    // Fert tab: producing trees use the 4-round program + canopy-diameter dosing;
+    // young trees use a fixed age-based split, so those cards are hidden.
+    const roundCard = document.getElementById('roundCard');
+    const canopyDiamCard = document.getElementById('canopyDiam') ? document.getElementById('canopyDiam').closest('.card') : null;
+    if(roundCard) roundCard.classList.toggle('hidden', isYoung);
+    if(canopyDiamCard) canopyDiamCard.classList.toggle('hidden', isYoung);
+    updateFertDosePreview();
   }
   updateModeVisibility();
 
@@ -1241,7 +1372,6 @@
   }
   renderRadiusButtons();
   renderSoils();
-  renderStress();
   updateCanopyAreaPreview();
 
   function calculateWater(){
@@ -1253,25 +1383,17 @@
     }
     const totalFlowLph = heads * flow;
 
-    const stress = WATER_STRESS_SCENARIOS.find(function(s){ return s.id===selectedStress; }) || WATER_STRESS_SCENARIOS[0];
-    const stressFactor = stress.factor;
-    const stressLabel = t(stress.labelKey);
-    const stressRow = stressFactor === 1
-      ? [t('rowWaterStress'), stressLabel]
-      : [t('rowWaterStress'), stressLabel + ' (× ' + stressFactor + ')'];
-
     if(mode === 'young'){
       const year = parseInt(document.getElementById('year').value);
       const monthIdx = parseInt(youngMonthSel.value);
       const monthName = (currentLang === 'en' ? MONTHS_EN : MONTHS)[monthIdx];
       const ltd = YOUNG_LTD[year][monthIdx];
       const ltdAdjusted = ltd * SPRINKLER_FACTOR;
-      const ltdFinal = ltdAdjusted * stressFactor;
       const intervalDays = 1;
-      const minutesPerEvent = (ltdFinal / totalFlowLph) * 60;
+      const minutesPerEvent = (ltdAdjusted / totalFlowLph) * 60;
 
-      const noteTh = 'ต้นปีที่ <b>' + year + '</b> เดือน<b>' + monthName + '</b> ต้องการน้ำประมาณ <b>' + ltdFinal.toFixed(1) + ' ลิตร/ต้น/วัน</b> — เปิดสปริงเกอร์ทุกวัน ครั้งละ <b>' + Math.round(minutesPerEvent) + ' นาที</b>';
-      const noteEn = '<b>Year ' + year + '</b> tree, <b>' + monthName + '</b> needs approximately <b>' + ltdFinal.toFixed(1) + ' liters/tree/day</b> — run the sprinkler every day for <b>' + Math.round(minutesPerEvent) + ' minutes</b>';
+      const noteTh = 'ต้นปีที่ <b>' + year + '</b> เดือน<b>' + monthName + '</b> ต้องการน้ำประมาณ <b>' + ltdAdjusted.toFixed(1) + ' ลิตร/ต้น/วัน</b> — เปิดสปริงเกอร์ทุกวัน ครั้งละ <b>' + Math.round(minutesPerEvent) + ' นาที</b>';
+      const noteEn = '<b>Year ' + year + '</b> tree, <b>' + monthName + '</b> needs approximately <b>' + ltdAdjusted.toFixed(1) + ' liters/tree/day</b> — run the sprinkler every day for <b>' + Math.round(minutesPerEvent) + ' minutes</b>';
 
       renderWater({
         minutes: minutesPerEvent,
@@ -1280,8 +1402,7 @@
         rows: [
           [t('rowRefLTD'), ltd + ' ' + t('unitLPerTreeDay')],
           [t('rowSprinklerAdj'), '× ' + SPRINKLER_FACTOR],
-          stressRow,
-          [t('rowAdjustedWaterDay'), ltdFinal.toFixed(1) + ' ' + t('unitLPerTree')],
+          [t('rowAdjustedWaterDay'), ltdAdjusted.toFixed(1) + ' ' + t('unitLPerTree')],
           [t('rowFrequency'), t('everyDay')],
           [t('rowTotalFlow'), totalFlowLph + ' ' + t('unitLPerHr')]
         ]
@@ -1304,8 +1425,7 @@
 
     const etcPeriodMm = eto * stage.kc * SPRINKLER_FACTOR;
     const netEtcPeriodMm = Math.max(0, etcPeriodMm - rainfall);
-    const litersPerPeriodBase = netEtcPeriodMm * canopyArea;
-    const litersPerPeriod = litersPerPeriodBase * stressFactor;
+    const litersPerPeriod = netEtcPeriodMm * canopyArea;
     const eventsPerPeriod = 10 / intervalDays;
     const litersPerEvent = litersPerPeriod / eventsPerPeriod;
     const minutesPerEvent = (litersPerEvent / totalFlowLph) * 60;
@@ -1338,7 +1458,6 @@
         [t('rowEtcAdjusted'), etcPeriodMm.toFixed(2) + ' ' + t('unitMm10d')],
         [t('rowRainfallSub'), rainfall.toFixed(1) + ' ' + t('rainfallUnit')],
         [t('rowNetEtc'), netEtcPeriodMm.toFixed(2) + ' ' + t('unitMm10d')],
-        stressRow,
         [t('rowCanopyRadius'), radius + ' ' + t('unitMeter')],
         [t('rowCanopyArea'), canopyArea.toFixed(1) + ' ' + t('unitM2')],
         [t('rowSoilType'), soilLabel],
@@ -1365,118 +1484,98 @@
   }
 
   function calculateFertilizer(){
-    const spaceTree = parseFloat(document.getElementById('spaceTree').value);
-    const spaceRow = parseFloat(document.getElementById('spaceRow').value);
-    const fertN = parseFloat(document.getElementById('fertN').value);
-    const fertP = parseFloat(document.getElementById('fertP').value);
-    const fertK = parseFloat(document.getElementById('fertK').value);
+    const fertN = parseFloat(document.getElementById('fertN').value) || 0;
+    const fertP = parseFloat(document.getElementById('fertP').value) || 0;
+    const fertK = parseFloat(document.getElementById('fertK').value) || 0;
 
-    if(!spaceTree || spaceTree<=0 || !spaceRow || spaceRow<=0){
-      alert(t('alertSpacing'));
-      return;
-    }
     if(!fertN && !fertP && !fertK){
       alert(t('alertFertFormula'));
       return;
     }
 
-    const areaPerTree = spaceTree * spaceRow;
-    const treesPerRai = RAI_M2 / areaPerTree;
-    const treesPerHa = HA_M2 / areaPerTree;
+    // ---- Determine per-round product dose (kg/tree) --------------------------------
+    let perRoundKg, perYearKg, periodLabel, roundObj = null, splits;
 
-    let N_ha, P_ha, K_ha, periodLabel;
     if(mode === 'young'){
-      const year = parseInt(document.getElementById('year').value);
-      const monthIdx = parseInt(youngMonthSel.value);
-      const monthName = (currentLang === 'en' ? MONTHS_EN : MONTHS)[monthIdx];
-      const npk = YOUNG_NPK[year];
-      N_ha = npk.N[monthIdx]; P_ha = npk.P[monthIdx]; K_ha = npk.K[monthIdx];
+      const year = parseInt(document.getElementById('year').value) || 1;
+      const y = YOUNG_FERT[year] || YOUNG_FERT[1];
+      splits = y.splits;
+      perYearKg = y.kgPerTreePerYear;
+      perRoundKg = perYearKg / splits;
       periodLabel = currentLang === 'en'
-        ? (monthName + ' (Year ' + year + ')')
-        : ('เดือน' + monthName + ' (ปีที่ ' + year + ')');
+        ? ('Year ' + year + ' — vegetative, ' + splits + ' rounds/yr')
+        : ('ปีที่ ' + year + ' — บำรุงต้น แบ่งใส่ ' + splits + ' ครั้ง/ปี');
     } else {
-      const stage = STAGES.find(function(s){ return s.id===selectedStage; });
-      const stageName = currentLang === 'en' ? stage.name_en : stage.name;
-      N_ha = stage.N; P_ha = stage.P; K_ha = stage.K;
-      periodLabel = currentLang === 'en'
-        ? (stageName + ' (' + stage.days + ' days)')
-        : ('ระยะ' + stageName + ' (' + stage.days + ' วัน)');
+      const diam = parseFloat(document.getElementById('canopyDiam').value);
+      if(!diam || diam<=0){
+        alert(t('alertCanopyDiam'));
+        return;
+      }
+      roundObj = FERT_ROUNDS.find(function(x){ return x.id===selectedRound; }) || FERT_ROUNDS[0];
+      splits = FERT_ROUNDS.length;
+      perYearKg = diam * AVO_DIAM_FACTOR;
+      perRoundKg = perYearKg * roundObj.doseFactor;
+      periodLabel = t(roundObj.nameKey);
     }
 
-    const N_tree = N_ha / treesPerHa;
-    const P_tree = P_ha / treesPerHa;
-    const K_tree = K_ha / treesPerHa;
+    // ---- Nutrient actually delivered by this product at this dose -------------------
+    const deliveredN = perRoundKg * (fertN/100);
+    const deliveredP = perRoundKg * (fertP/100);
+    const deliveredK = perRoundKg * (fertK/100);
+    const formulaLabel = fertN + '-' + fertP + '-' + fertK;
 
-    const prodN = fertN > 0 ? N_tree / (fertN/100) : null;
-    const prodP = fertP > 0 ? P_tree / (fertP/100) : null;
-    const prodK = fertK > 0 ? K_tree / (fertK/100) : null;
-
-    const candidates = [prodN, prodP, prodK].filter(function(v){ return v !== null && isFinite(v); });
-    const recommended = candidates.length ? Math.max.apply(null, candidates) : null;
-
-    let limiting = '';
-    if(recommended !== null){
-      if(recommended === prodN) limiting = 'N';
-      else if(recommended === prodP) limiting = 'P₂O₅';
-      else if(recommended === prodK) limiting = 'K₂O';
+    // ---- Formula-fit check: does the entered formula suit this round's goal? --------
+    //  Each round has a "wanted" dominant nutrient. Warn if the formula fights it,
+    //  and specifically nudge away from balanced grades in the reproductive rounds.
+    let fitHtml = '';
+    if(roundObj){
+      const isBalanced = Math.abs(fertN-fertP) <= 2 && Math.abs(fertP-fertK) <= 2 && fertN >= 12;
+      if(roundObj.id === 1){ // vegetative — want N dominant
+        if(fertN < Math.max(fertP, fertK)) fitHtml = t('fitVegWarn');
+      } else if(roundObj.id === 2){ // bud induction — want P (and K) high, N low
+        if(fertN >= fertP) fitHtml = t('fitBudWarn');
+      } else if(roundObj.id === 4){ // quality — want K dominant
+        if(fertK < Math.max(fertN, fertP)) fitHtml = t('fitQualityWarn');
+      }
+      if(isBalanced && roundObj.id !== 1 && !fitHtml){
+        fitHtml = t('fitBalancedNote');
+      }
     }
 
-    // Actual delivered amount of each nutrient at the recommended product dose,
-    // and how many times over its own target that represents (only for nutrients
-    // actually present in the entered formula, i.e. fert% > 0).
-    const deliveredN = (recommended !== null && fertN > 0) ? recommended * (fertN/100) : null;
-    const deliveredP = (recommended !== null && fertP > 0) ? recommended * (fertP/100) : null;
-    const deliveredK = (recommended !== null && fertK > 0) ? recommended * (fertK/100) : null;
-    const ratioN = (deliveredN !== null && N_tree > 0) ? deliveredN / N_tree : null;
-    const ratioP = (deliveredP !== null && P_tree > 0) ? deliveredP / P_tree : null;
-    const ratioK = (deliveredK !== null && K_tree > 0) ? deliveredK / K_tree : null;
+    // ---- Output --------------------------------------------------------------------
+    document.getElementById('outFert').textContent = perRoundKg.toFixed(2);
+    document.getElementById('outFertUnit').textContent = t('unitKg') + ' / ' + t('perTreePerRound') + ' · ' + t('formula') + ' ' + formulaLabel;
 
-    // Find the largest oversupply ratio among the non-limiting nutrients (the limiting
-    // nutrient itself will always be ~1.0x by construction) and which nutrients it applies to.
-    const ratioEntries = [
-      {label:'N', ratio: ratioN},
-      {label:'P₂O₅', ratio: ratioP},
-      {label:'K₂O', ratio: ratioK}
-    ].filter(function(e){ return e.ratio !== null && isFinite(e.ratio); });
-    const OVERSUPPLY_MILD = 1.15;
-    const OVERSUPPLY_HIGH = 2.0;
-    const overRatios = ratioEntries.filter(function(e){ return e.ratio > OVERSUPPLY_MILD; });
-    const maxOverRatio = overRatios.length ? Math.max.apply(null, overRatios.map(function(e){ return e.ratio; })) : 1;
-    const highOverNutrients = overRatios.filter(function(e){ return e.ratio >= OVERSUPPLY_HIGH; }).map(function(e){ return e.label; });
-
-    let oversupplyHtml;
-    if(overRatios.length === 0){
-      oversupplyHtml = t('fertOversupplyNone');
-    } else if(highOverNutrients.length > 0){
-      oversupplyHtml = t('fertOversupplyHigh') + ' <b>' + highOverNutrients.join(', ') + '</b> ' + t('fertOversupplyHighMid') + ' <b>' + maxOverRatio.toFixed(1) + '</b> ' + t('fertOversupplyEnd');
-    } else {
-      oversupplyHtml = t('fertOversupplyMild') + ' <b>' + maxOverRatio.toFixed(1) + '</b> ' + t('fertOversupplyEnd');
-    }
-
-    document.getElementById('outFert').textContent = recommended !== null ? recommended.toFixed(2) : '–';
-    document.getElementById('outFertUnit').textContent = t('unitKgPerTree') + ' ' + periodLabel;
-
-    const noteTh = 'สวนความหนาแน่น <b>' + Math.round(treesPerRai) + ' ต้น/ไร่</b> (' + Math.round(treesPerHa) + ' ต้น/เฮกตาร์) ช่วง <b>' + periodLabel + '</b> — ใส่ปุ๋ยสูตรที่กรอกไว้ประมาณ <b>' + (recommended!==null ? recommended.toFixed(2)+' กก./ต้น' : '-') + '</b> เพื่อให้ธาตุ <b>' + limiting + '</b> ครบตามเป้า<br><br>' + oversupplyHtml;
-    const noteEn = 'At a density of <b>' + Math.round(treesPerRai) + ' trees/rai</b> (' + Math.round(treesPerHa) + ' trees/hectare) during <b>' + periodLabel + '</b> — apply approximately <b>' + (recommended!==null ? recommended.toFixed(2)+' kg/tree' : '-') + '</b> of the fertilizer formula entered, to meet the <b>' + limiting + '</b> target<br><br>' + oversupplyHtml;
+    const roundsWord = mode==='young' ? splits : FERT_ROUNDS.length;
+    const noteTh = 'ช่วง <b>' + periodLabel + '</b> — ใส่ปุ๋ยสูตร <b>' + formulaLabel + '</b> ประมาณ <b>' + perRoundKg.toFixed(2) + ' กก./ต้น</b> ในการใส่ครั้งนี้'
+      + '<br>ทั้งปีต้นนี้ควรได้ปุ๋ยเคมีรวมประมาณ <b>' + perYearKg.toFixed(1) + ' กก./ต้น</b> แบ่งใส่ <b>' + roundsWord + ' ครั้ง</b>'
+      + (fitHtml ? '<br><br>' + fitHtml : '');
+    const noteEn = 'During <b>' + periodLabel + '</b> — apply about <b>' + perRoundKg.toFixed(2) + ' kg/tree</b> of formula <b>' + formulaLabel + '</b> this round.'
+      + '<br>Over the year this tree should get roughly <b>' + perYearKg.toFixed(1) + ' kg/tree</b> of chemical fertilizer, split into <b>' + roundsWord + ' rounds</b>.'
+      + (fitHtml ? '<br><br>' + fitHtml : '');
     document.getElementById('fertNote').innerHTML = currentLang === 'en' ? noteEn : noteTh;
 
-    function ratioText(ratio){
-      if(ratio === null || !isFinite(ratio)) return null;
-      return Math.abs(ratio - 1) < 0.03 ? t('ratioOk') : (ratio.toFixed(1) + '&times; ' + t('ratioTimes'));
+    // ---- Breakdown: this round + the whole-year program --------------------------
+    let rows =
+      '<div><span>' + t('rowRoundDose') + '</span><span>' + perRoundKg.toFixed(2) + ' ' + t('unitKg') + '</span></div>' +
+      (fertN>0 ? '<div><span>N</span><span>' + deliveredN.toFixed(3) + ' ' + t('unitKg') + '</span></div>' : '') +
+      (fertP>0 ? '<div><span>P₂O₅</span><span>' + deliveredP.toFixed(3) + ' ' + t('unitKg') + '</span></div>' : '') +
+      (fertK>0 ? '<div><span>K₂O</span><span>' + deliveredK.toFixed(3) + ' ' + t('unitKg') + '</span></div>' : '') +
+      '<div><span>' + t('rowYearTotal') + '</span><span>' + perYearKg.toFixed(1) + ' ' + t('unitKg') + '</span></div>';
+
+    if(roundObj){
+      const diam = parseFloat(document.getElementById('canopyDiam').value);
+      rows += '<div style="border-bottom:none;padding-top:10px;"><span style="color:#F0DFC6;font-weight:600;">' + t('rowYearProgram') + '</span><span></span></div>';
+      FERT_ROUNDS.forEach(function(r){
+        const primary = FERT_FORMULAS[r.items[0].f];
+        const kg = diam * AVO_DIAM_FACTOR * r.doseFactor;
+        const mark = r.id === selectedRound ? ' ◀' : '';
+        rows += '<div><span>' + r.id + '. ' + t(r.nameKey) + ' · ' + primary.label + '</span><span>' + kg.toFixed(2) + ' ' + t('unitKg') + mark + '</span></div>';
+      });
+      rows += '<div style="border-bottom:none;"><span style="font-size:11.5px;color:#B9C6A0;">' + t('doseRuleNote') + '</span><span></span></div>';
     }
 
-    document.getElementById('fertBreakdown').innerHTML =
-      '<div><span>' + t('rowAreaPerTree') + '</span><span>' + areaPerTree.toFixed(1) + ' ' + t('unitM2') + '</span></div>' +
-      '<div><span>' + t('rowDensity') + '</span><span>' + Math.round(treesPerRai) + ' ' + t('unitTreesPerRai') + '</span></div>' +
-      '<div><span>' + t('rowTargetN') + '</span><span>' + N_ha + ' ' + t('unitKgPerHa') + ' &rarr; ' + N_tree.toFixed(3) + ' ' + t('unitKgPerTree') + '</span></div>' +
-      '<div><span>' + t('rowTargetP') + '</span><span>' + P_ha + ' ' + t('unitKgPerHa') + ' &rarr; ' + P_tree.toFixed(3) + ' ' + t('unitKgPerTree') + '</span></div>' +
-      '<div><span>' + t('rowTargetK') + '</span><span>' + K_ha + ' ' + t('unitKgPerHa') + ' &rarr; ' + K_tree.toFixed(3) + ' ' + t('unitKgPerTree') + '</span></div>' +
-      '<div><span>' + t('rowFertN') + '</span><span>' + (prodN !== null ? prodN.toFixed(2)+' '+t('unitKg') : t('noPctN')) + '</span></div>' +
-      '<div><span>' + t('rowFertP') + '</span><span>' + (prodP !== null ? prodP.toFixed(2)+' '+t('unitKg') : t('noPctP')) + '</span></div>' +
-      '<div><span>' + t('rowFertK') + '</span><span>' + (prodK !== null ? prodK.toFixed(2)+' '+t('unitKg') : t('noPctK')) + '</span></div>' +
-      (deliveredN !== null ? '<div><span>' + t('rowActualN') + '</span><span>' + deliveredN.toFixed(3) + ' ' + t('unitKg') + ' (' + ratioText(ratioN) + ')</span></div>' : '') +
-      (deliveredP !== null ? '<div><span>' + t('rowActualP') + '</span><span>' + deliveredP.toFixed(3) + ' ' + t('unitKg') + ' (' + ratioText(ratioP) + ')</span></div>' : '') +
-      (deliveredK !== null ? '<div><span>' + t('rowActualK') + '</span><span>' + deliveredK.toFixed(3) + ' ' + t('unitKg') + ' (' + ratioText(ratioK) + ')</span></div>' : '');
+    document.getElementById('fertBreakdown').innerHTML = rows;
 
     const card = document.getElementById('fertResult');
     card.style.display = 'block';
