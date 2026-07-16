@@ -1891,7 +1891,9 @@
           setGpsLoading(false);
           return;
         } catch(tmdErr){
-          setGpsStatus(t('gpsCoord') + ' ' + lat.toFixed(3) + ', ' + lon.toFixed(3) + ' — ' + t('gpsTmdFailFallback'));
+          console.error('TMD ETo API failed:', tmdErr);
+          setGpsStatus(t('gpsCoord') + ' ' + lat.toFixed(3) + ', ' + lon.toFixed(3) + ' — '
+            + t('gpsTmdFailFallback') + ' (' + (tmdErr && tmdErr.message ? tmdErr.message : tmdErr) + ')');
         }
 
         try{
