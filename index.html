@@ -257,6 +257,21 @@
   }
   .disclaimer b{color:#4A3813;}
 
+  .fert-place-guide{
+    margin-top:14px; background:#FBF2E1; border-radius:var(--radius-sm);
+    padding:14px 14px 12px;
+  }
+  .fert-place-guide-title{
+    font-family:'Kanit',sans-serif; font-size:13.5px; font-weight:600; color:#4A3813; margin-bottom:6px;
+    display:flex; align-items:center; gap:6px;
+  }
+  .fert-place-guide svg{ width:100%; height:auto; display:block; margin:2px 0 8px; }
+  .fert-place-guide-note{ font-size:12.5px; color:#6B5321; line-height:1.65; }
+  .fert-place-guide-note b{ color:#4A3813; }
+  .fert-place-guide ol{ margin:8px 0 0; padding-left:18px; font-size:12.5px; color:#6B5321; line-height:1.6; }
+  .fert-place-guide li{ margin-bottom:5px; }
+  .fert-place-guide li:last-child{ margin-bottom:0; }
+
   .big-note{
     margin-top:22px; padding:20px 18px; text-align:center;
     background:linear-gradient(160deg,var(--leaf) 0%, #2D431F 100%);
@@ -573,12 +588,14 @@
     <div class="card">
       <h2><span class="num pit">4</span><span data-i18n="canopyDiamCardH2">รัศมีทรงพุ่ม</span></h2>
       <p class="hint" data-i18n="canopyDiamCardHint">เลือกรัศมีทรงพุ่ม ระบบจะแปลงเป็นเส้นผ่านศูนย์กลางทรงพุ่มเพื่อคำนวณปริมาณปุ๋ยต่อต้นให้อัตโนมัติ</p>
+
       <div class="field">
         <label class="field-label" data-i18n="canopyDiamLabel">รัศมีทรงพุ่ม</label>
         <div class="radius-group" id="canopyFertRadiusGroup"></div>
         <input type="hidden" id="canopyDiam">
       </div>
-      <p class="hint" id="fertDosePreview" style="margin:10px 0 0;"></p>
+      <p class="hint" id="fertZonePreview" style="margin:10px 0 4px;"></p>
+      <p class="hint" id="fertDosePreview" style="margin:0;"></p>
     </div>
 
     <div class="card">
@@ -609,6 +626,44 @@
         </div>
       </div>
       <div class="result-note" id="fertNote"></div>
+
+      <div class="fert-place-guide hidden" id="fertPlaceGuide">
+        <div class="fert-place-guide-title">📍 <span data-i18n="fertZoneGuideSummary">ตำแหน่งที่ควรใส่ปุ๋ย</span></div>
+        <svg viewBox="0 0 320 260" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrowRed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 Z" fill="#C62828"/>
+            </marker>
+            <marker id="arrowGreen" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 Z" fill="#3E5B2C"/>
+            </marker>
+          </defs>
+
+          <!-- feeder-root zone: apply fertilizer here -->
+          <circle cx="160" cy="115" r="70" fill="#DCE7C9" stroke="#7B9A4E" stroke-width="2"/>
+          <!-- keep-clear zone near trunk: do not apply here -->
+          <circle cx="160" cy="115" r="22" fill="#EF5350" fill-opacity="0.22" stroke="#D32F2F" stroke-opacity="0.7" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <circle cx="160" cy="115" r="6" fill="#6B4226" stroke="#4A2C18" stroke-width="1"/>
+
+          <!-- top callout: keep-clear zone -->
+          <text x="160" y="20" text-anchor="middle" font-family="Kanit,sans-serif" font-size="13" font-weight="600" fill="#C62828" data-i18n="fertZoneKeepClearLabel">เว้นระยะ ≥30 ซม.</text>
+          <text x="160" y="36" text-anchor="middle" font-family="Sarabun,sans-serif" font-size="10.5" fill="#6B5321" data-i18n="fertZoneKeepClearSub">ไม่โรยปุ๋ยชิดโคนต้น</text>
+          <line x1="160" y1="42" x2="160" y2="89" stroke="#C62828" stroke-width="1.5" stroke-dasharray="3 2" marker-end="url(#arrowRed)"/>
+
+          <!-- bottom callout: feeder-root / apply zone -->
+          <line x1="160" y1="180" x2="160" y2="211" stroke="#3E5B2C" stroke-width="1.5" stroke-dasharray="3 2" marker-end="url(#arrowGreen)"/>
+          <text x="160" y="230" text-anchor="middle" font-family="Kanit,sans-serif" font-size="13" font-weight="600" fill="#3E5B2C" data-i18n="fertZoneRootLabel">โซนรากฝอย</text>
+          <text x="160" y="246" text-anchor="middle" font-family="Sarabun,sans-serif" font-size="10.5" fill="#6B5321" data-i18n="fertZoneRootSub">ใส่ปุ๋ยตรงนี้ (ถึงแนวขอบเงาใบ)</text>
+        </svg>
+        <div class="fert-place-guide-note" id="fertZoneResultNote"></div>
+        <ol>
+          <li data-i18n="fertZoneStep1">เว้นระยะห่างจากโคนต้นอย่างน้อย 30–50 ซม. เพื่อลดความเสี่ยงโรคโคนเน่า เพราะรากบริเวณโคนต้นไม่ได้ทำหน้าที่ดูดซึมธาตุอาหารโดยตรง</li>
+          <li data-i18n="fertZoneStep2">โรยปุ๋ยเป็นวงแหวนรอบต้น ตั้งแต่ระยะที่เว้นไว้ไปจนถึงแนวขอบเงาใบ (drip line) ซึ่งเป็นบริเวณที่รากฝอยดูดซึมธาตุอาหารหนาแน่นที่สุด</li>
+          <li data-i18n="fertZoneStep3">คลุมด้วยดินหรือเศษใบไม้บางๆ หลังโรยปุ๋ย เพื่อลดการสูญเสียจากแสงแดดและการชะล้างเมื่อฝนตก</li>
+          <li data-i18n="fertZoneStep4">รดน้ำตามหลังใส่ปุ๋ยทันที เพื่อช่วยละลายปุ๋ยและพาธาตุอาหารลงสู่บริเวณราก</li>
+        </ol>
+      </div>
+
       <details class="breakdown">
         <summary data-i18n="viewDetailsFert">ดูรายละเอียดและโปรแกรมทั้งปี</summary>
         <div class="breakdown-table" id="fertBreakdown"></div>
@@ -734,6 +789,16 @@
       canopyDiamCardH2: 'รัศมีทรงพุ่ม',
       canopyDiamCardHint: 'เลือกรัศมีทรงพุ่ม ระบบจะแปลงเป็นเส้นผ่านศูนย์กลางทรงพุ่มเพื่อคำนวณปริมาณปุ๋ยต่อต้นให้อัตโนมัติ',
       canopyDiamLabel: 'รัศมีทรงพุ่ม',
+      fertZoneGuideSummary: 'ดูตำแหน่งที่ควรใส่ปุ๋ย',
+      fertZoneKeepClearLabel: 'เว้นระยะ ≥30 ซม.',
+      fertZoneKeepClearSub: 'ไม่โรยปุ๋ยชิดโคนต้น',
+      fertZoneRootLabel: 'โซนรากฝอย',
+      fertZoneRootSub: 'ใส่ปุ๋ยตรงนี้ (ถึงแนวขอบเงาใบ)',
+      fertZoneStep1: 'เว้นระยะห่างจากโคนต้นอย่างน้อย 30–50 ซม. เพื่อลดความเสี่ยงโรคโคนเน่า เพราะรากบริเวณโคนต้นไม่ได้ทำหน้าที่ดูดซึมธาตุอาหารโดยตรง',
+      fertZoneStep2: 'โรยปุ๋ยเป็นวงแหวนรอบต้น ตั้งแต่ระยะที่เว้นไว้ไปจนถึงแนวขอบเงาใบ (drip line) ซึ่งเป็นบริเวณที่รากฝอยดูดซึมธาตุอาหารหนาแน่นที่สุด',
+      fertZoneStep3: 'คลุมด้วยดินหรือเศษใบไม้บางๆ หลังโรยปุ๋ย เพื่อลดการสูญเสียจากแสงแดดและการชะล้างเมื่อฝนตก',
+      fertZoneStep4: 'รดน้ำตามหลังใส่ปุ๋ยทันที เพื่อช่วยละลายปุ๋ยและพาธาตุอาหารลงสู่บริเวณราก',
+      fertZonePreviewPrefix: 'โรยปุ๋ยเป็นวงแหวนรอบต้น ห่างจากโคนต้นประมาณ',
       fertDoseNeedDiam: 'กรอกเส้นผ่านศูนย์กลางทรงพุ่มเพื่อดูปริมาณปุ๋ยต่อต้น',
       fertDosePreviewA: 'ทั้งปีประมาณ',
       fertDosePreviewB: 'ครั้งนี้ประมาณ',
@@ -920,6 +985,16 @@
       canopyDiamCardH2: 'Canopy radius',
       canopyDiamCardHint: 'Choose the canopy radius — the app converts it to canopy diameter automatically to calculate the per-tree dose.',
       canopyDiamLabel: 'Canopy radius',
+      fertZoneGuideSummary: 'See where to place the fertilizer',
+      fertZoneKeepClearLabel: 'Keep clear ≥30 cm',
+      fertZoneKeepClearSub: "Don't apply right at the trunk",
+      fertZoneRootLabel: 'Feeder root zone',
+      fertZoneRootSub: 'Apply fertilizer here (out to the drip line)',
+      fertZoneStep1: "Leave at least 30–50 cm clear around the trunk to reduce the risk of collar rot — roots right at the base don't absorb nutrients directly anyway.",
+      fertZoneStep2: 'Broadcast the fertilizer in a ring around the tree, from that cleared distance out to the drip line (canopy edge) — this is where feeder roots are densest and absorb nutrients best.',
+      fertZoneStep3: 'Lightly cover the fertilizer with soil or mulch afterward to reduce loss from sunlight and rain runoff.',
+      fertZoneStep4: 'Water immediately after applying to help dissolve the fertilizer and carry nutrients down to the root zone.',
+      fertZonePreviewPrefix: 'Apply fertilizer in a ring around the trunk, roughly',
       fertDoseNeedDiam: 'Enter canopy diameter to see the per-tree dose',
       fertDosePreviewA: 'Whole year ≈',
       fertDosePreviewB: 'this round ≈',
@@ -1291,6 +1366,18 @@
     }
   }
 
+  function updateFertZonePreview(){
+    const el = document.getElementById('fertZonePreview');
+    if(!el) return;
+    if(fertMode === 'young'){
+      el.innerHTML = '';
+      return;
+    }
+    const r = selectedFertRadius;
+    const inner = Math.max(0.3, Math.round(r * 0.25 * 10) / 10);
+    el.innerHTML = t('fertZonePreviewPrefix') + ' <b>' + inner.toFixed(1) + '–' + r.toFixed(1) + ' ' + t('unitMeter') + '</b>';
+  }
+
   renderRounds();
   renderFertChips();
   document.getElementById('yearFert').addEventListener('change', function(){ renderFertChips(); updateFertDosePreview(); });
@@ -1357,11 +1444,13 @@
         const diamInput = document.getElementById('canopyDiam');
         if(diamInput) diamInput.value = (r * 2);
         updateFertDosePreview();
+        updateFertZonePreview();
       });
       group.appendChild(btn);
     });
     const diamInput = document.getElementById('canopyDiam');
     if(diamInput) diamInput.value = (selectedFertRadius * 2);
+    updateFertZonePreview();
   }
 
   const soilListEl = document.getElementById('soilList');
@@ -1430,6 +1519,7 @@
     if(roundCard) roundCard.classList.toggle('hidden', isYoung);
     if(canopyDiamCard) canopyDiamCard.classList.toggle('hidden', isYoung);
     updateFertDosePreview();
+    updateFertZonePreview();
   }
   renderFertRadiusButtons();
   updateFertVisibility();
@@ -1661,6 +1751,18 @@
     }
 
     document.getElementById('fertBreakdown').innerHTML = rows;
+
+    // ---- Fertilizer placement guide (feeder-root zone), shown for producing trees --
+    const placeGuide = document.getElementById('fertPlaceGuide');
+    if(roundObj){
+      const r = selectedFertRadius;
+      const inner = Math.max(0.3, Math.round(r * 0.25 * 10) / 10);
+      document.getElementById('fertZoneResultNote').innerHTML =
+        t('fertZonePreviewPrefix') + ' <b>' + inner.toFixed(1) + '–' + r.toFixed(1) + ' ' + t('unitMeter') + '</b>';
+      placeGuide.classList.remove('hidden');
+    } else {
+      placeGuide.classList.add('hidden');
+    }
 
     const card = document.getElementById('fertResult');
     card.style.display = 'block';
