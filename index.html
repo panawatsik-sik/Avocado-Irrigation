@@ -108,6 +108,9 @@
   .radius-btn.active .r-num{ color:var(--leaf); }
   .radius-btn.active svg .r-canopy{ fill:#C5DBA0; stroke:var(--leaf); }
   .radius-btn:active{ transform:scale(.96); }
+  .radius-btn.pit.active{ border-color:var(--pit); background:var(--pit-pale); box-shadow:0 0 0 1px var(--pit) inset; }
+  .radius-btn.pit.active .r-num{ color:var(--pit); }
+  .radius-btn.pit.active svg .r-canopy{ fill:#DCC2A0; stroke:var(--pit); }
 
   .fert-recommend-box{
     margin-bottom:16px; padding:12px 12px 4px; border:1.5px solid var(--pit-pale);
@@ -541,34 +544,26 @@
     <!-- Canopy diameter drives per-tree dose (Thai canopy-diameter rule) -->
     <div class="card">
       <h2><span class="num pit">4</span><span data-i18n="canopyDiamCardH2">ขนาดทรงพุ่ม</span></h2>
-      <p class="hint" data-i18n="canopyDiamCardHint">ใช้กำหนดปริมาณปุ๋ยต่อต้น ตามหลัก “เส้นผ่านศูนย์กลางทรงพุ่ม (เมตร)” ที่ใช้กับไม้ผลของไทย</p>
+      <p class="hint" data-i18n="canopyDiamCardHint">เลือกรัศมีทรงพุ่ม ระบบจะแปลงเป็นเส้นผ่านศูนย์กลางทรงพุ่มเพื่อคำนวณปริมาณปุ๋ยต่อต้นให้อัตโนมัติ</p>
       <div class="field">
-        <label class="field-label" for="canopyDiam" data-i18n="canopyDiamLabel">เส้นผ่านศูนย์กลางทรงพุ่ม</label>
-        <div class="unit-input">
-          <input type="number" id="canopyDiam" placeholder="เช่น 4" min="0" step="0.1">
-          <span class="unit-tag" data-i18n="unitMeter">ม.</span>
-        </div>
-        <p class="hint" id="fertDosePreview" style="margin:8px 0 0;"></p>
+        <label class="field-label" data-i18n="canopyDiamLabel">รัศมีทรงพุ่ม</label>
+        <div class="radius-group" id="canopyFertRadiusGroup"></div>
+        <input type="hidden" id="canopyDiam">
       </div>
+      <p class="hint" id="fertDosePreview" style="margin:10px 0 0;"></p>
     </div>
 
     <div class="card">
       <h2><span class="num pit">5</span><span data-i18n="fertFormCardH2">สูตรปุ๋ยที่จะใช้</span></h2>
-      <p class="hint" data-i18n="fertFormCardHint">เลือกสูตรที่แนะนำสำหรับช่วงนี้ หรือกรอกสัดส่วน N-P<sub>2</sub>O<sub>5</sub>-K<sub>2</sub>O จากหน้าถุงเอง</p>
+      <p class="hint" data-i18n="fertFormCardHint">เลือกสูตรปุ๋ยที่แนะนำสำหรับช่วงนี้จากตัวเลือกด้านล่าง</p>
 
       <div class="fert-recommend-box">
         <div class="fert-recommend-label">🌾 <span data-i18n="fertRecommendLabel2">สูตรปุ๋ยที่แนะนำสำหรับช่วงนี้</span></div>
         <div id="fertChips"></div>
       </div>
-
-      <div class="field">
-        <label class="field-label" data-i18n="fertFormLabel">สูตรปุ๋ย (N - P₂O₅ - K₂O)</label>
-        <div class="row3">
-          <div class="unit-input"><input type="number" id="fertN" placeholder="N" min="0" max="100" step="0.1"><span class="unit-tag">%</span></div>
-          <div class="unit-input"><input type="number" id="fertP" placeholder="P₂O₅" min="0" max="100" step="0.1"><span class="unit-tag">%</span></div>
-          <div class="unit-input"><input type="number" id="fertK" placeholder="K₂O" min="0" max="100" step="0.1"><span class="unit-tag">%</span></div>
-        </div>
-      </div>
+      <input type="hidden" id="fertN">
+      <input type="hidden" id="fertP">
+      <input type="hidden" id="fertK">
     </div>
 
     <button class="calc-btn fert" onclick="calculateFertilizer()">
@@ -677,7 +672,7 @@
       spaceTreeLabel: 'ระยะระหว่างต้น',
       spaceRowLabel: 'ระยะระหว่างแถว',
       fertFormCardH2: 'สูตรปุ๋ยที่ใช้',
-      fertFormCardHint: 'กรอกสัดส่วน N-P<sub>2</sub>O<sub>5</sub>-K<sub>2</sub>O บนหน้าถุงปุ๋ย เช่น ปุ๋ยสูตร 15-15-15',
+      fertFormCardHint: 'เลือกสูตรปุ๋ยที่แนะนำสำหรับช่วงนี้จากตัวเลือกด้านล่าง',
       fertRecommendLabel2: 'สูตรปุ๋ยที่แนะนำสำหรับช่วงนี้',
       fertTagPrimary: 'แนะนำ', fertTagAlt: 'ทางเลือก',
 
@@ -687,7 +682,7 @@
       roundVeg: 'บำรุงต้น / ทำใบ',
       roundVegTiming: 'หลังเก็บเกี่ยว–ตัดแต่งกิ่ง (เร่งใบชุดใหม่)',
       roundVegReason: 'หลังเก็บเกี่ยวต้องฟื้นต้นและเร่งใบชุดใหม่ ใช้สูตรไนโตรเจนสูงเพื่อสร้างทรงพุ่มและใบให้สมบูรณ์',
-      roundBud: 'สะสมอาหาร / เปิดตาดอก',
+      roundBud: 'สะสมอาหารก่อนออกดอก',
       roundBudTiming: 'ก่อนออกดอก 1–2 เดือน',
       roundBudReason: 'ช่วงก่อนออกดอก เน้นฟอสฟอรัส-โพแทสเซียมสูงและลดไนโตรเจน เพื่อสะสมอาหารและกระตุ้นการสร้างตาดอก',
       roundFruit: 'บำรุงผล / ขยายผล',
@@ -704,8 +699,8 @@
 
       // --- Canopy-diameter dosing ---
       canopyDiamCardH2: 'ขนาดทรงพุ่ม',
-      canopyDiamCardHint: 'ใช้กำหนดปริมาณปุ๋ยต่อต้น ตามหลัก “เส้นผ่านศูนย์กลางทรงพุ่ม (เมตร)” ที่ใช้กับไม้ผลของไทย',
-      canopyDiamLabel: 'เส้นผ่านศูนย์กลางทรงพุ่ม',
+      canopyDiamCardHint: 'เลือกรัศมีทรงพุ่ม ระบบจะแปลงเป็นเส้นผ่านศูนย์กลางทรงพุ่มเพื่อคำนวณปริมาณปุ๋ยต่อต้นให้อัตโนมัติ',
+      canopyDiamLabel: 'รัศมีทรงพุ่ม',
       fertDoseNeedDiam: 'กรอกเส้นผ่านศูนย์กลางทรงพุ่มเพื่อดูปริมาณปุ๋ยต่อต้น',
       fertDosePreviewA: 'ทั้งปีประมาณ',
       fertDosePreviewB: 'ครั้งนี้ประมาณ',
@@ -715,7 +710,7 @@
 
       // --- Fit warnings ---
       fitVegWarn: '⚠️ ช่วงบำรุงต้นควรใช้สูตรที่ไนโตรเจน (N) สูงกว่าตัวอื่น เพื่อเร่งใบและทรงพุ่ม',
-      fitBudWarn: '⚠️ ช่วงเปิดตาดอกควรเลือกสูตรที่ฟอสฟอรัส-โพแทสเซียมสูงและไนโตรเจนต่ำ เพราะไนโตรเจนสูงจะทำให้แตกใบอ่อนแทนการออกดอก',
+      fitBudWarn: '⚠️ ช่วงก่อนออกดอกควรเลือกสูตรที่ฟอสฟอรัส-โพแทสเซียมสูงและไนโตรเจนต่ำ เพราะไนโตรเจนสูงจะทำให้แตกใบอ่อนแทนการออกดอก',
       fitQualityWarn: '⚠️ ช่วงปรับปรุงคุณภาพก่อนเก็บเกี่ยวควรใช้สูตรที่โพแทสเซียม (K) สูง เพื่อเพิ่มคุณภาพและความหวาน',
       fitBalancedNote: '💡 สูตรเสมอ (เช่น 15-15-15 / 16-16-16) เหมาะกับช่วงบำรุงต้นมากกว่า ช่วงนี้ควรเลือกสูตรแยกที่ตรงกับความต้องการของต้นจะได้ผลดีกว่า',
 
@@ -738,7 +733,7 @@
       alertHeadsFlow: 'กรุณากรอกจำนวนหัวสปริงเกอร์และอัตราการไหลให้ครบถ้วน (ต้องมากกว่า 0)',
       alertEto: 'กรุณากรอกค่า ETo ให้ครบถ้วน (ต้องมากกว่า 0)',
       alertSpacing: 'กรุณากรอกระยะปลูก (ระหว่างต้นและระหว่างแถว) ให้ครบถ้วน',
-      alertFertFormula: 'กรุณากรอกสูตรปุ๋ยอย่างน้อย 1 ธาตุ',
+      alertFertFormula: 'กรุณาเลือกสูตรปุ๋ยที่จะใช้',
 
       rowRefLTD: 'ค่าอ้างอิง (L/T/D) — Netafim', unitLPerTreeDay: 'ล./ต้น/วัน',
       rowSprinklerAdj: 'ปรับเพิ่ม 20% (มินิสปริงเกอร์)',
@@ -858,7 +853,7 @@
       spaceTreeLabel: 'Distance Between Trees',
       spaceRowLabel: 'Distance Between Rows',
       fertFormCardH2: 'Fertilizer Formula Used',
-      fertFormCardHint: 'Enter the N-P<sub>2</sub>O<sub>5</sub>-K<sub>2</sub>O ratio printed on your fertilizer bag, e.g. formula 15-15-15',
+      fertFormCardHint: 'Choose a recommended fertilizer formula for this round from the options below',
       fertRecommendLabel2: 'Recommended formulas for this round',
       fertTagPrimary: 'Recommended', fertTagAlt: 'Alternative',
 
@@ -885,8 +880,8 @@
 
       // --- Canopy-diameter dosing ---
       canopyDiamCardH2: 'Canopy size',
-      canopyDiamCardHint: 'Sets the per-tree dose using the "canopy diameter (m)" rule of thumb used for Thai fruit trees.',
-      canopyDiamLabel: 'Canopy diameter',
+      canopyDiamCardHint: 'Choose the canopy radius — the app converts it to canopy diameter automatically to calculate the per-tree dose.',
+      canopyDiamLabel: 'Canopy radius',
       fertDoseNeedDiam: 'Enter canopy diameter to see the per-tree dose',
       fertDosePreviewA: 'Whole year ≈',
       fertDosePreviewB: 'this round ≈',
@@ -919,7 +914,7 @@
       alertHeadsFlow: 'Please enter the number of sprinkler heads and flow rate (must be greater than 0)',
       alertEto: 'Please enter the ETo value (must be greater than 0)',
       alertSpacing: 'Please enter the planting spacing (between trees and between rows)',
-      alertFertFormula: 'Please enter at least one nutrient in the fertilizer formula',
+      alertFertFormula: 'Please select a fertilizer formula to use',
 
       rowRefLTD: 'Reference value (L/T/D) — Netafim', unitLPerTreeDay: 'L/tree/day',
       rowSprinklerAdj: '+20% adjustment (mini-sprinkler)',
@@ -998,8 +993,6 @@
     if(heads) heads.placeholder = lang === 'en' ? 'e.g. 2' : 'เช่น 2';
     const flow = document.getElementById('flow');
     if(flow) flow.placeholder = lang === 'en' ? 'e.g. 40' : 'เช่น 40';
-    const canopyDiam = document.getElementById('canopyDiam');
-    if(canopyDiam) canopyDiam.placeholder = lang === 'en' ? 'e.g. 4' : 'เช่น 4';
 
     renderMonths();
     renderStages();
@@ -1008,6 +1001,7 @@
     updateCanopyAreaPreview();
     renderRounds();
     renderFertChips();
+    renderFertRadiusButtons();
     updateFertDosePreview();
 
     try{ localStorage.setItem('avocado_app_lang', lang); }catch(e){}
@@ -1052,7 +1046,7 @@
   //
   //  References (Thai extension / DOA guidance for durian & tropical fruit trees):
   //   - กรมวิชาการเกษตร: แบ่งใส่ปุ๋ยทุเรียน 4 ครั้ง/ปี (บำรุงต้น / สร้างตาดอก / บำรุงผล / ปรับปรุงคุณภาพ)
-  //   - สถาบันวิจัยพืชสวน & คำแนะนำทั่วไป: สูตร N สูงบำรุงต้น, 8-24-24 เปิดตาดอก,
+  //   - สถาบันวิจัยพืชสวน & คำแนะนำทั่วไป: สูตร N สูงบำรุงต้น, 8-24-24 ก่อนออกดอก,
   //     15-9-20 / 15-5-20 บำรุงผล, 13-13-21 / 0-0-50 ปรับคุณภาพก่อนเก็บเกี่ยว
   // -----------------------------------------------------------------------------------
 
@@ -1204,15 +1198,25 @@
     });
     chipsHtml += '</div>';
     fertChipsEl.innerHTML = reasonHtml + chipsHtml;
-    fertChipsEl.querySelectorAll('.fert-chip').forEach(function(chip){
+    const chipEls = fertChipsEl.querySelectorAll('.fert-chip');
+    chipEls.forEach(function(chip){
       chip.addEventListener('click', function(){
-        fertChipsEl.querySelectorAll('.fert-chip').forEach(function(c){ c.classList.remove('selected'); });
+        chipEls.forEach(function(c){ c.classList.remove('selected'); });
         chip.classList.add('selected');
         document.getElementById('fertN').value = chip.dataset.n;
         document.getElementById('fertP').value = chip.dataset.p;
         document.getElementById('fertK').value = chip.dataset.k;
       });
     });
+    // Since there's no manual entry field anymore, always default to the
+    // recommended (primary) formula so a value is set without a tap.
+    const defaultChip = fertChipsEl.querySelector('.fert-chip.primary') || chipEls[0];
+    if(defaultChip){
+      defaultChip.classList.add('selected');
+      document.getElementById('fertN').value = defaultChip.dataset.n;
+      document.getElementById('fertP').value = defaultChip.dataset.p;
+      document.getElementById('fertK').value = defaultChip.dataset.k;
+    }
   }
 
   // ---- Per-tree dose preview (canopy-diameter rule) ----------------------------------
@@ -1251,8 +1255,6 @@
 
   renderRounds();
   renderFertChips();
-  const canopyDiamEl = document.getElementById('canopyDiam');
-  if(canopyDiamEl) canopyDiamEl.addEventListener('input', updateFertDosePreview);
   document.getElementById('year').addEventListener('change', function(){ renderFertChips(); updateFertDosePreview(); });
 
   const canopyRadiusGroup = document.getElementById('canopyRadiusGroup');
@@ -1294,6 +1296,34 @@
     const area = getCanopyArea();
     document.getElementById('canopyAreaPreview').textContent =
       t('canopyAreaPreviewPrefix') + ' ≈ ' + area.toFixed(1) + ' ' + t('unitM2');
+  }
+
+  // ---- Canopy radius card (fertilizer tab) — reuses the same radius values and
+  //  icon style as the water tab's canopy radius card, then converts radius to
+  //  diameter (diameter = radius × 2) internally for the fertilizer dose formula.
+  let selectedFertRadius = 2;
+
+  function renderFertRadiusButtons(){
+    const group = document.getElementById('canopyFertRadiusGroup');
+    if(!group) return;
+    group.innerHTML = '';
+    RADII.forEach(function(r){
+      const btn = document.createElement('div');
+      btn.className = 'radius-btn pit' + (r === selectedFertRadius ? ' active' : '');
+      btn.dataset.radius = r;
+      btn.innerHTML = radiusIconSVG(r) + '<div class="r-num">' + r + '</div><div class="r-unit">' + t('unitMeter') + '</div>';
+      btn.addEventListener('click', function(){
+        group.querySelectorAll('.radius-btn').forEach(function(el){ el.classList.remove('active'); });
+        btn.classList.add('active');
+        selectedFertRadius = r;
+        const diamInput = document.getElementById('canopyDiam');
+        if(diamInput) diamInput.value = (r * 2);
+        updateFertDosePreview();
+      });
+      group.appendChild(btn);
+    });
+    const diamInput = document.getElementById('canopyDiam');
+    if(diamInput) diamInput.value = (selectedFertRadius * 2);
   }
 
   const soilListEl = document.getElementById('soilList');
@@ -1347,6 +1377,7 @@
     if(canopyDiamCard) canopyDiamCard.classList.toggle('hidden', isYoung);
     updateFertDosePreview();
   }
+  renderFertRadiusButtons();
   updateModeVisibility();
 
   const tabWaterBtn = document.getElementById('tabWaterBtn');
