@@ -1793,6 +1793,11 @@
   }
 
   // ===== GPS-based ETo auto-fetch (NASA POWER + FAO-56 Penman-Monteith) =====
+  // TMD's ETo endpoint has no CORS headers, so it's called through a Supabase Edge
+  // Function that fetches it server-side and adds CORS. Deploy tmd-eto-proxy (see the
+  // accompanying index.ts) and replace this with your project's function URL, e.g.
+  // 'https://abcdefghij.supabase.co/functions/v1/tmd-eto-proxy'
+  const TMD_PROXY_URL = 'https://jmdnnbwhjuiqfvfdhmgm.supabase.co/functions/v1/tmd-eto-proxy';
   const GSC = 0.0820;
   const SIGMA = 4.903e-9;
 
@@ -1869,13 +1874,13 @@
         // ---- Primary source: Thai Meteorological Department (TMD) ETo forecast API ----
         // This is the same 10-day ETo bulletin the app's hint text already points farmers to,
         // now available as a direct API — no manual Penman-Monteith calc needed.
+        if(TMD_PROXY_URL.indexOf('YOUR-PROJECT-REF') === -1){
         try{
-          const tmdUrl = 'https://arcims.tmd.go.th/api/agromet.php?variable=eto'
-            + '&lat=' + lat.toFixed(4) + '&lon=' + lon.toFixed(4);
-          // TMD's server doesn't send CORS headers for third-party sites, so browsers
-          // block a direct fetch() with "Failed to fetch". Route through corsproxy.io,
-          // which is free for github.io origins and adds the missing CORS headers.
-          const proxiedUrl = 'https://corsproxy.io/?url=' + encodeURIComponent(tmdUrl);
+          // TMD's server doesn't send CORS headers for third-party sites, so a direct
+          // browser fetch() fails with "Failed to fetch". Route through our own
+          // Supabase Edge Function, which fetches TMD server-side (no CORS involved)
+          // and returns the result with CORS headers added.
+          const proxiedUrl = TMD_PROXY_URL + '?lat=' + lat.toFixed(4) + '&lon=' + lon.toFixed(4);
           const tmdResp = await fetch(proxiedUrl);
           if(!tmdResp.ok) throw new Error('HTTP ' + tmdResp.status);
           const tmdData = await tmdResp.json();
@@ -1898,6 +1903,7 @@
           console.error('TMD ETo API failed:', tmdErr);
           setGpsStatus(t('gpsCoord') + ' ' + lat.toFixed(3) + ', ' + lon.toFixed(3) + ' — '
             + t('gpsTmdFailFallback') + ' (' + (tmdErr && tmdErr.message ? tmdErr.message : tmdErr) + ')');
+        }
         }
 
         try{
