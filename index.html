@@ -1872,7 +1872,11 @@
         try{
           const tmdUrl = 'https://arcims.tmd.go.th/api/agromet.php?variable=eto'
             + '&lat=' + lat.toFixed(4) + '&lon=' + lon.toFixed(4);
-          const tmdResp = await fetch(tmdUrl);
+          // TMD's server doesn't send CORS headers for third-party sites, so browsers
+          // block a direct fetch() with "Failed to fetch". Route through corsproxy.io,
+          // which is free for github.io origins and adds the missing CORS headers.
+          const proxiedUrl = 'https://corsproxy.io/?url=' + encodeURIComponent(tmdUrl);
+          const tmdResp = await fetch(proxiedUrl);
           if(!tmdResp.ok) throw new Error('HTTP ' + tmdResp.status);
           const tmdData = await tmdResp.json();
           if(tmdData.status !== 'success' || !Array.isArray(tmdData.data) || tmdData.data.length === 0){
@@ -1972,4 +1976,4 @@
 </script>
 
 </body>
-  </html>
+</html>
