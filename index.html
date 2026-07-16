@@ -271,6 +271,11 @@
   .fert-place-guide ol{ margin:8px 0 0; padding-left:18px; font-size:12.5px; color:#6B5321; line-height:1.6; }
   .fert-place-guide li{ margin-bottom:5px; }
   .fert-place-guide li:last-child{ margin-bottom:0; }
+  .fert-zone-important{
+    margin-top:10px; padding:10px 12px; background:#FDE3E3; border-left:3px solid #C62828;
+    border-radius:6px; font-size:12.5px; color:#4A3813; font-weight:600; line-height:1.5;
+    display:flex; align-items:flex-start; gap:7px;
+  }
 
   .big-note{
     margin-top:22px; padding:20px 18px; text-align:center;
@@ -667,6 +672,7 @@
           <li data-i18n="fertZoneStep3">คลุมด้วยดินหรือเศษใบไม้บางๆ หลังโรยปุ๋ย เพื่อลดการสูญเสียจากแสงแดดและการชะล้างเมื่อฝนตก</li>
           <li data-i18n="fertZoneStep4">รดน้ำตามหลังใส่ปุ๋ยทันที เพื่อช่วยละลายปุ๋ยและพาธาตุอาหารลงสู่บริเวณราก</li>
         </ol>
+        <div class="fert-zone-important">💧 <span data-i18n="fertZoneWaterImportant">รดน้ำทันทีหลังใส่ปุ๋ยทุกครั้ง — สำคัญมาก! ถ้าไม่รดน้ำ ปุ๋ยจะไม่ละลายและรากดูดซึมไม่ได้</span></div>
       </div>
 
       <details class="breakdown">
@@ -803,6 +809,7 @@
       fertZoneStep2: 'โรยปุ๋ยเป็นวงแหวนรอบต้น ตั้งแต่ระยะที่เว้นไว้ไปจนถึงแนวขอบเงาใบ (drip line) ซึ่งเป็นบริเวณที่รากฝอยดูดซึมธาตุอาหารหนาแน่นที่สุด',
       fertZoneStep3: 'คลุมด้วยดินหรือเศษใบไม้บางๆ หลังโรยปุ๋ย เพื่อลดการสูญเสียจากแสงแดดและการชะล้างเมื่อฝนตก',
       fertZoneStep4: 'รดน้ำตามหลังใส่ปุ๋ยทันที เพื่อช่วยละลายปุ๋ยและพาธาตุอาหารลงสู่บริเวณราก',
+      fertZoneWaterImportant: 'รดน้ำทันทีหลังใส่ปุ๋ยทุกครั้ง — สำคัญมาก! ถ้าไม่รดน้ำ ปุ๋ยจะไม่ละลายและรากดูดซึมไม่ได้',
       fertZonePreviewPrefix: 'โรยปุ๋ยเป็นวงแหวนรอบต้น ห่างจากโคนต้นประมาณ',
       fertDoseNeedDiam: 'กรอกเส้นผ่านศูนย์กลางทรงพุ่มเพื่อดูปริมาณปุ๋ยต่อต้น',
       fertDosePreviewA: 'ทั้งปีประมาณ',
@@ -877,6 +884,11 @@
       gpsNoSupport: 'เบราว์เซอร์นี้ไม่รองรับ Geolocation API',
       gpsCoord: 'พิกัด', gpsCallingApi: 'กำลังเรียก NASA POWER API...',
       gpsApiError: 'NASA POWER API ตอบกลับผิดพลาด:',
+      gpsCallingTmd: 'กำลังเรียกข้อมูลพยากรณ์ ETo จากกรมอุตุนิยมวิทยา (TMD)...',
+      gpsTmdSuccess: 'ดึงข้อมูลจากกรมอุตุนิยมวิทยา (TMD) สำเร็จ —',
+      gpsTmdGrid: 'จุดกริดใกล้ที่สุดห่าง',
+      gpsTmdFailFallback: 'ดึงข้อมูลจาก TMD ไม่สำเร็จ กำลังลองใช้ NASA POWER แทน...',
+      unitKm: 'กม.',
       gpsNoData: 'ไม่พบข้อมูลที่ใช้งานได้ในช่วง 25 วันล่าสุด',
       gpsSuccess: 'สำเร็จ', gpsAvgFrom: 'เฉลี่ยจาก', gpsDaysRange: 'วันล่าสุด, ช่วง',
       gpsFilledIn: 'กรอกลงในช่องด้านล่างให้แล้ว ตรวจสอบ/แก้ไขได้ตามต้องการ',
@@ -999,6 +1011,7 @@
       fertZoneStep2: 'Broadcast the fertilizer in a ring around the tree, from that cleared distance out to the drip line (canopy edge) — this is where feeder roots are densest and absorb nutrients best.',
       fertZoneStep3: 'Lightly cover the fertilizer with soil or mulch afterward to reduce loss from sunlight and rain runoff.',
       fertZoneStep4: 'Water immediately after applying to help dissolve the fertilizer and carry nutrients down to the root zone.',
+      fertZoneWaterImportant: 'Always water right after fertilizing — this really matters! Without water, the fertilizer won\'t dissolve and the roots can\'t absorb it.',
       fertZonePreviewPrefix: 'Apply fertilizer in a ring around the trunk, roughly',
       fertDoseNeedDiam: 'Enter canopy diameter to see the per-tree dose',
       fertDosePreviewA: 'Whole year ≈',
@@ -1073,6 +1086,11 @@
       gpsNoSupport: 'This browser does not support the Geolocation API',
       gpsCoord: 'Coordinates', gpsCallingApi: 'calling NASA POWER API...',
       gpsApiError: 'NASA POWER API returned an error:',
+      gpsCallingTmd: 'Fetching the ETo forecast from the Thai Meteorological Department (TMD)...',
+      gpsTmdSuccess: 'Fetched from the Thai Meteorological Department (TMD) —',
+      gpsTmdGrid: 'nearest grid point',
+      gpsTmdFailFallback: 'Could not reach TMD, trying NASA POWER instead...',
+      unitKm: 'km',
       gpsNoData: 'No usable data found in the last 25 days',
       gpsSuccess: 'Success', gpsAvgFrom: 'averaged from', gpsDaysRange: 'recent days, range',
       gpsFilledIn: 'Filled into the field below. Check/edit as needed.',
@@ -1846,7 +1864,35 @@
       async (pos) => {
         const lat = pos.coords.latitude;
         const lon = pos.coords.longitude;
-        setGpsStatus(t('gpsCoord') + ' ' + lat.toFixed(3) + ', ' + lon.toFixed(3) + ' — ' + t('gpsCallingApi'));
+        setGpsStatus(t('gpsCoord') + ' ' + lat.toFixed(3) + ', ' + lon.toFixed(3) + ' — ' + t('gpsCallingTmd'));
+
+        // ---- Primary source: Thai Meteorological Department (TMD) ETo forecast API ----
+        // This is the same 10-day ETo bulletin the app's hint text already points farmers to,
+        // now available as a direct API — no manual Penman-Monteith calc needed.
+        try{
+          const tmdUrl = 'https://arcims.tmd.go.th/api/agromet.php?variable=eto'
+            + '&lat=' + lat.toFixed(4) + '&lon=' + lon.toFixed(4);
+          const tmdResp = await fetch(tmdUrl);
+          if(!tmdResp.ok) throw new Error('HTTP ' + tmdResp.status);
+          const tmdData = await tmdResp.json();
+          if(tmdData.status !== 'success' || !Array.isArray(tmdData.data) || tmdData.data.length === 0){
+            throw new Error((tmdData && tmdData.message) || 'no data');
+          }
+
+          const etoSum = tmdData.data.reduce((s, item) => s + (parseFloat(item.eto) || 0), 0);
+          document.getElementById('eto').value = etoSum.toFixed(1);
+
+          const gp = tmdData.nearest_grid_point;
+          const period = tmdData.forecast_period;
+          let msg = t('gpsTmdSuccess') + ' ETo ' + etoSum.toFixed(1) + ' ' + t('unitMm10d');
+          if(period) msg += ' (' + period.start_date + '–' + period.end_date + ')';
+          if(gp && typeof gp.distance_km === 'number') msg += ' — ' + t('gpsTmdGrid') + ' ' + gp.distance_km.toFixed(1) + ' ' + t('unitKm');
+          setGpsStatus(msg, 'success');
+          setGpsLoading(false);
+          return;
+        } catch(tmdErr){
+          setGpsStatus(t('gpsCoord') + ' ' + lat.toFixed(3) + ', ' + lon.toFixed(3) + ' — ' + t('gpsTmdFailFallback'));
+        }
 
         try{
           const end = new Date();
@@ -1924,4 +1970,4 @@
 </script>
 
 </body>
-</html>
+  </html>
