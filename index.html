@@ -217,6 +217,7 @@
     padding:12px 14px; margin-top:14px; line-height:1.6;
   }
   .result-note b{color:#fff;}
+  .eto-date-note{ margin-top:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,.12); font-size:12px; opacity:.85; }
 
   details.breakdown{margin-top:12px;}
   details.breakdown summary{ cursor:pointer; font-size:13px; font-weight:600; padding:6px 0; }
@@ -877,6 +878,10 @@
       gpsCallingTmd: 'กำลังเรียกข้อมูลพยากรณ์ ETo จากกรมอุตุนิยมวิทยา (TMD)...',
       gpsTmdSuccess: 'ดึงข้อมูลจากกรมอุตุนิยมวิทยา (TMD) สำเร็จ —',
       gpsTmdGrid: 'จุดกริดใกล้ที่สุดห่าง',
+      etoSourceTmd: 'กรมอุตุนิยมวิทยา (TMD)',
+      etoSourceNasa: 'NASA POWER',
+      etoDateNotePrefix: 'ค่า ETo จาก',
+      etoRecalcAfter: 'แนะนำคำนวณใหม่หลังวันที่',
       gpsTmdFailFallback: 'ดึงข้อมูลจาก TMD ไม่สำเร็จ กำลังลองใช้ NASA POWER แทน...',
       unitKm: 'กม.',
       gpsNoData: 'ไม่พบข้อมูลที่ใช้งานได้ในช่วง 25 วันล่าสุด',
@@ -1079,6 +1084,10 @@
       gpsCallingTmd: 'Fetching the ETo forecast from the Thai Meteorological Department (TMD)...',
       gpsTmdSuccess: 'Fetched from the Thai Meteorological Department (TMD) —',
       gpsTmdGrid: 'nearest grid point',
+      etoSourceTmd: 'Thai Meteorological Department (TMD)',
+      etoSourceNasa: 'NASA POWER',
+      etoDateNotePrefix: 'ETo data from',
+      etoRecalcAfter: 'Recommended to recalculate after',
       gpsTmdFailFallback: 'Could not reach TMD, trying NASA POWER instead...',
       unitKm: 'km',
       gpsNoData: 'No usable data found in the last 25 days',
@@ -1233,6 +1242,10 @@
   const HA_M2 = 10000;
 
   let waterMode = 'young';
+  // Tracks where the current ETo value came from (TMD/NASA) and its date range,
+  // so the water result can tell farmers when to recalculate. Cleared if the
+  // farmer edits the ETo field by hand, since the stored dates no longer apply.
+  let etoSourceInfo = null;
   let fertMode = 'young';
   let selectedStage = 3;
   let selectedSoil = 'loam';
@@ -1663,6 +1676,13 @@
     document.getElementById('outMinutes').textContent = r.minutes < 1 ? r.minutes.toFixed(1) : Math.round(r.minutes);
     document.getElementById('outFreq').textContent = r.freqDays;
     document.getElementById('waterNote').innerHTML = r.note;
+    if(waterMode === 'mature' && etoSourceInfo){
+      const sourceLabel = etoSourceInfo.source === 'tmd' ? t('etoSourceTmd') : t('etoSourceNasa');
+      const dateNote = '📅 ' + t('etoDateNotePrefix') + ' ' + sourceLabel + ' ('
+        + fmtDateDMY(etoSourceInfo.start) + '–' + fmtDateDMY(etoSourceInfo.end) + ') · '
+        + t('etoRecalcAfter') + ' ' + fmtDateDMY(etoSourceInfo.end);
+      document.getElementById('waterNote').innerHTML += '<div class="eto-date-note">' + dateNote + '</div>';
+    }
     document.getElementById('waterBreakdown').innerHTML = r.rows.map(function(row){
       return '<div><span>' + row[0] + '</span><span>' + row[1] + '</span></div>';
     }).join('');
@@ -1849,6 +1869,22 @@
     document.getElementById('gpsBtnLabel').textContent = loading ? t('gpsFetching') : t('gpsBtnLabel');
   }
 
+  // Formats a date string (either TMD's "YYYY-MM-DD" or NASA's "YYYYMMDD") as "DD/MM/YYYY"
+  function fmtDateDMY(dateStr){
+    let y, m, d;
+    if(/^\d{8}$/.test(dateStr)){
+      y = dateStr.slice(0,4); m = dateStr.slice(4,6); d = dateStr.slice(6,8);
+    } else {
+      const parts = String(dateStr).split('-');
+      if(parts.length !== 3) return dateStr;
+      y = parts[0]; m = parts[1]; d = parts[2];
+    }
+    return d + '/' + m + '/' + y;
+  }
+
+  const etoInputEl = document.getElementById('eto');
+  if(etoInputEl) etoInputEl.addEventListener('input', function(){ etoSourceInfo = null; });
+
   function fetchEtoFromGps(){
     setGpsLoading(true);
     setGpsStatus(t('gpsAsking'));
@@ -1885,6 +1921,7 @@
 
           const gp = tmdData.nearest_grid_point;
           const period = tmdData.forecast_period;
+          if(period) etoSourceInfo = { source:'tmd', start:period.start_date, end:period.end_date };
           let msg = t('gpsTmdSuccess') + ' ETo ' + etoSum.toFixed(1) + ' ' + t('unitMm10d');
           if(period) msg += ' (' + period.start_date + '–' + period.end_date + ')';
           if(gp && typeof gp.distance_km === 'number') msg += ' — ' + t('gpsTmdGrid') + ' ' + gp.distance_km.toFixed(1) + ' ' + t('unitKm');
@@ -1949,6 +1986,7 @@
           const etoSum10 = (etoDaily.reduce((s,v) => s+v, 0)) * (10 / etoDaily.length);
 
           document.getElementById('eto').value = etoSum10.toFixed(1);
+          etoSourceInfo = { source:'nasa', start:last10[0].date, end:last10[last10.length-1].date };
 
           if(last10.length < MIN_DAYS_SOFT){
             setGpsStatus(t('gpsLowConfidence') + ' ' + last10.length + ' ' + t('gpsLowConfidenceMid'), 'error');
