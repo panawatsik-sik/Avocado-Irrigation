@@ -425,6 +425,7 @@
         <span id="gpsBtnLabel" data-i18n="gpsBtnLabel">ดึง ETo อัตโนมัติจากพิกัด GPS</span>
       </button>
       <div class="gps-status" id="gpsStatus"></div>
+      <p class="hint hidden" id="tmdCreditNote" style="margin-top:6px; font-size:11.5px;" data-i18n="tmdCredit">ข้อมูล ETo ได้รับความอนุเคราะห์จากส่วนอุตุนิยมวิทยาเกษตร กองพัฒนาอุตุนิยมวิทยา กรมอุตุนิยมวิทยา</p>
 
       <div class="field" style="margin-top:14px;">
         <label class="field-label" for="eto" data-i18n="etoLabel">ค่า ETo ราย 10 วัน</label>
@@ -727,6 +728,7 @@
       tabFertBtn: '🌿 คำนวณปุ๋ย',
       etoCardH2: 'ค่า ETo',
       etoCardHint: 'ตรวจสอบค่า ETo ราย 10 วันได้จากเพจกรมอุตุนิยมวิทยา หรือดึงอัตโนมัติจากพิกัด GPS',
+      tmdCredit: 'ข้อมูล ETo ได้รับความอนุเคราะห์จากส่วนอุตุนิยมวิทยาเกษตร กองพัฒนาอุตุนิยมวิทยา กรมอุตุนิยมวิทยา',
       gpsBtnLabel: 'ดึง ETo อัตโนมัติจากพิกัด GPS',
       etoLabel: 'ค่า ETo ราย 10 วัน',
       etoUnit: 'มม./10 วัน',
@@ -929,6 +931,7 @@
       tabFertBtn: '🌿 Calculate Fertilizer',
       etoCardH2: 'ETo Value',
       etoCardHint: 'Check the 10-day ETo value from your national meteorological department, or fetch it automatically from GPS',
+      tmdCredit: 'ETo data kindly provided by the Agrometeorology Section, Meteorological Development Division, Thai Meteorological Department',
       gpsBtnLabel: 'Auto-fetch ETo from GPS location',
       etoLabel: 'ETo Value (10-day period)',
       etoUnit: 'mm/10 days',
@@ -1793,11 +1796,15 @@
   }
 
   // ===== GPS-based ETo auto-fetch (NASA POWER + FAO-56 Penman-Monteith) =====
-  // TMD's ETo endpoint has no CORS headers, so it's called through a Supabase Edge
-  // Function that fetches it server-side and adds CORS. Deploy tmd-eto-proxy (see the
-  // accompanying index.ts) and replace this with your project's function URL, e.g.
+  // TMD's ETo endpoint works over plain HTTP but has a broken HTTPS/TLS setup
+  // (confirmed by TMD's own IT team), and our app is served over HTTPS via
+  // GitHub Pages, so a browser can't call TMD directly (mixed-content block).
+  // Calls go through a Supabase Edge Function that reaches TMD over HTTP
+  // server-side, then returns the result to us over HTTPS. Deploy
+  // tmd-eto-proxy (see the accompanying index.ts) and replace this with your
+  // project's function URL, e.g.
   // 'https://abcdefghij.supabase.co/functions/v1/tmd-eto-proxy'
-  const TMD_PROXY_URL = 'https://jmdnnbwhjuiqfvfdhmgm.supabase.co/functions/v1/tmd-eto-proxy';
+  const TMD_PROXY_URL = 'https://YOUR-PROJECT-REF.supabase.co/functions/v1/tmd-eto-proxy';
   const GSC = 0.0820;
   const SIGMA = 4.903e-9;
 
@@ -1858,6 +1865,8 @@
   function fetchEtoFromGps(){
     setGpsLoading(true);
     setGpsStatus(t('gpsAsking'));
+    const creditNote = document.getElementById('tmdCreditNote');
+    if(creditNote) creditNote.classList.add('hidden');
 
     if(!navigator.geolocation){
       setGpsStatus(t('gpsNoSupport'), 'error');
@@ -1872,14 +1881,10 @@
         setGpsStatus(t('gpsCoord') + ' ' + lat.toFixed(3) + ', ' + lon.toFixed(3) + ' — ' + t('gpsCallingTmd'));
 
         // ---- Primary source: Thai Meteorological Department (TMD) ETo forecast API ----
-        // This is the same 10-day ETo bulletin the app's hint text already points farmers to,
-        // now available as a direct API — no manual Penman-Monteith calc needed.
+        // This is the same 10-day ETo bulletin the app's hint text already points farmers to.
+        // Confirmed working directly (over HTTP) by TMD's own IT team on 2026-07-16.
         if(TMD_PROXY_URL.indexOf('YOUR-PROJECT-REF') === -1){
         try{
-          // TMD's server doesn't send CORS headers for third-party sites, so a direct
-          // browser fetch() fails with "Failed to fetch". Route through our own
-          // Supabase Edge Function, which fetches TMD server-side (no CORS involved)
-          // and returns the result with CORS headers added.
           const proxiedUrl = TMD_PROXY_URL + '?lat=' + lat.toFixed(4) + '&lon=' + lon.toFixed(4);
           const tmdResp = await fetch(proxiedUrl);
           if(!tmdResp.ok) throw new Error('HTTP ' + tmdResp.status);
@@ -1897,6 +1902,7 @@
           if(period) msg += ' (' + period.start_date + '–' + period.end_date + ')';
           if(gp && typeof gp.distance_km === 'number') msg += ' — ' + t('gpsTmdGrid') + ' ' + gp.distance_km.toFixed(1) + ' ' + t('unitKm');
           setGpsStatus(msg, 'success');
+          if(creditNote) creditNote.classList.remove('hidden');
           setGpsLoading(false);
           return;
         } catch(tmdErr){
@@ -1905,6 +1911,8 @@
             + t('gpsTmdFailFallback') + ' (' + (tmdErr && tmdErr.message ? tmdErr.message : tmdErr) + ')');
         }
         }
+
+        setGpsStatus(t('gpsCoord') + ' ' + lat.toFixed(3) + ', ' + lon.toFixed(3) + ' — ' + t('gpsCallingApi'));
 
         try{
           const end = new Date();
