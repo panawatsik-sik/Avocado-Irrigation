@@ -287,6 +287,7 @@
   footer{ text-align:center; font-size:12px; color:var(--muted); margin-top:28px; padding:0 20px; }
   .update-date{ text-align:center; font-size:11.5px; color:var(--muted); margin-top:6px; opacity:.85; }
   .footer-ru-note{ text-align:center; font-size:11px; color:var(--muted); margin-top:20px; line-height:1.5; opacity:.85; max-width:52ch; margin-left:auto; margin-right:auto; }
+  .visit-counter{ text-align:center; font-size:11.5px; color:var(--muted); margin-top:8px; opacity:.85; }
 
   .ku-logo-hint{ margin-top:4px; font-size:10.5px; color:var(--gold); font-style:italic; }
 
@@ -684,9 +685,94 @@
   <div class="footer-ru-note" data-i18n="headerCreditProject">ภายใต้ทุนด้านการนำผลงานวิจัยและนวัตกรรมไปใช้ประโยชน์<br>(RU: Research Utilization) ซึ่งสนับสนุนงบประมาณโดย สำนักงานพัฒนาการวิจัยการเกษตร (องค์การมหาชน)</div>
 
   <div class="update-date" data-i18n="lastUpdated">อัปเดตล่าสุด: 15/07/2026</div>
+  <div class="visit-counter hidden" id="visitCounter"></div>
 </div>
 
 <script>
+  // ===== Usage analytics (optional) =====
+  // Logs one anonymous page-view event per visit, tagged with the visitor's
+  // approximate province (via IP geolocation — no GPS permission needed) so
+  // usage per province can be reviewed in the Dashboard for project reporting.
+  // No personal data or precise location is sent — see usage-log-setup.sql
+  // for the table/policy this expects.
+  // Leave SUPABASE_URL as the placeholder to disable logging entirely.
+  // Placed at the very top of the script (before it's used anywhere below) to
+  // avoid a temporal-dead-zone error on the early page_view log call.
+  const SUPABASE_URL = 'https://jmdnnbwhjuiqfvfdhmgm.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImptZG5uYndoanVpcWZ2ZmRobWdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5Mjk5NTksImV4cCI6MjA5OTUwNTk1OX0.vfxg5LF7AC6gywMx_HbdI21o0O6h6Zq_bCiuvXMLXqM';
+
+  function logEvent(eventType, detail){
+    if(SUPABASE_URL.indexOf('YOUR-PROJECT-REF') !== -1) return; // not configured yet
+    try{
+      fetch(SUPABASE_URL + '/rest/v1/usage_log', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+        },
+        body: JSON.stringify({ event_type: eventType, event_detail: detail || null })
+      }).catch(function(){ /* logging failures should never disrupt the app */ });
+    } catch(e){ /* ignore */ }
+  }
+
+  // Logs one page_view event per visit, tagged with the visitor's approximate
+  // province (from IP geolocation — no GPS permission needed, no exact address).
+  // Still logs the visit (with no province) if the geolocation lookup fails,
+  // so a down IP-lookup service never blocks the count of visits.
+  function logPageViewWithProvince(){
+    if(SUPABASE_URL.indexOf('YOUR-PROJECT-REF') !== -1) return; // not configured yet
+    try{
+      fetch('https://ipwho.is/')
+        .then(function(r){ return r.json(); })
+        .then(function(geo){
+          const detail = (geo && geo.success !== false)
+            ? { province: geo.region || null, country: geo.country || null }
+            : null;
+          logEvent('page_view', detail);
+        })
+        .catch(function(){
+          logEvent('page_view', null);
+        });
+    } catch(e){ /* ignore — a page-view log should never disrupt the app */ }
+  }
+
+  // Fetches a total-visits count (via a count-only RPC — see
+  // usage-log-visit-counter.sql) and shows it at the bottom of the page.
+  // Stores the number so renderVisitCounter() can reformat it if the person
+  // switches language, without re-fetching.
+  let lastVisitCount = null;
+  function renderVisitCounter(){
+    if(lastVisitCount === null) return;
+    const el = document.getElementById('visitCounter');
+    if(!el) return;
+    const formatted = lastVisitCount.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH');
+    el.textContent = t('visitCounterPrefix') + ' ' + formatted + ' ' + t('visitCounterSuffix');
+    el.classList.remove('hidden');
+  }
+  function fetchAndDisplayVisitCount(){
+    if(SUPABASE_URL.indexOf('YOUR-PROJECT-REF') !== -1) return; // not configured yet
+    try{
+      fetch(SUPABASE_URL + '/rest/v1/rpc/get_total_visits', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+        },
+        body: '{}'
+      })
+        .then(function(r){ return r.json(); })
+        .then(function(count){
+          const n = typeof count === 'number' ? count : parseInt(count, 10);
+          if(isNaN(n)) return;
+          lastVisitCount = n;
+          renderVisitCounter();
+        })
+        .catch(function(){ /* fail silently — counter is a nice-to-have */ });
+    } catch(e){ /* ignore */ }
+  }
+
   const MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
   const MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
@@ -878,6 +964,8 @@
       gpsCallingTmd: 'กำลังเรียกข้อมูลพยากรณ์ ETo จากกรมอุตุนิยมวิทยา (TMD)...',
       gpsTmdSuccess: 'ดึงข้อมูลจากกรมอุตุนิยมวิทยา (TMD) สำเร็จ —',
       gpsTmdGrid: 'จุดกริดใกล้ที่สุดห่าง',
+      visitCounterPrefix: '🌱 มีผู้เข้าใช้งานแล้ว',
+      visitCounterSuffix: 'ครั้ง',
       etoSourceTmd: 'กรมอุตุนิยมวิทยา (TMD)',
       etoSourceNasa: 'NASA POWER',
       etoDateNotePrefix: 'ค่า ETo จาก',
@@ -1084,6 +1172,8 @@
       gpsCallingTmd: 'Fetching the ETo forecast from the Thai Meteorological Department (TMD)...',
       gpsTmdSuccess: 'Fetched from the Thai Meteorological Department (TMD) —',
       gpsTmdGrid: 'nearest grid point',
+      visitCounterPrefix: '🌱 Visited',
+      visitCounterSuffix: 'times',
       etoSourceTmd: 'Thai Meteorological Department (TMD)',
       etoSourceNasa: 'NASA POWER',
       etoDateNotePrefix: 'ETo data from',
@@ -1138,6 +1228,7 @@
     renderFertChips();
     renderFertRadiusButtons();
     updateFertDosePreview();
+    renderVisitCounter();
 
     try{ localStorage.setItem('avocado_app_lang', lang); }catch(e){}
   }
@@ -1549,6 +1640,8 @@
   }
   renderFertRadiusButtons();
   updateFertVisibility();
+  logPageViewWithProvince();
+  fetchAndDisplayVisitCount();
 
   const tabWaterBtn = document.getElementById('tabWaterBtn');
   const tabFertBtn = document.getElementById('tabFertBtn');
@@ -1811,7 +1904,7 @@
   // tmd-eto-proxy (see the accompanying index.ts) and replace this with your
   // project's function URL, e.g.
   // 'https://abcdefghij.supabase.co/functions/v1/tmd-eto-proxy'
-  const TMD_PROXY_URL = 'https://jmdnnbwhjuiqfvfdhmgm.supabase.co/functions/v1/tmd-eto-proxy';
+  const TMD_PROXY_URL = 'https://YOUR-PROJECT-REF.supabase.co/functions/v1/tmd-eto-proxy';
   const GSC = 0.0820;
   const SIGMA = 4.903e-9;
 
