@@ -229,7 +229,7 @@
     background:var(--surface-soft); overflow:hidden;
   }
   details.measure-guide summary{
-    cursor:pointer; font-size:13.5px; font-weight:600; color:var(--leaf);https://jmdnnbwhjuiqfvfdhmgm.supabase.co/functions/v1/tmd-eto-proxy
+    cursor:pointer; font-size:13.5px; font-weight:600; color:var(--leaf);
     padding:12px 14px; list-style:none; display:flex; align-items:center; gap:8px;
     -webkit-tap-highlight-color:transparent;
   }
@@ -601,8 +601,14 @@
       <p class="hint" id="fertDosePreview" style="margin:0;"></p>
     </div>
 
+    <div class="card" id="soilCardFert">
+      <h2><span class="num pit">5</span><span data-i18n="soilCardH2">ลักษณะดิน</span></h2>
+      <p class="hint" data-i18n="soilCardFertHint">เลือกเนื้อดินของสวน — ดินทรายอุ้มธาตุอาหารได้น้อยกว่า จึงต้องใส่ปุ๋ยในอัตราที่สูงกว่า</p>
+      <div class="stage-list" id="soilListFert"></div>
+    </div>
+
     <div class="card">
-      <h2><span class="num pit">5</span><span data-i18n="fertFormCardH2">สูตรปุ๋ยที่จะใช้</span></h2>
+      <h2><span class="num pit">6</span><span data-i18n="fertFormCardH2">สูตรปุ๋ยที่จะใช้</span></h2>
       <p class="hint" data-i18n="fertFormCardHint">เลือกสูตรปุ๋ยที่แนะนำสำหรับช่วงนี้จากตัวเลือกด้านล่าง</p>
 
       <div class="fert-recommend-box">
@@ -829,6 +835,8 @@
       measureGuideStep5: 'เลือกค่ารัศมีในแอปให้ใกล้เคียงกับค่าเฉลี่ยที่วัดได้มากที่สุด',
       soilCardH2: 'ลักษณะดิน',
       soilCardHint: 'เลือกเนื้อดินของสวน — แต่ละชนิดมีอัตราการซึมน้ำและความถี่การให้น้ำที่แนะนำต่างกัน',
+      soilCardFertHint: 'เลือกเนื้อดินของสวน — ดินทรายอุ้มธาตุอาหารได้น้อยกว่า จึงต้องใส่ปุ๋ยในอัตราที่สูงกว่า',
+      soilFertRateLabel: 'อัตราปุ๋ย',
       soilClay: 'ดินเหนียว', soilClayLoam: 'ดินเหนียวร่วม', soilLoam: 'ดินร่วน',
       soilSandyLoam: 'ดินร่วนปนทราย', soilSand: 'ดินทราย',
       soilInfiltrationShort: 'ซึมน้ำ', unitMmPerHr: 'มม./ชม.',
@@ -912,7 +920,12 @@
       rowRoundDose: 'ปุ๋ยที่ใส่ครั้งนี้',
       rowYearTotal: 'ปุ๋ยเคมีรวมทั้งปี (โดยประมาณ)',
       rowYearProgram: 'โปรแกรมทั้งปี (สูตรแนะนำ · ปริมาณ/ครั้ง)',
-      doseRuleNote: 'ประมาณจาก: ปุ๋ยเคมี กก./ปี ≈ เส้นผ่านศูนย์กลางทรงพุ่ม (ม.) × 0.7 แล้วแบ่งตามสัดส่วนแต่ละครั้ง',
+      doseRuleNote: 'ประมาณจาก: ปุ๋ยเคมี กก./ปี ≈ เส้นผ่านศูนย์กลางทรงพุ่ม (ม.) × 0.7 × ตัวคูณเนื้อดิน แล้วแบ่งตามสัดส่วนแต่ละรอบ (ปรับจากคำแนะนำกรมวิชาการเกษตร, 2566)',
+      soilFertNote: 'ปรับตามเนื้อดิน',
+      organicFertProducing: 'ควรใส่ปุ๋ยอินทรีย์ 25–50 กก./ต้น/ปี ในรอบบำรุงต้นหลังเก็บเกี่ยว ร่วมกับปุ๋ยเคมี',
+      organicFertYoung: 'ควรใส่ปุ๋ยอินทรีย์ 15–30 กก./ต้น/ปี ร่วมกับปุ๋ยเคมี',
+      leafAdjustNote: 'หากมีผลวิเคราะห์ดินหรือใบ สามารถปรับเพิ่ม/ลดปุ๋ยได้ 15–30% จากอัตราแนะนำ',
+      fertMethodNote: 'หว่านปุ๋ยรอบโคนต้นบริเวณทรงพุ่ม พรวนดินกลบ แล้วรดน้ำตาม',
       alertCanopyDiam: 'กรุณากรอกเส้นผ่านศูนย์กลางทรงพุ่ม (ต้องมากกว่า 0)',
       footerText: 'เครื่องมือช่วยประมาณการให้น้ำและปุ๋ย · สำหรับใช้เป็นแนวทางเบื้องต้นเท่านั้น',
       lastUpdated: 'อัปเดตล่าสุด: 15/07/2026',
@@ -1037,6 +1050,8 @@
       measureGuideStep5: 'Choose the radius option in the app closest to your measured average',
       soilCardH2: 'Soil Type',
       soilCardHint: 'Choose your orchard\'s soil texture — each type has a different infiltration rate and recommended irrigation frequency',
+      soilCardFertHint: 'Choose your orchard\'s soil texture — sandy soils hold fewer nutrients, so they need a higher fertilizer rate',
+      soilFertRateLabel: 'Fertilizer rate',
       soilClay: 'Clay', soilClayLoam: 'Clay loam', soilLoam: 'Loam',
       soilSandyLoam: 'Sandy loam', soilSand: 'Sand',
       soilInfiltrationShort: 'Infiltration', unitMmPerHr: 'mm/hr',
@@ -1120,7 +1135,12 @@
       rowRoundDose: 'Applied this round',
       rowYearTotal: 'Total chemical fertilizer/year (approx.)',
       rowYearProgram: 'Full-year program (recommended grade · amount/round)',
-      doseRuleNote: 'Estimated from: chemical fertilizer kg/yr ≈ canopy diameter (m) × 0.7, split by each round\'s share',
+      doseRuleNote: 'Estimated from: chemical fertilizer kg/yr ≈ canopy diameter (m) × 0.7 × soil factor, split by each round\'s share (adapted from DOA, 2023)',
+      soilFertNote: 'Soil texture adjustment',
+      organicFertProducing: 'Also apply 25–50 kg/tree/yr of organic fertilizer in the post-harvest vegetative round',
+      organicFertYoung: 'Also apply 15–30 kg/tree/yr of organic fertilizer alongside the chemical program',
+      leafAdjustNote: 'With a soil or leaf analysis, the rate can be raised or lowered by 15–30%',
+      fertMethodNote: 'Broadcast around the trunk within the canopy zone, work lightly into the soil, then water in',
       alertCanopyDiam: 'Please enter the canopy diameter (must be greater than 0)',
       footerText: 'A tool for estimating irrigation and fertilizer needs · For general guidance only',
       lastUpdated: 'Last updated: 15/07/2026',
@@ -1288,42 +1308,72 @@
     f15520:  {n:15, p:5,  k:20, label:'15-5-20'},
     f131321: {n:13, p:13, k:21, label:'13-13-21'},
     f121217: {n:12, p:12, k:17, label:'12-12-17'},
-    f00500:  {n:0,  p:0,  k:50, label:'0-0-50'}
+    f00500:  {n:0,  p:0,  k:50, label:'0-0-50'},
+    f201010: {n:20, p:10, k:10, label:'20-10-10'},
+    f00600:  {n:0,  p:0,  k:60, label:'0-0-60'}
   };
 
   // ---- Producing trees: 4 fertilizer rounds per year (DOA durian framework) ----------
   //  Each round: recommended split grades + a dose FACTOR. The dose factor multiplies
   //  the canopy-diameter base dose to give kg/tree FOR THAT ROUND.
   //  round.share is only used to show what fraction of the yearly program the round is.
+  //  Framework and rates follow DOA (2566) "คำแนะนำการใช้ปุ๋ยสำหรับไม้ผล", averaged
+  //  across durian / mangosteen / rambutan / mango / longan / lychee / citrus.
+  //  doseFactor values sum to 1.00. Round 4 is a potassium-only round in DOA, so its
+  //  share is small (0-0-50 is concentrated); doseFactorCompound covers the case where
+  //  the farmer picks a compound grade instead, so the product amount stays sensible.
   const FERT_ROUNDS = [
     {
       id:1, nameKey:'roundVeg', timingKey:'roundVegTiming',
-      items:[{f:'f2577',tag:'primary'},{f:'f1845',tag:'alt'},{f:'f4600',tag:'alt'}],
-      reasonKey:'roundVegReason', doseFactor:0.30
+      items:[{f:'f201010',tag:'primary'},{f:'f1845',tag:'alt'},{f:'f2577',tag:'alt'},{f:'f4600',tag:'alt'}],
+      reasonKey:'roundVegReason', doseFactor:0.31
     },
     {
       id:2, nameKey:'roundBud', timingKey:'roundBudTiming',
-      items:[{f:'f82424',tag:'primary'},{f:'f92424',tag:'alt'},{f:'f122412',tag:'alt'}],
-      reasonKey:'roundBudReason', doseFactor:0.25
+      items:[{f:'f131321',tag:'primary'},{f:'f82424',tag:'alt'},{f:'f92424',tag:'alt'},{f:'f122412',tag:'alt'}],
+      reasonKey:'roundBudReason', doseFactor:0.31
     },
     {
       id:3, nameKey:'roundFruit', timingKey:'roundFruitTiming',
-      items:[{f:'f15920',tag:'primary'},{f:'f15520',tag:'alt'},{f:'f131321',tag:'alt'}],
-      reasonKey:'roundFruitReason', doseFactor:0.25
+      items:[{f:'f131321',tag:'primary'},{f:'f15920',tag:'alt'},{f:'f15520',tag:'alt'}],
+      reasonKey:'roundFruitReason', doseFactor:0.34
     },
     {
       id:4, nameKey:'roundQuality', timingKey:'roundQualityTiming',
-      items:[{f:'f131321',tag:'primary'},{f:'f00500',tag:'alt'},{f:'f121217',tag:'alt'}],
-      reasonKey:'roundQualityReason', doseFactor:0.20
+      items:[{f:'f00500',tag:'primary'},{f:'f00600',tag:'alt'},{f:'f131321',tag:'alt'},{f:'f121217',tag:'alt'}],
+      reasonKey:'roundQualityReason',
+      doseFactor:0.04,
+      doseFactorCompound:0.15
     }
   ];
+
+  // ---- Soil-texture multiplier (DOA section 5.2, present in every chapter) -----------
+  //  DOA recommends roughly double the rate on sandy soils versus clay, since those
+  //  soils hold less nutrient. Keys match SOILS[].id so the texture the farmer already
+  //  chose in the water tab can be reused here.
+  const FERT_SOIL_FACTOR = {
+    clay:       1.0,
+    clay_loam:  1.0,
+    loam:       1.5,
+    sandy_loam: 2.0,
+    sand:       2.0
+  };
+
+  // Organic fertilizer rates, per DOA (kg/tree/yr)
+  const ORGANIC_FERT = {
+    young:     {min:15, max:30},
+    producing: {min:25, max:50}
+  };
 
   // ---- Young (non-producing) trees: simple 3–4 split rounds/yr, vegetative focus ------
   //  Dose scales with age (year 1 smallest). Same "split a few times a year" philosophy.
   const YOUNG_FERT = {
-    1: {splits:4, kgPerTreePerYear:0.30, items:[{f:'f2577',tag:'primary'},{f:'f1845',tag:'alt'}], reasonKey:'youngFertReasonY1'},
-    2: {splits:4, kgPerTreePerYear:0.60, items:[{f:'f2577',tag:'primary'},{f:'f1845',tag:'alt'}], reasonKey:'youngFertReasonY2'},
-    3: {splits:4, kgPerTreePerYear:1.00, items:[{f:'f1845',tag:'primary'},{f:'f2577',tag:'alt'},{f:'f122412',tag:'alt'}], reasonKey:'youngFertReasonY3'}
+    //  DOA: 20-10-10, starting at 0.5 kg/tree/yr on clay and adding 0.5 kg each year,
+    //  split into 2 applications (early and late rainy season). Sandy soils start at
+    //  1.0 kg — that difference is applied through FERT_SOIL_FACTOR at calculation time.
+    1: {splits:2, kgPerTreePerYear:0.50, items:[{f:'f201010',tag:'primary'},{f:'f1845',tag:'alt'}],   reasonKey:'youngFertReasonY1'},
+    2: {splits:2, kgPerTreePerYear:1.00, items:[{f:'f201010',tag:'primary'},{f:'f2577',tag:'alt'}],   reasonKey:'youngFertReasonY2'},
+    3: {splits:2, kgPerTreePerYear:1.50, items:[{f:'f201010',tag:'primary'},{f:'f122412',tag:'alt'}], reasonKey:'youngFertReasonY3'}
   };
 
   let selectedRound = 1;
@@ -1392,7 +1442,7 @@
       item.innerHTML =
         '<div class="s-left"><div class="s-num">' + r.id + '</div><div><div class="s-name">' + t(r.nameKey) + '</div>' +
         '<div style="font-size:11.5px;color:var(--muted);margin-top:1px;">' + timing + '</div></div></div>' +
-        '<div class="s-kc">' + Math.round(r.doseFactor*100) + '%</div>';
+        '<div class="s-kc">' + Math.round(roundDoseFactor(r, (function(){ const pf = FERT_FORMULAS[r.items[0].f]; return pf.n === 0 && pf.p === 0; })())*100) + '%</div>';
       item.addEventListener('click', function(){
         roundListEl.querySelectorAll('.stage-item').forEach(function(el){ el.classList.remove('active'); });
         item.classList.add('active');
@@ -1436,6 +1486,9 @@
         document.getElementById('fertN').value = chip.dataset.n;
         document.getElementById('fertP').value = chip.dataset.p;
         document.getElementById('fertK').value = chip.dataset.k;
+        // Round 4's dose depends on whether a K-only or compound grade is picked,
+        // so refresh the preview as soon as the choice changes.
+        updateFertDosePreview();
       });
     });
     // Since there's no manual entry field anymore, always default to the
@@ -1446,6 +1499,7 @@
       document.getElementById('fertN').value = defaultChip.dataset.n;
       document.getElementById('fertP').value = defaultChip.dataset.p;
       document.getElementById('fertK').value = defaultChip.dataset.k;
+      if(typeof updateFertDosePreview === 'function') updateFertDosePreview();
     }
   }
 
@@ -1454,17 +1508,40 @@
   //  given round takes doseFactor of that. Young trees: fixed kg/tree/yr ÷ splits.
   const AVO_DIAM_FACTOR = 0.7; // avocado is a lighter feeder than durian (≈1.0)
 
+  // Soil texture chosen in the water tab also drives the fertilizer rate (DOA 5.2).
+  function soilFertFactor(){
+    return FERT_SOIL_FACTOR[selectedSoil] || 1.0;
+  }
+
+  // A potassium-only grade (0-0-50 / 0-0-60) delivers far more K per kg of product
+  // than a compound grade, so round 4 uses a much smaller share for those. Grades are
+  // picked via chips that write into the hidden N/P/K inputs, so read those.
+  function isKOnlySelected(){
+    const n = parseFloat(document.getElementById('fertN').value);
+    const p = parseFloat(document.getElementById('fertP').value);
+    if(isNaN(n) || isNaN(p)) return true; // default state = round's primary (0-0-50)
+    return n === 0 && p === 0;
+  }
+
+  function roundDoseFactor(round, kOnly){
+    if(!round) return 0;
+    if(round.doseFactorCompound && !kOnly) return round.doseFactorCompound;
+    return round.doseFactor;
+  }
+
   function getRoundDoseKg(){
+    const soilF = soilFertFactor();
     if(fertMode === 'young'){
       const year = parseInt(document.getElementById('yearFert').value) || 1;
       const y = YOUNG_FERT[year] || YOUNG_FERT[1];
-      return { perRound: y.kgPerTreePerYear / y.splits, perYear: y.kgPerTreePerYear, splits: y.splits, round:null };
+      const perYear = y.kgPerTreePerYear * soilF;
+      return { perRound: perYear / y.splits, perYear: perYear, splits: y.splits, round:null };
     }
     const diam = parseFloat(document.getElementById('canopyDiam').value);
     const r = FERT_ROUNDS.find(function(x){ return x.id===selectedRound; }) || FERT_ROUNDS[0];
     if(!diam || diam<=0) return { perRound:null, perYear:null, splits:FERT_ROUNDS.length, round:r };
-    const perYear = diam * AVO_DIAM_FACTOR;
-    return { perRound: perYear * r.doseFactor, perYear: perYear, splits: FERT_ROUNDS.length, round:r };
+    const perYear = diam * AVO_DIAM_FACTOR * soilF;
+    return { perRound: perYear * roundDoseFactor(r, isKOnlySelected()), perYear: perYear, splits: FERT_ROUNDS.length, round:r };
   }
 
   function updateFertDosePreview(){
@@ -1571,26 +1648,37 @@
   }
 
   const soilListEl = document.getElementById('soilList');
-  function renderSoils(){
-    soilListEl.innerHTML = '';
+  // Soil texture drives BOTH irrigation frequency (water tab) and fertilizer rate
+  // (fert tab, per DOA 5.2). The same selectedSoil backs both lists, so picking a
+  // texture in one tab updates the other — the farmer only ever chooses once.
+  function renderSoilList(listEl, showInfiltration){
+    if(!listEl) return;
+    listEl.innerHTML = '';
     SOILS.forEach(function(s, idx){
       const item = document.createElement('div');
       item.className = 'stage-item' + (s.id===selectedSoil ? ' active' : '');
       item.dataset.soil = s.id;
       const label = t(s.nameKey);
-      const subText = t('soilInfiltrationShort') + ' ' + s.infiltration + ' ' + t('unitMmPerHr')
-        + ' · ' + t('every') + ' ' + s.interval + ' ' + t('days');
+      const subText = showInfiltration
+        ? (t('soilInfiltrationShort') + ' ' + s.infiltration + ' ' + t('unitMmPerHr')
+           + ' · ' + t('every') + ' ' + s.interval + ' ' + t('days'))
+        : (t('soilFertRateLabel') + ' × ' + (FERT_SOIL_FACTOR[s.id] || 1.0).toFixed(1));
       item.innerHTML =
         '<div class="s-left"><div class="s-num">' + (idx+1) + '</div>' +
         '<div><div class="s-name">' + label + '</div>' +
         '<div class="s-kc" style="margin-top:2px;">' + subText + '</div></div></div>';
       item.addEventListener('click', function(){
-        soilListEl.querySelectorAll('.stage-item').forEach(function(el){ el.classList.remove('active'); });
-        item.classList.add('active');
         selectedSoil = s.id;
+        renderSoils();
+        if(typeof updateFertDosePreview === 'function') updateFertDosePreview();
       });
-      soilListEl.appendChild(item);
+      listEl.appendChild(item);
     });
+  }
+
+  function renderSoils(){
+    renderSoilList(soilListEl, true);
+    renderSoilList(document.getElementById('soilListFert'), false);
   }
 
   const modeGroupWater = document.getElementById('modeGroupWater');
@@ -1801,7 +1889,7 @@
       const year = parseInt(document.getElementById('yearFert').value) || 1;
       const y = YOUNG_FERT[year] || YOUNG_FERT[1];
       splits = y.splits;
-      perYearKg = y.kgPerTreePerYear;
+      perYearKg = y.kgPerTreePerYear * soilFertFactor();
       perRoundKg = perYearKg / splits;
       periodLabel = currentLang === 'en'
         ? ('Year ' + year + ' — vegetative, ' + splits + ' rounds/yr')
@@ -1814,8 +1902,8 @@
       }
       roundObj = FERT_ROUNDS.find(function(x){ return x.id===selectedRound; }) || FERT_ROUNDS[0];
       splits = FERT_ROUNDS.length;
-      perYearKg = diam * AVO_DIAM_FACTOR;
-      perRoundKg = perYearKg * roundObj.doseFactor;
+      perYearKg = diam * AVO_DIAM_FACTOR * soilFertFactor();
+      perRoundKg = perYearKg * roundDoseFactor(roundObj, isKOnlySelected());
       periodLabel = t(roundObj.nameKey);
     }
 
@@ -1869,11 +1957,19 @@
       rows += '<div style="border-bottom:none;padding-top:10px;"><span style="color:#F0DFC6;font-weight:600;">' + t('rowYearProgram') + '</span><span></span></div>';
       FERT_ROUNDS.forEach(function(r){
         const primary = FERT_FORMULAS[r.items[0].f];
-        const kg = diam * AVO_DIAM_FACTOR * r.doseFactor;
+        const primaryIsKOnly = primary.n === 0 && primary.p === 0;
+        const kg = diam * AVO_DIAM_FACTOR * soilFertFactor() * roundDoseFactor(r, primaryIsKOnly);
         const mark = r.id === selectedRound ? ' ◀' : '';
         rows += '<div><span>' + r.id + '. ' + t(r.nameKey) + ' · ' + primary.label + '</span><span>' + kg.toFixed(2) + ' ' + t('unitKg') + mark + '</span></div>';
       });
+      const soilObjF = SOILS.find(function(s){ return s.id===selectedSoil; });
+      rows += '<div><span>' + t('soilFertNote') + '</span><span>' +
+              (soilObjF ? t(soilObjF.nameKey) + ' × ' : '× ') + soilFertFactor().toFixed(1) + '</span></div>';
       rows += '<div style="border-bottom:none;"><span style="font-size:11.5px;color:#B9C6A0;">' + t('doseRuleNote') + '</span><span></span></div>';
+      rows += '<div style="border-bottom:none;"><span style="font-size:11.5px;color:#B9C6A0;">' + t('organicFertProducing') + '</span><span></span></div>';
+      rows += '<div style="border-bottom:none;"><span style="font-size:11.5px;color:#B9C6A0;">' + t('leafAdjustNote') + '</span><span></span></div>';
+    } else {
+      rows += '<div style="border-bottom:none;"><span style="font-size:11.5px;color:#B9C6A0;">' + t('organicFertYoung') + '</span><span></span></div>';
     }
 
     document.getElementById('fertBreakdown').innerHTML = rows;
