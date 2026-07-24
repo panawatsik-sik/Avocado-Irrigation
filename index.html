@@ -270,6 +270,7 @@
   .fert-place-guide-note b{ color:#4A3813; }
   .fert-place-guide ol{ margin:8px 0 0; padding-left:18px; font-size:12.5px; color:#6B5321; line-height:1.6; }
   .fert-place-guide li{ margin-bottom:5px; }
+
   .fert-place-guide li:last-child{ margin-bottom:0; }
   .fert-zone-important{
     margin-top:10px; padding:10px 12px; background:#FDE3E3; border-left:3px solid #C62828;
@@ -582,8 +583,8 @@
 
     <!-- Round selector (producing trees only) -->
     <div class="card" id="roundCard">
-      <h2><span class="num pit">3</span><span data-i18n="roundCardH2">ช่วงการใส่ปุ๋ย (แบ่งใส่ 4 ครั้ง/ปี)</span></h2>
-      <p class="hint" data-i18n="roundCardHint">ไม้ผลไม่ได้ใส่ปุ๋ยทุกเดือน แต่แบ่งใส่ตามระยะพัฒนาการปีละ 3–4 ครั้ง เลือกช่วงที่ต้นอยู่ตอนนี้</p>
+      <h2><span class="num pit">3</span><span data-i18n="roundCardH2">ช่วงการใส่ปุ๋ย (แบ่งใส่ 6 ครั้ง/ปี)</span></h2>
+      <p class="hint" data-i18n="roundCardHint">แบ่งใส่ปุ๋ยทุก 2 เดือน ปีละ 6 ครั้ง ตามระยะพัฒนาการ เลือกช่วงที่ต้นอยู่ตอนนี้</p>
       <div class="stage-list" id="roundList"></div>
     </div>
 
@@ -635,6 +636,8 @@
         </div>
       </div>
       <div class="result-note" id="fertNote"></div>
+
+      <div class="result-note hidden" id="organicNote"></div>
 
       <div class="fert-place-guide hidden" id="fertPlaceGuide">
         <div class="fert-place-guide-title">📍 <span data-i18n="fertZoneGuideSummary">ตำแหน่งที่ควรใส่ปุ๋ย</span></div>
@@ -863,20 +866,26 @@
       fertTagPrimary: 'แนะนำ', fertTagAlt: 'ทางเลือก',
 
       // --- Fertilizer round program (producing trees) ---
-      roundCardH2: 'ช่วงการใส่ปุ๋ย (แบ่งใส่ 4 ครั้ง/ปี)',
-      roundCardHint: 'ไม้ผลไม่ได้ใส่ปุ๋ยทุกเดือน แต่แบ่งใส่ตามระยะพัฒนาการปีละ 3–4 ครั้ง เลือกช่วงที่ต้นอยู่ตอนนี้',
-      roundVeg: 'บำรุงต้น / ทำใบ',
-      roundVegTiming: 'หลังเก็บเกี่ยว–ตัดแต่งกิ่ง (เร่งใบชุดใหม่)',
-      roundVegReason: 'หลังเก็บเกี่ยวต้องฟื้นต้นและเร่งใบชุดใหม่ ใช้สูตรไนโตรเจนสูงเพื่อสร้างทรงพุ่มและใบให้สมบูรณ์',
+      roundCardH2: 'ช่วงการใส่ปุ๋ย (แบ่งใส่ 6 ครั้ง/ปี)',
+      roundCardHint: 'แบ่งใส่ปุ๋ยทุก 2 เดือน ปีละ 6 ครั้ง ตามระยะพัฒนาการ เลือกช่วงที่ต้นอยู่ตอนนี้',
+      roundVeg1: 'ฟื้นต้น ครั้งที่ 1',
+      roundVeg1Timing: 'ทันทีหลังเก็บเกี่ยวและตัดแต่งกิ่ง',
+      roundVeg1Reason: 'หลังเก็บเกี่ยวและตัดแต่งกิ่ง ต้นต้องฟื้นตัวและแตกใบชุดใหม่ ใช้สูตรไนโตรเจนสูงเพื่อสร้างทรงพุ่ม',
+      roundVeg2: 'ฟื้นต้น ครั้งที่ 2',
+      roundVeg2Timing: 'ใบชุดแรกแก่แล้ว กำลังแตกใบชุดที่ 2',
+      roundVeg2Reason: 'ใบชุดที่สองต้องการไนโตรเจนต่อเนื่อง แบ่งใส่เป็นครั้งที่สองเพื่อให้ต้นได้รับสม่ำเสมอและลดการสูญเสียจากการชะล้าง',
       roundBud: 'สะสมอาหารก่อนออกดอก',
-      roundBudTiming: 'ก่อนออกดอก 1–2 เดือน',
+      roundBudTiming: 'ใบแก่ทั้งต้น ก่อนออกดอก',
       roundBudReason: 'ช่วงก่อนออกดอก เน้นฟอสฟอรัส-โพแทสเซียมสูงและลดไนโตรเจน เพื่อสะสมอาหารและกระตุ้นการสร้างตาดอก',
-      roundFruit: 'บำรุงผล / ขยายผล',
-      roundFruitTiming: 'หลังดอกบาน–ติดผล ~1 เดือน',
-      roundFruitReason: 'ระยะติดผล-ขยายผล ต้องการโพแทสเซียมสูงร่วมกับไนโตรเจนพอประมาณ เพื่อขยายขนาดผลและสร้างเนื้อ',
+      roundSet: 'ติดผล',
+      roundSetTiming: 'ดอกบาน–เริ่มติดผล',
+      roundSetReason: 'ระยะดอกบานถึงติดผล ต้องการโพแทสเซียมสูงร่วมกับไนโตรเจนพอประมาณ เพื่อให้ติดผลดีและเริ่มขยายขนาด',
+      roundFruit: 'ขยายผล',
+      roundFruitTiming: 'ผลกำลังขยายขนาด',
+      roundFruitReason: 'ระยะขยายผล ต้องการโพแทสเซียมสูงต่อเนื่องเพื่อขยายขนาดผลและสร้างเนื้อ',
       roundQuality: 'เพิ่มคุณภาพผล',
-      roundQualityTiming: 'ก่อนเก็บเกี่ยว ~1–2 เดือน',
-      roundQualityReason: 'ช่วงก่อนเก็บเกี่ยว เน้นโพแทสเซียมสูงเพื่อเพิ่มคุณภาพ ความหวาน และสีเนื้อ โดยลดไนโตรเจนลง',
+      roundQualityTiming: 'ผลโตเต็มที่ ก่อนเก็บเกี่ยว',
+      roundQualityReason: 'ช่วงก่อนเก็บเกี่ยว เน้นโพแทสเซียมสูงเพื่อเพิ่มคุณภาพและสีเนื้อ โดยลดไนโตรเจนลง',
 
       // --- Young-tree fertilizer ---
       youngFertReasonY1: 'ต้นเล็กปีที่ 1 เน้นเร่งต้น-เร่งใบด้วยสูตรไนโตรเจนสูง แบ่งใส่ทีละน้อยหลายครั้ง',
@@ -920,10 +929,15 @@
       rowRoundDose: 'ปุ๋ยที่ใส่ครั้งนี้',
       rowYearTotal: 'ปุ๋ยเคมีรวมทั้งปี (โดยประมาณ)',
       rowYearProgram: 'โปรแกรมทั้งปี (สูตรแนะนำ · ปริมาณ/ครั้ง)',
-      doseRuleNote: 'ประมาณจาก: ปุ๋ยเคมี กก./ปี ≈ เส้นผ่านศูนย์กลางทรงพุ่ม (ม.) × 0.7 × ตัวคูณเนื้อดิน แล้วแบ่งตามสัดส่วนแต่ละรอบ (ปรับจากคำแนะนำกรมวิชาการเกษตร, 2566)',
+      doseRuleNote: 'คำนวณจากความต้องการธาตุอาหาร N-P₂O₅-K₂O ของแต่ละรอบ ตามขนาดทรงพุ่มและเนื้อดิน แล้วแปลงเป็นน้ำหนักปุ๋ยตามสูตรที่เลือก · ความต้องการธาตุอาหารรายระยะคำนวณจากคำแนะนำการใส่ปุ๋ยไม้ผลของกรมวิชาการเกษตร',
       soilFertNote: 'ปรับตามเนื้อดิน',
-      organicFertProducing: 'ควรใส่ปุ๋ยอินทรีย์ 25–50 กก./ต้น/ปี ในรอบบำรุงต้นหลังเก็บเกี่ยว ร่วมกับปุ๋ยเคมี',
-      organicFertYoung: 'ควรใส่ปุ๋ยอินทรีย์ 15–30 กก./ต้น/ปี ร่วมกับปุ๋ยเคมี',
+      driverLabel: 'ธาตุนำ',
+      alertGradeMismatch: 'สูตรปุ๋ยที่เลือกไม่มีธาตุอาหารหลักของรอบนี้ กรุณาเลือกสูตรอื่น',
+      rowNutrientTarget: 'เป้าหมายธาตุอาหารรอบนี้',
+
+      organicNoteTh1: 'ควรใส่ปุ๋ยคอกเก่าหรือปุ๋ยหมักประมาณ ',
+      organicNoteTh2: ' กก./ต้น ในรอบ<b>ฟื้นต้นหลังเก็บเกี่ยว</b> โดยหว่านปุ๋ยอินทรีย์ก่อน แล้วจึงหว่านปุ๋ยเคมีทับในแถบชายพุ่มเดียวกัน',
+      organicNoteCaution: '⚠️ ต้องเป็นปุ๋ยคอกที่ย่อยสลายดีแล้วเท่านั้น ปุ๋ยคอกสดจะเกิดความร้อนและแก๊สแอมโมเนียทำลายรากฝอย และเพิ่มความเสี่ยงโรครากเน่าโคนเน่า',
       leafAdjustNote: 'หากมีผลวิเคราะห์ดินหรือใบ สามารถปรับเพิ่ม/ลดปุ๋ยได้ 15–30% จากอัตราแนะนำ',
       fertMethodNote: 'หว่านปุ๋ยรอบโคนต้นบริเวณทรงพุ่ม พรวนดินกลบ แล้วรดน้ำตาม',
       alertCanopyDiam: 'กรุณากรอกเส้นผ่านศูนย์กลางทรงพุ่ม (ต้องมากกว่า 0)',
@@ -1078,20 +1092,26 @@
       fertTagPrimary: 'Recommended', fertTagAlt: 'Alternative',
 
       // --- Fertilizer round program (producing trees) ---
-      roundCardH2: 'Fertilizer round (split 4×/year)',
-      roundCardHint: 'Fruit trees are not fertilized every month — fertilizer is split into 3–4 rounds a year by growth stage. Pick the stage the tree is in now.',
-      roundVeg: 'Vegetative / leaf flush',
-      roundVegTiming: 'After harvest & pruning (push a new leaf flush)',
-      roundVegReason: 'After harvest the tree needs to recover and push a new leaf flush, so use a high-nitrogen grade to rebuild the canopy and leaves.',
+      roundCardH2: 'Fertilizer round (split 6×/year)',
+      roundCardHint: 'Fertilizer is applied every two months, six rounds a year, following the growth stages. Pick the stage the tree is in now.',
+      roundVeg1: 'Recovery 1',
+      roundVeg1Timing: 'Right after harvest and pruning',
+      roundVeg1Reason: 'After harvest and pruning the tree needs to recover and push a new leaf flush, so use a high-nitrogen grade to rebuild the canopy.',
+      roundVeg2: 'Recovery 2',
+      roundVeg2Timing: 'First flush hardened, second flush pushing',
+      roundVeg2Reason: 'The second leaf flush needs continued nitrogen. Splitting it into a second application keeps supply steady and reduces leaching loss.',
       roundBud: 'Nutrient storage / bud induction',
-      roundBudTiming: '1–2 months before flowering',
+      roundBudTiming: 'Leaves mature, before flowering',
       roundBudReason: 'Before flowering, favour high phosphorus-potassium and low nitrogen to build reserves and induce flower buds.',
-      roundFruit: 'Fruit development / sizing',
-      roundFruitTiming: '~1 month after bloom / fruit set',
-      roundFruitReason: 'During fruit set and sizing the tree needs high potassium with moderate nitrogen to size up the fruit and build flesh.',
+      roundSet: 'Fruit set',
+      roundSetTiming: 'Bloom to early fruit set',
+      roundSetReason: 'From bloom through fruit set the tree needs high potassium with moderate nitrogen for good set and early sizing.',
+      roundFruit: 'Fruit sizing',
+      roundFruitTiming: 'Fruit sizing up',
+      roundFruitReason: 'During sizing the tree needs continued high potassium to size up the fruit and build flesh.',
       roundQuality: 'Improve fruit quality',
-      roundQualityTiming: '~1–2 months before harvest',
-      roundQualityReason: 'Before harvest, emphasise high potassium to improve quality, sweetness and flesh colour, while cutting nitrogen back.',
+      roundQualityTiming: 'Fruit near full size, before harvest',
+      roundQualityReason: 'Before harvest, emphasise high potassium to improve quality and flesh colour, while cutting nitrogen back.',
 
       // --- Young-tree fertilizer ---
       youngFertReasonY1: 'Year 1 trees focus on pushing shoots and leaves with a high-nitrogen grade, applied little and often.',
@@ -1135,10 +1155,15 @@
       rowRoundDose: 'Applied this round',
       rowYearTotal: 'Total chemical fertilizer/year (approx.)',
       rowYearProgram: 'Full-year program (recommended grade · amount/round)',
-      doseRuleNote: 'Estimated from: chemical fertilizer kg/yr ≈ canopy diameter (m) × 0.7 × soil factor, split by each round\'s share (adapted from DOA, 2023)',
+      doseRuleNote: 'Calculated from each round\'s N-P₂O₅-K₂O demand, scaled by canopy size and soil texture, then converted to product weight using the selected grade · Per-stage nutrient demand is derived from Thai DOA fruit-tree guidance',
       soilFertNote: 'Soil texture adjustment',
-      organicFertProducing: 'Also apply 25–50 kg/tree/yr of organic fertilizer in the post-harvest vegetative round',
-      organicFertYoung: 'Also apply 15–30 kg/tree/yr of organic fertilizer alongside the chemical program',
+      driverLabel: 'key',
+      alertGradeMismatch: 'The selected grade contains none of this round\'s key nutrient. Please choose another grade.',
+      rowNutrientTarget: 'Nutrient target this round',
+
+      organicNoteTh1: 'Apply about ',
+      organicNoteTh2: ' kg/tree of well-rotted manure or compost during the <b>post-harvest recovery round</b>, spreading the organic material first and the chemical fertilizer over the same band near the canopy edge.',
+      organicNoteCaution: '⚠️ Use only well-rotted manure. Fresh manure heats and releases ammonia that damages feeder roots and raises the risk of root and collar rot.',
       leafAdjustNote: 'With a soil or leaf analysis, the rate can be raised or lowered by 15–30%',
       fertMethodNote: 'Broadcast around the trunk within the canopy zone, work lightly into the soil, then water in',
       alertCanopyDiam: 'Please enter the canopy diameter (must be greater than 0)',
@@ -1291,7 +1316,8 @@
   //     across the rounds. This is scaled for avocado, which is a lighter feeder.
   //
   //  References (Thai extension / DOA guidance for durian & tropical fruit trees):
-  //   - กรมวิชาการเกษตร: แบ่งใส่ปุ๋ยทุเรียน 4 ครั้ง/ปี (บำรุงต้น / สร้างตาดอก / บำรุงผล / ปรับปรุงคุณภาพ)
+  //   - กรมวิชาการเกษตร: แบ่งใส่ปุ๋ยทุเรียนตามระยะพัฒนาการ (บำรุงต้น / สร้างตาดอก / บำรุงผล / ปรับปรุงคุณภาพ)
+  //     ในแอปนี้แบ่งย่อยเป็น 6 ครั้ง/ปี ทุก 2 เดือน โดยความต้องการธาตุอาหารรวมทั้งปีเท่าเดิม
   //   - สถาบันวิจัยพืชสวน & คำแนะนำทั่วไป: สูตร N สูงบำรุงต้น, 8-24-24 ก่อนออกดอก,
   //     15-9-20 / 15-5-20 บำรุงผล, 13-13-21 / 0-0-50 ปรับคุณภาพก่อนเก็บเกี่ยว
   // -----------------------------------------------------------------------------------
@@ -1317,33 +1343,72 @@
   //  Each round: recommended split grades + a dose FACTOR. The dose factor multiplies
   //  the canopy-diameter base dose to give kg/tree FOR THAT ROUND.
   //  round.share is only used to show what fraction of the yearly program the round is.
-  //  Framework and rates follow DOA (2566) "คำแนะนำการใช้ปุ๋ยสำหรับไม้ผล", averaged
-  //  across durian / mangosteen / rambutan / mango / longan / lychee / citrus.
-  //  doseFactor values sum to 1.00. Round 4 is a potassium-only round in DOA, so its
-  //  share is small (0-0-50 is concentrated); doseFactorCompound covers the case where
-  //  the farmer picks a compound grade instead, so the product amount stays sensible.
+  //  The GRADES for each round follow Thai extension guidance for tropical fruit trees
+  //  (high-N to flush leaves, high-P to build flower buds, high-K to fill and finish fruit).
+  //
+  //  Each round carries an explicit NUTRIENT DEMAND (kg of N, P2O5, K2O per metre of canopy
+  //  diameter) rather than a share of a lump product weight. These are derived from the
+  //  Department of Agriculture's stage-by-stage schedule for producing fruit trees, by
+  //  converting each stage's published grade and kg/tree rate into the nutrients it actually
+  //  delivers, then dividing by the schedule's own season total product weight (14.50
+  //  kg/tree) so the figures scale with canopy diameter the same way the DOA canopy rule does.
+  //
+  //    DOA stage (grade x kg/tree)                 N      P2O5    K2O
+  //     1 After harvest      15-15-15 x 1.50     0.225   0.225   0.225  \ recovery
+  //     2 Leaf flush 1-2     16-16-16 x 2.50     0.400   0.400   0.400  /  0.625/0.625/0.625
+  //     3 Leaf flush 3        8-24-24 x 2.50     0.200   0.600   0.600  -> reserves
+  //     4 Flowering          16-16-16 x 1.50     0.240   0.240   0.240  \
+  //     5 10 d after bloom    8-24-24 x 1.00     0.080   0.240   0.240   \ fruit
+  //     6 Egg stage          12-11-18 x 1.50     0.180   0.165   0.270   /  0.785/0.912/1.140
+  //       Egg stage (with)   15-15-15 x 0.50     0.075   0.075   0.075  /
+  //     7 Milk-tin           12-11-18 x 1.75     0.210   0.193   0.315 /
+  //     8 Segment expansion   12-3-36 x 1.75     0.210   0.052   0.630  -> quality
+  //                                       season total product = 14.50 kg/tree
+  //
+  //  APPLICATION SCHEDULE: six rounds, one every two months. The DOA phases already span
+  //  the year as 4 + 2 + 4 + 2 months, so the two four-month phases (recovery, fruit) are
+  //  each split into two equal two-month applications and the two-month phases stand as
+  //  they are. Splitting the demand rather than repeating it keeps the annual totals
+  //  identical to the four-round schedule (N 0.1255, P2O5 0.1510, K2O 0.2065 per metre of
+  //  canopy diameter) while giving smaller, more frequent doses — which suits avocado's
+  //  shallow feeder roots and reduces leaching loss on light soils.
+  //
+  //  driver = the nutrient the round exists to deliver ('n','p','k'). The product amount is
+  //  sized so that nutrient hits its target; the other two are reported as what the chosen
+  //  grade happens to supply. Sizing on the driver rather than on whichever nutrient is
+  //  scarcest keeps the dose sensible when a grade is deliberately low in one element
+  //  (e.g. 15-5-20 in the fruit rounds, 0-0-50 in the quality round).
+  //  Source: กรมวิชาการเกษตร, การปลูกทุเรียน — การจัดการสวนทุเรียนที่ให้ผลผลิตแล้ว.
   const FERT_ROUNDS = [
     {
-      id:1, nameKey:'roundVeg', timingKey:'roundVegTiming',
+      id:1, nameKey:'roundVeg1', timingKey:'roundVeg1Timing',
       items:[{f:'f201010',tag:'primary'},{f:'f1845',tag:'alt'},{f:'f2577',tag:'alt'},{f:'f4600',tag:'alt'}],
-      reasonKey:'roundVegReason', doseFactor:0.31
+      reasonKey:'roundVeg1Reason', demand:{n:0.0215,p:0.0215,k:0.0215}, driver:'n'
     },
     {
-      id:2, nameKey:'roundBud', timingKey:'roundBudTiming',
-      items:[{f:'f131321',tag:'primary'},{f:'f82424',tag:'alt'},{f:'f92424',tag:'alt'},{f:'f122412',tag:'alt'}],
-      reasonKey:'roundBudReason', doseFactor:0.31
+      id:2, nameKey:'roundVeg2', timingKey:'roundVeg2Timing',
+      items:[{f:'f201010',tag:'primary'},{f:'f1845',tag:'alt'},{f:'f2577',tag:'alt'},{f:'f4600',tag:'alt'}],
+      reasonKey:'roundVeg2Reason', demand:{n:0.0215,p:0.0215,k:0.0215}, driver:'n'
     },
     {
-      id:3, nameKey:'roundFruit', timingKey:'roundFruitTiming',
+      id:3, nameKey:'roundBud', timingKey:'roundBudTiming',
+      items:[{f:'f82424',tag:'primary'},{f:'f92424',tag:'alt'},{f:'f122412',tag:'alt'},{f:'f131321',tag:'alt'}],
+      reasonKey:'roundBudReason', demand:{n:0.0138,p:0.0414,k:0.0414}, driver:'p'
+    },
+    {
+      id:4, nameKey:'roundSet', timingKey:'roundSetTiming',
       items:[{f:'f131321',tag:'primary'},{f:'f15920',tag:'alt'},{f:'f15520',tag:'alt'}],
-      reasonKey:'roundFruitReason', doseFactor:0.34
+      reasonKey:'roundSetReason', demand:{n:0.0271,p:0.0314,k:0.0393}, driver:'k'
     },
     {
-      id:4, nameKey:'roundQuality', timingKey:'roundQualityTiming',
+      id:5, nameKey:'roundFruit', timingKey:'roundFruitTiming',
+      items:[{f:'f131321',tag:'primary'},{f:'f15920',tag:'alt'},{f:'f15520',tag:'alt'}],
+      reasonKey:'roundFruitReason', demand:{n:0.0271,p:0.0314,k:0.0393}, driver:'k'
+    },
+    {
+      id:6, nameKey:'roundQuality', timingKey:'roundQualityTiming',
       items:[{f:'f00500',tag:'primary'},{f:'f00600',tag:'alt'},{f:'f131321',tag:'alt'},{f:'f121217',tag:'alt'}],
-      reasonKey:'roundQualityReason',
-      doseFactor:0.04,
-      doseFactorCompound:0.15
+      reasonKey:'roundQualityReason', demand:{n:0.0145,p:0.0036,k:0.0434}, driver:'k'
     }
   ];
 
@@ -1442,7 +1507,7 @@
       item.innerHTML =
         '<div class="s-left"><div class="s-num">' + r.id + '</div><div><div class="s-name">' + t(r.nameKey) + '</div>' +
         '<div style="font-size:11.5px;color:var(--muted);margin-top:1px;">' + timing + '</div></div></div>' +
-        '<div class="s-kc">' + Math.round(roundDoseFactor(r, (function(){ const pf = FERT_FORMULAS[r.items[0].f]; return pf.n === 0 && pf.p === 0; })())*100) + '%</div>';
+        '<div class="s-kc">' + t('driverLabel') + ' ' + (r.driver==='n'?'N':(r.driver==='p'?'P':'K')) + '</div>';
       item.addEventListener('click', function(){
         roundListEl.querySelectorAll('.stage-item').forEach(function(el){ el.classList.remove('active'); });
         item.classList.add('active');
@@ -1503,30 +1568,48 @@
     }
   }
 
-  // ---- Per-tree dose preview (canopy-diameter rule) ----------------------------------
-  //  Producing trees: yearly kg/tree ≈ canopy diameter (m) × AVO_DIAM_FACTOR, then a
-  //  given round takes doseFactor of that. Young trees: fixed kg/tree/yr ÷ splits.
-  const AVO_DIAM_FACTOR = 0.7; // avocado is a lighter feeder than durian (≈1.0)
+  // ---- Per-tree dose, from each round's nutrient demand ------------------------------
+  //  Producing trees: every round carries a nutrient demand in kg per metre of canopy
+  //  diameter (see FERT_ROUNDS). Scale it by canopy diameter and soil texture to get this
+  //  round's N-P2O5-K2O target for this tree, then work out how much of the chosen product
+  //  delivers the round's driver nutrient. Rates are used as published by DOA, with no
+  //  crop-specific adjustment applied.
+  //  Young trees: fixed kg/tree/yr / splits.
 
   // Soil texture chosen in the water tab also drives the fertilizer rate (DOA 5.2).
   function soilFertFactor(){
     return FERT_SOIL_FACTOR[selectedSoil] || 1.0;
   }
 
-  // A potassium-only grade (0-0-50 / 0-0-60) delivers far more K per kg of product
-  // than a compound grade, so round 4 uses a much smaller share for those. Grades are
-  // picked via chips that write into the hidden N/P/K inputs, so read those.
-  function isKOnlySelected(){
-    const n = parseFloat(document.getElementById('fertN').value);
-    const p = parseFloat(document.getElementById('fertP').value);
-    if(isNaN(n) || isNaN(p)) return true; // default state = round's primary (0-0-50)
-    return n === 0 && p === 0;
+  // This round's nutrient target for this tree, in kg of N / P2O5 / K2O.
+  function roundNutrientTarget(round, diam){
+    if(!round || !round.demand || !diam || diam<=0) return null;
+    const f = diam * soilFertFactor();
+    return { n: round.demand.n * f, p: round.demand.p * f, k: round.demand.k * f };
   }
 
-  function roundDoseFactor(round, kOnly){
-    if(!round) return 0;
-    if(round.doseFactorCompound && !kOnly) return round.doseFactorCompound;
-    return round.doseFactor;
+  // Product weight that delivers the round's driver nutrient at the target above.
+  // If the chosen grade contains none of the driver (e.g. 46-0-0 picked in a K round),
+  // fall back to the richest nutrient the grade does supply so the answer stays sane.
+  function productForTarget(target, npk, driver){
+    if(!target) return null;
+    const pct = { n: npk.n, p: npk.p, k: npk.k };
+    if(pct[driver] > 0) return target[driver] / (pct[driver]/100);
+    const order = ['k','p','n'];
+    for(let i=0;i<order.length;i++){
+      const key = order[i];
+      if(pct[key] > 0 && target[key] > 0) return target[key] / (pct[key]/100);
+    }
+    return null;
+  }
+
+  // Grade currently selected in the chips (hidden N/P/K inputs).
+  function selectedNPK(){
+    const n = parseFloat(document.getElementById('fertN').value);
+    const p = parseFloat(document.getElementById('fertP').value);
+    const k = parseFloat(document.getElementById('fertK').value);
+    if(isNaN(n)||isNaN(p)||isNaN(k)) return null;
+    return { n:n, p:p, k:k };
   }
 
   function getRoundDoseKg(){
@@ -1540,8 +1623,20 @@
     const diam = parseFloat(document.getElementById('canopyDiam').value);
     const r = FERT_ROUNDS.find(function(x){ return x.id===selectedRound; }) || FERT_ROUNDS[0];
     if(!diam || diam<=0) return { perRound:null, perYear:null, splits:FERT_ROUNDS.length, round:r };
-    const perYear = diam * AVO_DIAM_FACTOR * soilF;
-    return { perRound: perYear * roundDoseFactor(r, isKOnlySelected()), perYear: perYear, splits: FERT_ROUNDS.length, round:r };
+
+    // Yearly product total: sum of what each round needs with its own primary grade.
+    let perYear = 0;
+    FERT_ROUNDS.forEach(function(x){
+      const pf = FERT_FORMULAS[x.items[0].f];
+      const t = roundNutrientTarget(x, diam);
+      const kg = productForTarget(t, pf, x.driver);
+      if(kg) perYear += kg;
+    });
+
+    const npk = selectedNPK() || FERT_FORMULAS[r.items[0].f];
+    const target = roundNutrientTarget(r, diam);
+    const perRound = productForTarget(target, npk, r.driver);
+    return { perRound: perRound, perYear: perYear, splits: FERT_ROUNDS.length, round:r, target:target };
   }
 
   function updateFertDosePreview(){
@@ -1883,7 +1978,7 @@
     }
 
     // ---- Determine per-round product dose (kg/tree) --------------------------------
-    let perRoundKg, perYearKg, periodLabel, roundObj = null, splits;
+    let perRoundKg, perYearKg, periodLabel, roundObj = null, splits, nutrientTarget = null;
 
     if(fertMode === 'young'){
       const year = parseInt(document.getElementById('yearFert').value) || 1;
@@ -1902,8 +1997,14 @@
       }
       roundObj = FERT_ROUNDS.find(function(x){ return x.id===selectedRound; }) || FERT_ROUNDS[0];
       splits = FERT_ROUNDS.length;
-      perYearKg = diam * AVO_DIAM_FACTOR * soilFertFactor();
-      perRoundKg = perYearKg * roundDoseFactor(roundObj, isKOnlySelected());
+      const dose = getRoundDoseKg();
+      perRoundKg = dose.perRound;
+      perYearKg = dose.perYear;
+      nutrientTarget = dose.target;
+      if(!perRoundKg || !isFinite(perRoundKg)){
+        alert(t('alertGradeMismatch'));
+        return;
+      }
       periodLabel = t(roundObj.nameKey);
     }
 
@@ -1947,6 +2048,8 @@
     // ---- Breakdown: this round + the whole-year program --------------------------
     let rows =
       '<div><span>' + t('rowRoundDose') + '</span><span>' + perRoundKg.toFixed(2) + ' ' + t('unitKg') + '</span></div>' +
+      (nutrientTarget ? '<div><span>' + t('rowNutrientTarget') + '</span><span>N ' + nutrientTarget.n.toFixed(3)
+        + ' · P₂O₅ ' + nutrientTarget.p.toFixed(3) + ' · K₂O ' + nutrientTarget.k.toFixed(3) + ' ' + t('unitKg') + '</span></div>' : '') +
       (fertN>0 ? '<div><span>N</span><span>' + deliveredN.toFixed(3) + ' ' + t('unitKg') + '</span></div>' : '') +
       (fertP>0 ? '<div><span>P₂O₅</span><span>' + deliveredP.toFixed(3) + ' ' + t('unitKg') + '</span></div>' : '') +
       (fertK>0 ? '<div><span>K₂O</span><span>' + deliveredK.toFixed(3) + ' ' + t('unitKg') + '</span></div>' : '') +
@@ -1957,24 +2060,44 @@
       rows += '<div style="border-bottom:none;padding-top:10px;"><span style="color:#F0DFC6;font-weight:600;">' + t('rowYearProgram') + '</span><span></span></div>';
       FERT_ROUNDS.forEach(function(r){
         const primary = FERT_FORMULAS[r.items[0].f];
-        const primaryIsKOnly = primary.n === 0 && primary.p === 0;
-        const kg = diam * AVO_DIAM_FACTOR * soilFertFactor() * roundDoseFactor(r, primaryIsKOnly);
+        const kg = productForTarget(roundNutrientTarget(r, diam), primary, r.driver);
         const mark = r.id === selectedRound ? ' ◀' : '';
-        rows += '<div><span>' + r.id + '. ' + t(r.nameKey) + ' · ' + primary.label + '</span><span>' + kg.toFixed(2) + ' ' + t('unitKg') + mark + '</span></div>';
+        rows += '<div><span>' + r.id + '. ' + t(r.nameKey) + ' · ' + primary.label + '</span><span>' + (kg ? kg.toFixed(2) : '-') + ' ' + t('unitKg') + mark + '</span></div>';
       });
       const soilObjF = SOILS.find(function(s){ return s.id===selectedSoil; });
       rows += '<div><span>' + t('soilFertNote') + '</span><span>' +
               (soilObjF ? t(soilObjF.nameKey) + ' × ' : '× ') + soilFertFactor().toFixed(1) + '</span></div>';
       rows += '<div style="border-bottom:none;"><span style="font-size:11.5px;color:#B9C6A0;">' + t('doseRuleNote') + '</span><span></span></div>';
-      rows += '<div style="border-bottom:none;"><span style="font-size:11.5px;color:#B9C6A0;">' + t('organicFertProducing') + '</span><span></span></div>';
       rows += '<div style="border-bottom:none;"><span style="font-size:11.5px;color:#B9C6A0;">' + t('leafAdjustNote') + '</span><span></span></div>';
     } else {
-      rows += '<div style="border-bottom:none;"><span style="font-size:11.5px;color:#B9C6A0;">' + t('organicFertYoung') + '</span><span></span></div>';
     }
 
     document.getElementById('fertBreakdown').innerHTML = rows;
 
     // ---- Fertilizer placement guide (feeder-root zone), shown for producing trees --
+    // ---- Organic matter: give one concrete amount for THIS tree, like the water note.
+    //  Scale the published range by canopy size within the range the source gives, and
+    //  lean to the upper end on coarse soils, which hold nutrients and moisture poorly.
+    const organicNote = document.getElementById('organicNote');
+    if(organicNote){
+      const band = fertMode === 'young' ? ORGANIC_FERT.young : ORGANIC_FERT.producing;
+      let organicKg;
+      if(fertMode === 'young'){
+        const yr = parseInt(document.getElementById('yearFert').value) || 1;
+        organicKg = band.min + (band.max - band.min) * ((yr - 1) / 2);
+      } else {
+        const dm = parseFloat(document.getElementById('canopyDiam').value) || 4;
+        const spanD = Math.min(1, Math.max(0, (dm - 2) / 6)); // 2 m -> min, 8 m -> max
+        organicKg = band.min + (band.max - band.min) * spanD;
+      }
+      const coarse = (selectedSoil === 'sand' || selectedSoil === 'sandy_loam');
+      if(coarse) organicKg = Math.min(band.max, organicKg * 1.2);
+      const rounded = Math.round(organicKg / 5) * 5;
+      organicNote.innerHTML = t('organicNoteTh1') + '<b>' + rounded + '</b>' + t('organicNoteTh2')
+        + '<div class="eto-date-note">' + t('organicNoteCaution') + '</div>';
+      organicNote.classList.remove('hidden');
+    }
+
     const placeGuide = document.getElementById('fertPlaceGuide');
     if(roundObj){
       const r = selectedFertRadius;
