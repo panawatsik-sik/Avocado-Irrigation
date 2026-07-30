@@ -149,6 +149,27 @@
   .mode-btn .t-sub{font-size:11.5px;color:var(--muted); margin-top:3px;}
   .mode-btn.active{ border-color:var(--gold); background:var(--gold-light); box-shadow:0 0 0 1px var(--gold) inset; }
 
+  .drought-group{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+  .drought-btn{
+    border:1.5px solid var(--line); background:var(--surface-soft); border-radius:var(--radius-sm);
+    padding:14px 8px; text-align:center; cursor:pointer; transition:.15s ease;
+  }
+  .drought-btn .d-emoji{ font-size:20px; }
+  .drought-btn .d-label{font-family:'Kanit',sans-serif; font-size:13px; font-weight:600; margin-top:4px;}
+  .drought-btn .d-pct{font-size:12px; color:var(--muted); margin-top:2px; font-weight:600;}
+  .drought-btn.active[data-drought="normal"]{ border-color:#3E8E41; background:#EAF5EA; box-shadow:0 0 0 1px #3E8E41 inset; }
+  .drought-btn.active[data-drought="risk"]{ border-color:#D69B1E; background:#FBF3DE; box-shadow:0 0 0 1px #D69B1E inset; }
+  .drought-btn.active[data-drought="drought"]{ border-color:#C0492C; background:#FBE9E3; box-shadow:0 0 0 1px #C0492C inset; }
+  .drought-warning{
+    margin-top:12px; padding:11px 13px; border-radius:8px; font-size:12.5px;
+    line-height:1.6; color:#4A3813; font-weight:600;
+    display:flex; align-items:flex-start; gap:8px;
+  }
+  .drought-warning.hidden{ display:none; }
+  .drought-warning.level-risk{ background:#FBF3DE; border-left:3px solid #D69B1E; }
+  .drought-warning.level-drought{ background:#FBE9E3; border-left:3px solid #C0492C; }
+  .drought-warning .dw-icon{ font-size:15px; line-height:1.4; flex-shrink:0; }
+
   .tab-bar{
     display:grid; grid-template-columns:1fr 1fr; gap:8px;
     background:var(--surface-soft); border:1px solid var(--line); border-radius:14px;
@@ -504,7 +525,33 @@
     </div>
 
     <div class="card">
-      <h2><span class="num">6</span><span data-i18n="sprinklerCardH2">ระบบสปริงเกอร์ต่อต้น</span></h2>
+      <h2><span class="num">6</span><span data-i18n="droughtCardH2">สถานการณ์น้ำของแปลง</span></h2>
+      <p class="hint" data-i18n="droughtCardHint">เลือกสถานการณ์น้ำ ระบบจะปรับปริมาณการให้น้ำตามระดับความแล้ง</p>
+      <div class="drought-group" id="droughtGroup">
+        <div class="drought-btn active" data-drought="normal">
+          <div class="d-emoji">💧</div>
+          <div class="d-label" data-i18n="droughtNormalLabel">สภาวะปกติ</div>
+          <div class="d-pct">100%</div>
+        </div>
+        <div class="drought-btn" data-drought="risk">
+          <div class="d-emoji">⚠️</div>
+          <div class="d-label" data-i18n="droughtRiskLabel">แนวโน้มแล้ง</div>
+          <div class="d-pct">80%</div>
+        </div>
+        <div class="drought-btn" data-drought="drought">
+          <div class="d-emoji">🌵</div>
+          <div class="d-label" data-i18n="droughtDroughtLabel">เกิดภาวะแล้ง</div>
+          <div class="d-pct">60%</div>
+        </div>
+      </div>
+      <div class="drought-warning hidden" id="droughtWarning">
+        <span class="dw-icon">⚠️</span>
+        <span id="droughtWarningText"></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">7</span><span data-i18n="sprinklerCardH2">ระบบสปริงเกอร์ต่อต้น</span></h2>
       <p class="hint" data-i18n="sprinklerCardHint">ข้อมูลจากสเปกหัวสปริงเกอร์ที่ติดตั้งจริงในสวน</p>
       <div class="row2">
         <div class="field">
@@ -952,6 +999,20 @@
       rowRefLTD: 'ค่าอ้างอิง (L/T/D) — Netafim', unitLPerTreeDay: 'ล./ต้น/วัน',
       rowSprinklerAdj: 'ปรับเพิ่ม 20% (มินิสปริงเกอร์)',
       rowAdjustedWaterDay: 'ปริมาณน้ำ/วันที่ปรับแล้ว', unitLPerTree: 'ล./ต้น',
+      droughtCardH2: 'สถานการณ์น้ำของแปลง',
+      droughtCardHint: 'เลือกสถานการณ์น้ำ ระบบจะปรับปริมาณการให้น้ำตามระดับความแล้ง',
+      droughtNormalLabel: 'สภาวะปกติ',
+      droughtRiskLabel: 'แนวโน้มแล้ง',
+      droughtDroughtLabel: 'เกิดภาวะแล้ง',
+      drought_normal: 'สภาวะปกติ',
+      drought_risk: 'มีแนวโน้มเกิดภาวะแล้ง',
+      drought_drought: 'เกิดภาวะแล้ง',
+      droughtNoteApplied: 'ปรับตามสถานการณ์น้ำ:',
+      droughtWarnRisk: 'ช่วงเริ่มมีแนวโน้มแล้ง ควรลดน้ำแบบชั่วคราวเท่านั้น และหมั่นสังเกตอาการต้น (ใบเหี่ยว ใบสลด) หากฝนกลับมาหรือดินชุ่มขึ้น ให้ปรับกลับเป็น "สภาวะปกติ"',
+      droughtWarnDrought: 'การให้น้ำ 60% เป็น<b>มาตรการฉุกเฉินช่วงแล้งเท่านั้น</b> — <b>ไม่ควรใช้ต่อเนื่องในระยะออกดอก ติดผล และผลกำลังขยาย</b> เพราะเสี่ยงดอก/ผลร่วงและผลเล็ก ควรคลุมโคนต้นรักษาความชื้น และรีบปรับกลับเมื่อสถานการณ์น้ำดีขึ้น',
+      rowDroughtStatus: 'สถานการณ์น้ำของแปลง',
+      rowFullWaterDay: 'ปริมาณน้ำเต็มที่/วัน',
+      rowFullWater10d: 'ปริมาณน้ำเต็มที่/10 วัน',
       rowFrequency: 'ความถี่', everyDay: 'ทุกวัน',
       rowTotalFlow: 'อัตราการไหลรวม', unitLPerHr: 'ล./ชม.',
       rowGrowthStage: 'ระยะการเจริญเติบโต', rowKc: 'Kc (Netafim, อิง ETo)',
@@ -1178,6 +1239,20 @@
       rowRefLTD: 'Reference value (L/T/D) — Netafim', unitLPerTreeDay: 'L/tree/day',
       rowSprinklerAdj: '+20% adjustment (mini-sprinkler)',
       rowAdjustedWaterDay: 'Adjusted water/day', unitLPerTree: 'L/tree',
+      droughtCardH2: 'Field water situation',
+      droughtCardHint: 'Choose the water situation — the app scales irrigation to the drought level',
+      droughtNormalLabel: 'Normal',
+      droughtRiskLabel: 'Drought risk',
+      droughtDroughtLabel: 'Drought',
+      drought_normal: 'Normal conditions',
+      drought_risk: 'Emerging drought',
+      drought_drought: 'Drought',
+      droughtNoteApplied: 'Adjusted for water situation:',
+      droughtWarnRisk: 'Early drought signs — reduce water only as a temporary measure and watch the trees closely (wilting or drooping leaves). Once rain returns or the soil is moist again, switch back to "Normal".',
+      droughtWarnDrought: 'Irrigating at 60% is an <b>emergency drought measure only</b> — <b>do not use it continuously during flowering, fruit set, or fruit growth</b>, as it risks flower/fruit drop and small fruit. Mulch around the trunk to hold moisture, and return to a higher level as soon as conditions improve.',
+      rowDroughtStatus: 'Field water situation',
+      rowFullWaterDay: 'Full water/day',
+      rowFullWater10d: 'Full water/10 days',
       rowFrequency: 'Frequency', everyDay: 'Every day',
       rowTotalFlow: 'Total flow rate', unitLPerHr: 'L/hr',
       rowGrowthStage: 'Growth stage', rowKc: 'Kc (Netafim, ETo-based)',
@@ -1274,6 +1349,7 @@
     renderFertRadiusButtons();
     updateFertDosePreview();
     renderVisitCounter();
+    updateDroughtWarning();
 
     try{ localStorage.setItem('avocado_app_lang', lang); }catch(e){}
   }
@@ -1448,6 +1524,10 @@
   const HA_M2 = 10000;
 
   let waterMode = 'young';
+  // Field water situation: scales the final irrigation amount to conserve water
+  // as drought sets in. normal = full requirement, drought = deficit irrigation.
+  let droughtStatus = 'normal';
+  const DROUGHT_FACTOR = { normal: 1.0, risk: 0.8, drought: 0.6 };
   // Tracks where the current ETo value came from (TMD/NASA) and its date range,
   // so the water result can tell farmers when to recalculate. Cleared if the
   // farmer edits the ETo field by hand, since the stored dates no longer apply.
@@ -1787,6 +1867,37 @@
     });
   });
 
+  const droughtGroup = document.getElementById('droughtGroup');
+  droughtGroup.querySelectorAll('.drought-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      droughtGroup.querySelectorAll('.drought-btn').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      droughtStatus = btn.dataset.drought;
+      updateDroughtWarning();
+      document.getElementById('waterResult').style.display = 'none';
+    });
+  });
+
+  // Shows an agronomic caution when the farmer picks a deficit-irrigation level.
+  // Avocado is sensitive to water stress, so 60% carries a stronger warning than 80%.
+  function updateDroughtWarning(){
+    const box = document.getElementById('droughtWarning');
+    const txt = document.getElementById('droughtWarningText');
+    box.classList.remove('level-risk', 'level-drought');
+    if(droughtStatus === 'risk'){
+      box.classList.remove('hidden');
+      box.classList.add('level-risk');
+      txt.innerHTML = t('droughtWarnRisk');
+    } else if(droughtStatus === 'drought'){
+      box.classList.remove('hidden');
+      box.classList.add('level-drought');
+      txt.innerHTML = t('droughtWarnDrought');
+    } else {
+      box.classList.add('hidden');
+    }
+  }
+  updateDroughtWarning();
+
   function updateWaterVisibility(){
     const isYoung = waterMode === 'young';
     document.getElementById('youngCardWater').classList.toggle('hidden', !isYoung);
@@ -1865,24 +1976,32 @@
       const monthIdx = parseInt(youngMonthSel.value);
       const monthName = (currentLang === 'en' ? MONTHS_EN : MONTHS)[monthIdx];
       const ltd = YOUNG_LTD[year][monthIdx];
-      const ltdAdjusted = ltd * SPRINKLER_FACTOR;
+      const droughtFactor = DROUGHT_FACTOR[droughtStatus];
+      const ltdFull = ltd * SPRINKLER_FACTOR;
+      const ltdAdjusted = ltdFull * droughtFactor;
       const intervalDays = 1;
       const minutesPerEvent = (ltdAdjusted / totalFlowLph) * 60;
 
-      const noteTh = 'ต้นปีที่ <b>' + year + '</b> เดือน<b>' + monthName + '</b> ต้องการน้ำประมาณ <b>' + ltdAdjusted.toFixed(1) + ' ลิตร/ต้น/วัน</b> — เปิดสปริงเกอร์ทุกวัน ครั้งละ <b>' + Math.round(minutesPerEvent) + ' นาที</b>';
-      const noteEn = '<b>Year ' + year + '</b> tree, <b>' + monthName + '</b> needs approximately <b>' + ltdAdjusted.toFixed(1) + ' liters/tree/day</b> — run the sprinkler every day for <b>' + Math.round(minutesPerEvent) + ' minutes</b>';
+      const noteTh = 'ต้นปีที่ <b>' + year + '</b> เดือน<b>' + monthName + '</b> ต้องการน้ำประมาณ <b>' + ltdAdjusted.toFixed(1) + ' ลิตร/ต้น/วัน</b> — เปิดสปริงเกอร์ทุกวัน ครั้งละ <b>' + Math.round(minutesPerEvent) + ' นาที</b>'
+        + (droughtStatus !== 'normal' ? ' (' + t('droughtNoteApplied') + ' ' + t('drought_' + droughtStatus) + ' · ' + Math.round(droughtFactor*100) + '%)' : '');
+      const noteEn = '<b>Year ' + year + '</b> tree, <b>' + monthName + '</b> needs approximately <b>' + ltdAdjusted.toFixed(1) + ' liters/tree/day</b> — run the sprinkler every day for <b>' + Math.round(minutesPerEvent) + ' minutes</b>'
+        + (droughtStatus !== 'normal' ? ' (' + t('droughtNoteApplied') + ' ' + t('drought_' + droughtStatus) + ' · ' + Math.round(droughtFactor*100) + '%)' : '');
+
+      const youngRows = [
+        [t('rowRefLTD'), ltd + ' ' + t('unitLPerTreeDay')],
+        [t('rowSprinklerAdj'), '× ' + SPRINKLER_FACTOR],
+        [t('rowFullWaterDay'), ltdFull.toFixed(1) + ' ' + t('unitLPerTree')],
+        [t('rowDroughtStatus'), t('drought_' + droughtStatus) + ' (× ' + droughtFactor.toFixed(2) + ')'],
+        [t('rowAdjustedWaterDay'), ltdAdjusted.toFixed(1) + ' ' + t('unitLPerTree')],
+        [t('rowFrequency'), t('everyDay')],
+        [t('rowTotalFlow'), totalFlowLph + ' ' + t('unitLPerHr')]
+      ];
 
       renderWater({
         minutes: minutesPerEvent,
         freqDays: intervalDays,
         note: currentLang === 'en' ? noteEn : noteTh,
-        rows: [
-          [t('rowRefLTD'), ltd + ' ' + t('unitLPerTreeDay')],
-          [t('rowSprinklerAdj'), '× ' + SPRINKLER_FACTOR],
-          [t('rowAdjustedWaterDay'), ltdAdjusted.toFixed(1) + ' ' + t('unitLPerTree')],
-          [t('rowFrequency'), t('everyDay')],
-          [t('rowTotalFlow'), totalFlowLph + ' ' + t('unitLPerHr')]
-        ]
+        rows: youngRows
       });
       return;
     }
@@ -1900,9 +2019,11 @@
     const rainfall = parseFloat(document.getElementById('rainfall').value) || 0;
     const intervalDays = soil.interval;
 
+    const droughtFactor = DROUGHT_FACTOR[droughtStatus];
     const etcPeriodMm = eto * stage.kc * SPRINKLER_FACTOR;
     const netEtcPeriodMm = Math.max(0, etcPeriodMm - rainfall);
-    const litersPerPeriod = netEtcPeriodMm * canopyArea;
+    const litersPerPeriodFull = netEtcPeriodMm * canopyArea;
+    const litersPerPeriod = litersPerPeriodFull * droughtFactor;
     const eventsPerPeriod = 10 / intervalDays;
     const litersPerEvent = litersPerPeriod / eventsPerPeriod;
     const minutesPerEvent = (litersPerEvent / totalFlowLph) * 60;
@@ -1914,9 +2035,11 @@
     const soilLabel = t(soil.nameKey);
 
     const noteTh = 'ระยะ<b>' + stageName + '</b> รัศมีทรงพุ่ม <b>' + radius + ' ม.</b> บน<b>' + soilLabel + '</b> ต้องการน้ำประมาณ <b>' + litersPerPeriod.toFixed(1) + ' ลิตร/ต้น/10 วัน</b> — เปิดสปริงเกอร์ครั้งละ <b>' + Math.round(minutesPerEvent) + ' นาที ทุก ' + intervalDays + ' วัน</b>'
-      + (rainfall > 0 ? ' (หักน้ำฝนวันนี้ ' + rainfall + ' มม. แล้ว)' : '');
+      + (rainfall > 0 ? ' (หักน้ำฝนวันนี้ ' + rainfall + ' มม. แล้ว)' : '')
+      + (droughtStatus !== 'normal' ? ' (' + t('droughtNoteApplied') + ' ' + t('drought_' + droughtStatus) + ' · ' + Math.round(droughtFactor*100) + '%)' : '');
     const noteEn = '<b>' + stageName + '</b> stage, canopy radius <b>' + radius + ' m</b> on <b>' + soilLabel + '</b> needs approximately <b>' + litersPerPeriod.toFixed(1) + ' liters/tree/10 days</b> — run the sprinkler for <b>' + Math.round(minutesPerEvent) + ' minutes every ' + intervalDays + ' day(s)</b>'
-      + (rainfall > 0 ? ' (after subtracting ' + rainfall + ' mm of rainfall today)' : '');
+      + (rainfall > 0 ? ' (after subtracting ' + rainfall + ' mm of rainfall today)' : '')
+      + (droughtStatus !== 'normal' ? ' (' + t('droughtNoteApplied') + ' ' + t('drought_' + droughtStatus) + ' · ' + Math.round(droughtFactor*100) + '%)' : '');
 
     let combinedNote = currentLang === 'en' ? noteEn : noteTh;
     if(runoffRisk){
@@ -1940,6 +2063,8 @@
         [t('rowSoilType'), soilLabel],
         [t('rowInfiltration'), soil.infiltration + ' ' + t('unitMmPerHr')],
         [t('rowAppRate'), appRateMmPerHr.toFixed(1) + ' ' + t('unitMmPerHr')],
+        [t('rowFullWater10d'), litersPerPeriodFull.toFixed(1) + ' ' + t('unitLPerTree')],
+        [t('rowDroughtStatus'), t('drought_' + droughtStatus) + ' (× ' + droughtFactor.toFixed(2) + ')'],
         [t('rowWaterPer10d'), litersPerPeriod.toFixed(1) + ' ' + t('unitLPerTree')],
         [t('rowFreqTable'), t('every') + ' ' + intervalDays + ' ' + t('days')],
         [t('rowWaterPerEvent'), litersPerEvent.toFixed(1) + ' ' + t('unitLPerTree')],
