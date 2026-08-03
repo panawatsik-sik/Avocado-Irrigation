@@ -453,6 +453,14 @@
           <span class="unit-tag" data-i18n="etoUnit">มม./10 วัน</span>
         </div>
       </div>
+      <div class="field" style="margin-top:14px;">
+        <label class="field-label" for="rainfall" data-i18n="rainfallLabel">ปริมาณน้ำฝนคาดการณ์ราย 2 วัน</label>
+        <div class="unit-input">
+          <input type="number" id="rainfall" placeholder="0" min="0" step="0.1" value="0">
+          <span class="unit-tag" data-i18n="rainfallUnit">มม./2 วัน</span>
+        </div>
+        <p class="hint hidden" id="rainMetaNote" style="margin-top:6px; font-size:11.5px;"></p>
+      </div>
     </div>
 
     <div class="card hidden" id="canopyCard">
@@ -507,13 +515,6 @@
       <div class="field">
         <label class="field-label" data-i18n="canopyRadiusLabel">รัศมีทรงพุ่ม</label>
         <div class="radius-group" id="canopyRadiusGroup"></div>
-      </div>
-      <div class="field">
-        <label class="field-label" for="rainfall" data-i18n="rainfallLabel">ปริมาณน้ำฝน</label>
-        <div class="unit-input">
-          <input type="number" id="rainfall" placeholder="0" min="0" step="0.1" value="0">
-          <span class="unit-tag" data-i18n="rainfallUnit">มม.</span>
-        </div>
       </div>
       <p class="hint" id="canopyAreaPreview" style="margin:10px 0 0;"></p>
     </div>
@@ -740,7 +741,7 @@
 
   <div class="footer-ru-note" data-i18n="headerCreditProject">ภายใต้ทุนด้านการนำผลงานวิจัยและนวัตกรรมไปใช้ประโยชน์<br>(RU: Research Utilization)<br>ซึ่งสนับสนุนงบประมาณโดย สำนักงานพัฒนาการวิจัยการเกษตร (องค์การมหาชน)</div>
 
-  <div class="update-date" data-i18n="lastUpdated">อัปเดตล่าสุด: 15/07/2026</div>
+  <div class="update-date" data-i18n="lastUpdated">อัปเดตล่าสุด: 3 สิงหาคม 2569</div>
   <div class="visit-counter hidden" id="visitCounter"></div>
 </div>
 
@@ -865,11 +866,14 @@
       gpsBtnLabel: 'ดึง ETo อัตโนมัติจากพิกัด GPS',
       etoLabel: 'ค่า ETo ราย 10 วัน',
       etoUnit: 'มม./10 วัน',
-      canopyCardH2: 'ขนาดทรงพุ่มและน้ำฝน',
-      canopyCardHint: 'เลือกรัศมีทรงพุ่มเพื่อคำนวณพื้นที่ (พื้นที่ = π × รัศมี²) และกรอกปริมาณน้ำฝนวันนี้เพื่อหักลบจากปริมาณน้ำที่ต้องรด',
+      canopyCardH2: 'ขนาดทรงพุ่ม',
+      canopyCardHint: 'เลือกรัศมีทรงพุ่มเพื่อคำนวณพื้นที่ (พื้นที่ = π × รัศมี²)',
       canopyRadiusLabel: 'รัศมีทรงพุ่ม',
       unitMeter: 'ม.',
-      rainfallLabel: 'ปริมาณน้ำฝน', rainfallUnit: 'มม.',
+      rainfallLabel: 'ปริมาณน้ำฝนคาดการณ์ราย 2 วัน', rainfallUnit: 'มม./2 วัน',
+      rainMetaPrefix: 'ปริมาณน้ำฝนคาดการณ์ช่วงวันที่',
+      rainMetaTo: 'ถึง',
+      rainMetaSource: 'แหล่งข้อมูล: กรมอุตุนิยมวิทยา',
       canopyAreaPreviewPrefix: 'พื้นที่ทรงพุ่มโดยประมาณ',
       measureGuideSummary: 'ดูวิธีวัดรัศมีทรงพุ่ม',
       measureGuideTopView: 'มุมมองจากด้านบน',
@@ -989,7 +993,7 @@
       fertMethodNote: 'หว่านปุ๋ยรอบโคนต้นบริเวณทรงพุ่ม พรวนดินกลบ แล้วรดน้ำตาม',
       alertCanopyDiam: 'กรุณากรอกเส้นผ่านศูนย์กลางทรงพุ่ม (ต้องมากกว่า 0)',
       footerText: 'เครื่องมือช่วยประมาณการให้น้ำและปุ๋ย · สำหรับใช้เป็นแนวทางเบื้องต้นเท่านั้น',
-      lastUpdated: 'อัปเดตล่าสุด: 15/07/2026',
+      lastUpdated: 'อัปเดตล่าสุด: 3 สิงหาคม 2569',
 
       alertHeadsFlow: 'กรุณากรอกจำนวนหัวสปริงเกอร์และอัตราการไหลให้ครบถ้วน (ต้องมากกว่า 0)',
       alertEto: 'กรุณากรอกค่า ETo ให้ครบถ้วน (ต้องมากกว่า 0)',
@@ -1105,11 +1109,14 @@
       gpsBtnLabel: 'Auto-fetch ETo from GPS location',
       etoLabel: 'ETo Value (10-day period)',
       etoUnit: 'mm/10 days',
-      canopyCardH2: 'Canopy Size & Rainfall',
-      canopyCardHint: 'Choose the canopy radius to compute area (area = π × radius²), and enter today\'s rainfall to subtract from the water needed',
+      canopyCardH2: 'Canopy Size',
+      canopyCardHint: 'Choose the canopy radius to compute area (area = π × radius²)',
       canopyRadiusLabel: 'Canopy Radius',
       unitMeter: 'm',
-      rainfallLabel: 'Rainfall Amount', rainfallUnit: 'mm',
+      rainfallLabel: '2-day Forecast Rainfall', rainfallUnit: 'mm/2 days',
+      rainMetaPrefix: 'Forecast rainfall for',
+      rainMetaTo: 'to',
+      rainMetaSource: 'Source: Thai Meteorological Department (TMD)',
       canopyAreaPreviewPrefix: 'Approx. canopy area',
       measureGuideSummary: 'How to measure canopy radius',
       measureGuideTopView: 'Top view',
@@ -1229,7 +1236,7 @@
       fertMethodNote: 'Broadcast around the trunk within the canopy zone, work lightly into the soil, then water in',
       alertCanopyDiam: 'Please enter the canopy diameter (must be greater than 0)',
       footerText: 'A tool for estimating irrigation and fertilizer needs · For general guidance only',
-      lastUpdated: 'Last updated: 15/07/2026',
+      lastUpdated: 'Last updated: 3 August 2026',
 
       alertHeadsFlow: 'Please enter the number of sprinkler heads and flow rate (must be greater than 0)',
       alertEto: 'Please enter the ETo value (must be greater than 0)',
@@ -2035,10 +2042,10 @@
     const soilLabel = t(soil.nameKey);
 
     const noteTh = 'ระยะ<b>' + stageName + '</b> รัศมีทรงพุ่ม <b>' + radius + ' ม.</b> บน<b>' + soilLabel + '</b> ต้องการน้ำประมาณ <b>' + litersPerPeriod.toFixed(1) + ' ลิตร/ต้น/10 วัน</b> — เปิดสปริงเกอร์ครั้งละ <b>' + Math.round(minutesPerEvent) + ' นาที ทุก ' + intervalDays + ' วัน</b>'
-      + (rainfall > 0 ? ' (หักน้ำฝนวันนี้ ' + rainfall + ' มม. แล้ว)' : '')
+      + (rainfall > 0 ? ' (หักน้ำฝนคาดการณ์ราย 2 วัน ' + rainfall + ' มม. แล้ว)' : '')
       + (droughtStatus !== 'normal' ? ' (' + t('droughtNoteApplied') + ' ' + t('drought_' + droughtStatus) + ' · ' + Math.round(droughtFactor*100) + '%)' : '');
     const noteEn = '<b>' + stageName + '</b> stage, canopy radius <b>' + radius + ' m</b> on <b>' + soilLabel + '</b> needs approximately <b>' + litersPerPeriod.toFixed(1) + ' liters/tree/10 days</b> — run the sprinkler for <b>' + Math.round(minutesPerEvent) + ' minutes every ' + intervalDays + ' day(s)</b>'
-      + (rainfall > 0 ? ' (after subtracting ' + rainfall + ' mm of rainfall today)' : '')
+      + (rainfall > 0 ? ' (after subtracting ' + rainfall + ' mm of 2-day forecast rainfall)' : '')
       + (droughtStatus !== 'normal' ? ' (' + t('droughtNoteApplied') + ' ' + t('drought_' + droughtStatus) + ' · ' + Math.round(droughtFactor*100) + '%)' : '');
 
     let combinedNote = currentLang === 'en' ? noteEn : noteTh;
@@ -2249,6 +2256,7 @@
   // project's function URL, e.g.
   // 'https://abcdefghij.supabase.co/functions/v1/tmd-eto-proxy'
   const TMD_PROXY_URL = 'https://jmdnnbwhjuiqfvfdhmgm.supabase.co/functions/v1/tmd-eto-proxy';
+  const TMD_RAIN_PROXY_URL = 'https://jmdnnbwhjuiqfvfdhmgm.supabase.co/functions/v1/tmd-rain-proxy';
   const GSC = 0.0820;
   const SIGMA = 4.903e-9;
 
@@ -2320,7 +2328,53 @@
   }
 
   const etoInputEl = document.getElementById('eto');
+
+  // Fetch the 10-day rain forecast (separate NWP proxy) and fill the rainfall
+  // field. Kept independent so a rain failure never blocks the ETo result.
+  async function fetchRainForGps(lat, lon){
+    const rainEl = document.getElementById('rainfall');
+    const rainMeta = document.getElementById('rainMetaNote');
+    if(!rainEl) return;
+    if(TMD_RAIN_PROXY_URL.indexOf('YOUR-PROJECT-REF') !== -1) return;
+    try{
+      const rurl = TMD_RAIN_PROXY_URL + '?lat=' + lat.toFixed(4) + '&lon=' + lon.toFixed(4);
+      const rresp = await fetch(rurl);
+      if(!rresp.ok) throw new Error('HTTP ' + rresp.status);
+      const rdata = await rresp.json();
+      if(rdata.status !== 'success' || typeof rdata.rain_total_mm !== 'number'){
+        throw new Error((rdata && rdata.message) || 'no rain data');
+      }
+      rainEl.value = rdata.rain_total_mm.toFixed(1);
+      rainEl.dispatchEvent(new Event('input', { bubbles: true }));
+
+      // Caption: which dates this rainfall covers + data source (TMD).
+      if(rainMeta){
+        const p = rdata.forecast_period;
+        let line = '';
+        if(p && p.start_date && p.end_date){
+          line = t('rainMetaPrefix') + ' ' + fmtDateDMY(p.start_date)
+               + ' ' + t('rainMetaTo') + ' ' + fmtDateDMY(p.end_date) + ' · ';
+        }
+        line += t('rainMetaSource');
+        rainMeta.textContent = line;
+        rainMeta.classList.remove('hidden');
+      }
+    } catch(rainErr){
+      // Non-fatal: leave the field for manual entry.
+      console.warn('TMD rain forecast failed:', rainErr);
+      if(rainMeta){ rainMeta.classList.add('hidden'); rainMeta.textContent = ''; }
+    }
+  }
+
   if(etoInputEl) etoInputEl.addEventListener('input', function(){ etoSourceInfo = null; });
+  const rainInputEl = document.getElementById('rainfall');
+  if(rainInputEl) rainInputEl.addEventListener('input', function(e){
+    // Only clear the TMD caption on genuine user typing, not our programmatic fill.
+    if(e.isTrusted){
+      const rainMeta = document.getElementById('rainMetaNote');
+      if(rainMeta){ rainMeta.classList.add('hidden'); rainMeta.textContent = ''; }
+    }
+  });
 
   function fetchEtoFromGps(){
     setGpsLoading(true);
@@ -2364,6 +2418,7 @@
           if(gp && typeof gp.distance_km === 'number') msg += ' — ' + t('gpsTmdGrid') + ' ' + gp.distance_km.toFixed(1) + ' ' + t('unitKm');
           setGpsStatus(msg, 'success');
           if(creditNote) creditNote.classList.remove('hidden');
+          await fetchRainForGps(lat, lon);
           setGpsLoading(false);
           return;
         } catch(tmdErr){
@@ -2434,6 +2489,7 @@
         } catch(err){
           setGpsStatus(t('gpsErrorPrefix') + ' ' + err.message + ' — ' + t('gpsManualFallback'), 'error');
         } finally {
+          await fetchRainForGps(lat, lon);
           setGpsLoading(false);
         }
       },
