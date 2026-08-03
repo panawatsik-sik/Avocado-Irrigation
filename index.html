@@ -589,6 +589,10 @@
         </div>
       </div>
       <div class="result-note" id="waterNote"></div>
+      <button type="button" class="gps-btn" id="addCalendarBtn" onclick="addWateringToCalendar()" style="margin-top:14px;">
+        <span data-i18n="addCalendarBtn">📅 เพิ่มลง Google Calendar</span>
+      </button>
+      <p class="hint" id="calendarHint" data-i18n="calendarHint" style="margin-top:6px; font-size:11.5px;">สร้างการเตือนรดน้ำทุก 2 วัน และเตือนคำนวณใหม่ในวันที่ 3</p>
       <details class="breakdown">
         <summary data-i18n="viewDetailsWater">ดูรายละเอียดการคำนวณ</summary>
         <div class="breakdown-table" id="waterBreakdown"></div>
@@ -904,6 +908,14 @@
       flowUnit: 'ล./ชม.',
       calcWaterBtn: 'คำนวณเวลาให้น้ำ',
       waterResultEyebrow: 'ผลการคำนวณน้ำ',
+      addCalendarBtn: '📅 เพิ่มลง Google Calendar',
+      calendarHint: 'สร้างการเตือนรดน้ำทุก 2 วัน และเตือนคำนวณใหม่ในวันที่ 3',
+      calWaterTitle: '💧 รดน้ำอะโวคาโด',
+      calRecalcTitle: '🔄 คำนวณปริมาณน้ำใหม่ในแอป',
+      calWaterDetails: 'ปริมาณน้ำที่แนะนำ',
+      calRecalcDetails: 'ครบ 2 วันแล้ว พยากรณ์ฝนเปลี่ยน ควรเปิดแอปเพื่อคำนวณปริมาณน้ำและตรวจสอบพยากรณ์ฝนใหม่',
+      calOpenApp: 'เปิดแอป',
+      calNeedCalc: 'กรุณากดคำนวณเวลาให้น้ำก่อน',
       minutesUnit: 'นาที / ครั้ง', minutesCap: 'เวลาเปิดสปริงเกอร์',
       freqUnit: 'วัน / ครั้ง', freqCap: 'ความถี่ที่แนะนำ',
       viewDetailsWater: 'ดูรายละเอียดการคำนวณ',
@@ -1147,6 +1159,14 @@
       flowUnit: 'L/hr',
       calcWaterBtn: 'Calculate Irrigation Time',
       waterResultEyebrow: 'Irrigation Result',
+      addCalendarBtn: '📅 Add to Google Calendar',
+      calendarHint: 'Creates a watering reminder every 2 days, plus a recalculation reminder on day 3',
+      calWaterTitle: '💧 Water the avocado',
+      calRecalcTitle: '🔄 Recalculate irrigation in the app',
+      calWaterDetails: 'Recommended water',
+      calRecalcDetails: 'Two days have passed and the rain forecast has changed. Open the app to recalculate the water amount and check the new rain forecast.',
+      calOpenApp: 'Open app',
+      calNeedCalc: 'Please calculate the irrigation time first',
       minutesUnit: 'minutes / event', minutesCap: 'Sprinkler run time',
       freqUnit: 'days / event', freqCap: 'Recommended frequency',
       viewDetailsWater: 'View calculation details',
@@ -1539,6 +1559,7 @@
   // so the water result can tell farmers when to recalculate. Cleared if the
   // farmer edits the ETo field by hand, since the stored dates no longer apply.
   let etoSourceInfo = null;
+  let lastWaterResult = null;
   let fertMode = 'young';
   let selectedStage = 3;
   let selectedSoil = 'loam';
@@ -2007,6 +2028,7 @@
       renderWater({
         minutes: minutesPerEvent,
         freqDays: intervalDays,
+        litersPerEvent: ltdAdjusted,
         note: currentLang === 'en' ? noteEn : noteTh,
         rows: youngRows
       });
@@ -2056,6 +2078,7 @@
     renderWater({
       minutes: minutesPerEvent,
       freqDays: intervalDays,
+      litersPerEvent: litersPerEvent,
       note: combinedNote,
       rows: [
         [t('rowGrowthStage'), stageName],
@@ -2080,7 +2103,68 @@
     });
   }
 
+  // Build Google Calendar "create event" links from the latest water result.
+  // Event 1: watering, repeating every 2 days (matches the 2-day rain forecast window).
+  // Event 2: on day 3, a reminder to recalculate in the app (forecast will have moved on).
+  function addWateringToCalendar(){
+    if(!lastWaterResult){
+      alert(t('calNeedCalc'));
+      return;
+    }
+
+    // Google Calendar wants UTC timestamps in YYYYMMDDTHHMMSSZ form.
+    function gcalStamp(d){
+      return d.getUTCFullYear()
+        + String(d.getUTCMonth()+1).padStart(2,'0')
+        + String(d.getUTCDate()).padStart(2,'0')
+        + 'T'
+        + String(d.getUTCHours()).padStart(2,'0')
+        + String(d.getUTCMinutes()).padStart(2,'0')
+        + '00Z';
+    }
+
+    const minutes = Math.max(1, Math.round(lastWaterResult.minutes || 1));
+    const liters = (typeof lastWaterResult.litersPerEvent === 'number')
+      ? lastWaterResult.litersPerEvent.toFixed(1) : null;
+
+    // Watering event: tomorrow 06:00 local, lasting `minutes`, repeating every 2 days.
+    const start = new Date();
+    start.setDate(start.getDate() + 1);
+    start.setHours(6, 0, 0, 0);
+    const end = new Date(start.getTime() + minutes * 60000);
+
+    let waterDetails = t('calWaterDetails') + ': ' + minutes + ' '
+      + (currentLang === 'en' ? 'minutes/time' : 'นาที/ครั้ง');
+    if(liters) waterDetails += ' (' + liters + ' '
+      + (currentLang === 'en' ? 'L/tree' : 'ลิตร/ต้น') + ')';
+
+    const waterUrl = 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+      + '&text=' + encodeURIComponent(t('calWaterTitle'))
+      + '&dates=' + gcalStamp(start) + '/' + gcalStamp(end)
+      + '&details=' + encodeURIComponent(waterDetails)
+      + '&recur=' + encodeURIComponent('RRULE:FREQ=DAILY;INTERVAL=2');
+
+    // Recalculation reminder: day 3 at 06:00, 15-min event, with a link back to the app.
+    const recalc = new Date();
+    recalc.setDate(recalc.getDate() + 3);
+    recalc.setHours(6, 0, 0, 0);
+    const recalcEnd = new Date(recalc.getTime() + 15 * 60000);
+
+    const appUrl = window.location.href.split('#')[0];
+    const recalcDetails = t('calRecalcDetails') + '\n\n' + t('calOpenApp') + ': ' + appUrl;
+
+    const recalcUrl = 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+      + '&text=' + encodeURIComponent(t('calRecalcTitle'))
+      + '&dates=' + gcalStamp(recalc) + '/' + gcalStamp(recalcEnd)
+      + '&details=' + encodeURIComponent(recalcDetails);
+
+    // Open watering event first; recalculation reminder second.
+    window.open(waterUrl, '_blank');
+    setTimeout(function(){ window.open(recalcUrl, '_blank'); }, 600);
+  }
+
   function renderWater(r){
+    lastWaterResult = r;
     document.getElementById('outMinutes').textContent = r.minutes < 1 ? r.minutes.toFixed(1) : Math.round(r.minutes);
     document.getElementById('outFreq').textContent = r.freqDays;
     document.getElementById('waterNote').innerHTML = r.note;
