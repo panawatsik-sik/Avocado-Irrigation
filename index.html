@@ -909,7 +909,7 @@
       calcWaterBtn: 'คำนวณเวลาให้น้ำ',
       waterResultEyebrow: 'ผลการคำนวณน้ำ',
       addCalendarBtn: '📅 เพิ่มลง Google Calendar',
-      calendarHint: 'สร้างการเตือนรดน้ำทุก 2 วัน และเตือนคำนวณใหม่ในวันที่ 3',
+      calendarHint: 'สร้างการเตือนรดน้ำ 2 ครั้ง (ทุก 2 วัน) และเตือนคำนวณใหม่ในวันที่ 3',
       calWaterTitle: '💧 รดน้ำอะโวคาโด',
       calRecalcTitle: '🔄 คำนวณปริมาณน้ำใหม่ในแอป',
       calWaterDetails: 'ปริมาณน้ำที่แนะนำ',
@@ -1160,7 +1160,7 @@
       calcWaterBtn: 'Calculate Irrigation Time',
       waterResultEyebrow: 'Irrigation Result',
       addCalendarBtn: '📅 Add to Google Calendar',
-      calendarHint: 'Creates a watering reminder every 2 days, plus a recalculation reminder on day 3',
+      calendarHint: 'Creates 2 watering reminders (every 2 days), plus a recalculation reminder on day 3',
       calWaterTitle: '💧 Water the avocado',
       calRecalcTitle: '🔄 Recalculate irrigation in the app',
       calWaterDetails: 'Recommended water',
@@ -2142,7 +2142,7 @@
       + '&text=' + encodeURIComponent(t('calWaterTitle'))
       + '&dates=' + gcalStamp(start) + '/' + gcalStamp(end)
       + '&details=' + encodeURIComponent(waterDetails)
-      + '&recur=' + encodeURIComponent('RRULE:FREQ=DAILY;INTERVAL=2');
+      + '&recur=' + encodeURIComponent('RRULE:FREQ=DAILY;INTERVAL=2;COUNT=2');
 
     // Recalculation reminder: day 3 at 06:00, 15-min event, with a link back to the app.
     const recalc = new Date();
