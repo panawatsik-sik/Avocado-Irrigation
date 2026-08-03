@@ -1990,6 +1990,108 @@
   renderSoils();
   updateCanopyAreaPreview();
 
+  // --- Remember the farmer's inputs on this device (localStorage) ---------
+  // Purely local: nothing is uploaded. Each phone keeps its own last values so
+  // the farmer opens the app already set up and can calculate in one tap.
+  // Clearing the browser cache or switching phones resets it (by design).
+  const PREFS_KEY = 'avocado_app_prefs_v1';
+
+  function saveInputs(){
+    try{
+      const prefs = {
+        waterMode: waterMode,
+        fertMode: fertMode,
+        selectedStage: selectedStage,
+        selectedSoil: selectedSoil,
+        selectedRadius: selectedRadius,
+        selectedFertRadius: selectedFertRadius,
+        droughtStatus: droughtStatus,
+        heads: (document.getElementById('heads')||{}).value || '',
+        flow: (document.getElementById('flow')||{}).value || '',
+        yearWater: (document.getElementById('yearWater')||{}).value || '',
+        yearFert: (document.getElementById('yearFert')||{}).value || '',
+        youngMonth: (document.getElementById('youngMonth')||{}).value || ''
+        // Note: eto & rainfall are deliberately NOT saved — they are tied to a
+        // specific forecast date and must be re-fetched each session.
+      };
+      localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+    }catch(e){ /* storage unavailable — ignore */ }
+  }
+
+  function loadInputs(){
+    let prefs;
+    try{
+      prefs = JSON.parse(localStorage.getItem(PREFS_KEY) || 'null');
+    }catch(e){ prefs = null; }
+    if(!prefs) return;
+
+    // Restore simple state variables
+    if(prefs.waterMode) waterMode = prefs.waterMode;
+    if(prefs.fertMode) fertMode = prefs.fertMode;
+    if(typeof prefs.selectedStage === 'number') selectedStage = prefs.selectedStage;
+    if(prefs.selectedSoil) selectedSoil = prefs.selectedSoil;
+    if(typeof prefs.selectedRadius === 'number') selectedRadius = prefs.selectedRadius;
+    if(typeof prefs.selectedFertRadius === 'number') selectedFertRadius = prefs.selectedFertRadius;
+    if(prefs.droughtStatus) droughtStatus = prefs.droughtStatus;
+
+    // Restore numeric input fields
+    const headsEl = document.getElementById('heads');
+    if(headsEl && prefs.heads) headsEl.value = prefs.heads;
+    const flowEl = document.getElementById('flow');
+    if(flowEl && prefs.flow) flowEl.value = prefs.flow;
+
+    // Restore active state on the mode/tab button groups to match the vars
+    document.querySelectorAll('#modeGroupWater .mode-btn').forEach(function(b){
+      b.classList.toggle('active', b.dataset.mode === waterMode);
+    });
+    document.querySelectorAll('#modeGroupFert .mode-btn').forEach(function(b){
+      b.classList.toggle('active', b.dataset.mode === fertMode);
+    });
+    document.querySelectorAll('#droughtGroup .drought-btn').forEach(function(b){
+      b.classList.toggle('active', b.dataset.drought === droughtStatus);
+    });
+
+    // Re-render the visual pickers so the restored choices show as selected
+    renderStages();
+    renderRadiusButtons();
+    renderFertRadiusButtons();
+    renderSoils();
+    updateWaterVisibility();
+    updateFertVisibility();
+    updateDroughtWarning();
+    updateCanopyAreaPreview();
+
+    // Dropdowns are populated by renderMonths() earlier; set them after.
+    const ym = document.getElementById('yearWater');
+    if(ym && prefs.yearWater) ym.value = prefs.yearWater;
+    const yf = document.getElementById('yearFert');
+    if(yf && prefs.yearFert) yf.value = prefs.yearFert;
+    const yMon = document.getElementById('youngMonth');
+    if(yMon && prefs.youngMonth) yMon.value = prefs.youngMonth;
+  }
+
+  // Save whenever a remembered input changes. Button-group clicks already run
+  // their own handlers above; we add a light-touch listener that also saves.
+  ['heads','flow','yearWater','yearFert','youngMonth'].forEach(function(id){
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('change', saveInputs);
+  });
+  ['modeGroupWater','modeGroupFert','droughtGroup'].forEach(function(gid){
+    const g = document.getElementById(gid);
+    if(g) g.addEventListener('click', function(e){
+      if(e.target.closest('button')) setTimeout(saveInputs, 0);
+    });
+  });
+  // Visual pickers (stages, radius, soils) re-render their own DOM, so hook
+  // saving through a delegated click on their containers.
+  ['stageList','canopyRadiusGroup','soilList','soilListFert','canopyFertRadiusGroup']
+    .forEach(function(id){
+      const el = document.getElementById(id);
+      if(el) el.addEventListener('click', function(){ setTimeout(saveInputs, 0); });
+    });
+
+  loadInputs();
+
   function calculateWater(){
     const heads = parseFloat(document.getElementById('heads').value);
     const flow = parseFloat(document.getElementById('flow').value);
