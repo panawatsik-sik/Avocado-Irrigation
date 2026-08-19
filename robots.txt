@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://panawatsik-sik.github.io/Avocado-Irrigation/sitemap.xml
