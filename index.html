@@ -2724,10 +2724,25 @@
             throw new Error((tmdData && tmdData.message) || 'no data');
           }
 
+          // TMD's grid has no bounds check of its own — it always returns the
+          // *nearest* point, even one thousands of km away (e.g. querying from
+          // Japan silently returns a Vietnam-border grid point as "success").
+          // Kept tight (15 km) rather than just wide enough to reach the
+          // border: TMD's model is calibrated for Thailand, so even where a
+          // neighboring-country point is technically "close" in raw grid
+          // distance (Vientiane ~13 km, Phnom Penh ~10 km in testing), the
+          // forecast itself may not be reliable there. Past this radius we
+          // fall through to the NASA POWER fallback below instead, which
+          // isn't Thailand-specific.
+          const MAX_TMD_GRID_KM = 15;
+          const gp = tmdData.nearest_grid_point;
+          if(gp && typeof gp.distance_km === 'number' && gp.distance_km > MAX_TMD_GRID_KM){
+            throw new Error('nearest TMD grid point is ' + gp.distance_km.toFixed(1) + ' km away — out of TMD coverage');
+          }
+
           const etoSum = tmdData.data.reduce((s, item) => s + (parseFloat(item.eto) || 0), 0);
           document.getElementById('eto').value = etoSum.toFixed(1);
 
-          const gp = tmdData.nearest_grid_point;
           const period = tmdData.forecast_period;
           if(period) etoSourceInfo = { source:'tmd', start:period.start_date, end:period.end_date };
           let msg = t('gpsTmdSuccess') + ' ETo ' + etoSum.toFixed(1) + ' ' + t('unitMm10d');
