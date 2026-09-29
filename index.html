@@ -438,14 +438,14 @@
     width:14px; height:14px; border:1.5px solid #fff; border-radius:50% 50% 50% 0;
     transform:rotate(-45deg); box-shadow:0 1px 3px rgba(0,0,0,.35);
   }
-  .ws-dam-tooltip.leaflet-tooltip{
-    font-family:'Sarabun',sans-serif; font-size:10.5px; font-weight:600; color:var(--ink);
-    background:rgba(255,255,255,.92); border:1px solid var(--line); border-radius:6px;
-    padding:2px 6px; box-shadow:0 1px 3px rgba(0,0,0,.2);
-    /* The permanent label floats right above the marker and would otherwise
-       intercept the hover/click meant for the marker underneath it. */
-    pointer-events:none;
+  /* Farmer's own GPS location: a pin (not a plain dot) with a person
+     silhouette, so it reads clearly at a glance among the other markers. */
+  .ws-marker-you{
+    width:28px; height:28px; border-radius:50% 50% 50% 0; background:var(--leaf);
+    border:2.5px solid #fff; transform:rotate(-45deg); box-shadow:0 2px 5px rgba(0,0,0,.4);
+    display:flex; align-items:center; justify-content:center;
   }
+  .ws-marker-you svg{ transform:rotate(45deg); }
 
   .water-status-panel{
     margin-top:14px; padding:13px 14px; background:var(--surface-soft);
@@ -3179,6 +3179,21 @@
     });
   }
 
+  // Pin-shaped divIcon with a person silhouette for the farmer's own GPS
+  // location — clearer at a glance than a plain dot, and unmistakably
+  // different from the dam/river/rain markers.
+  function youDivIcon(){
+    return L.divIcon({
+      className: '',
+      html: '<div class="ws-marker-you"><svg viewBox="0 0 24 24" width="15" height="15" fill="#fff">'
+        + '<circle cx="12" cy="7.5" r="3.6"/>'
+        + '<path d="M5 20.5c0-4.1 3.13-7.2 7-7.2s7 3.1 7 7.2"/>'
+        + '</svg></div>',
+      iconSize: [28, 28],
+      iconAnchor: [14, 26]
+    });
+  }
+
   // Binds a popup that opens both on tap/click (Leaflet's default) and on
   // hover, so a farmer panning a mouse across the map sees the readout
   // immediately instead of having to tap each point first.
@@ -3312,7 +3327,7 @@
     }).addTo(wsMap);
 
     attachHoverPopup(
-      L.circleMarker([lat, lon], { radius: 8, color: '#fff', weight: 2, fillColor: '#3E5B2C', fillOpacity: 1 }).addTo(wsMap),
+      L.marker([lat, lon], { icon: youDivIcon(), zIndexOffset: 1000 }).addTo(wsMap),
       '<div class="ws-popup"><b>' + esc(t('waterStatusYou')) + '</b></div>'
     );
 
@@ -3337,21 +3352,17 @@
     const riverLayer = L.layerGroup();
     const rainLayer = L.layerGroup();
 
-    // Dams: diamond marker + a permanent name label next to it, as requested
-    // ("ขอให้แสดงชื่อเขื่อนด้วย") — dams are sparse enough on the map that
-    // always-on labels stay readable, unlike the denser river/rain layers.
-    // Dams with no storage-percent reading are skipped entirely (filtered
-    // further up, before this function is even called) rather than shown
-    // with a confusing "—" placeholder.
+    // Dams: diamond marker. Name and storage % show in the popup on
+    // hover/tap rather than as an always-on map label. Dams with no
+    // storage-percent reading are skipped entirely (filtered further up,
+    // before this function is even called) rather than shown with a
+    // confusing "—" placeholder.
     damEntries.forEach(function(entry){
       const it = toDamItem(entry);
       if(typeof it.lat !== 'number' || typeof it.lon !== 'number') return;
       const meta = damLevelMeta(it.storagePercent);
       const pctText = it.storagePercent !== null ? it.storagePercent.toFixed(0) + '%' : '—';
       const marker = L.marker([it.lat, it.lon], { icon: damDivIcon(meta.color) });
-      marker.bindTooltip(esc(it.name), {
-        permanent: true, direction: 'top', offset: [0, -9], className: 'ws-dam-tooltip', opacity: 0.92
-      });
       attachHoverPopup(marker, '<div class="ws-popup"><b>' + esc(it.name) + '</b><br>'
         + esc(t('waterStatusStorageLabel')) + ': ' + pctText + '<br>'
         + esc(t('waterStatusDistanceLabel')) + ': ' + it.distanceKm.toFixed(1) + ' ' + esc(t('unitKm')) + '</div>'
