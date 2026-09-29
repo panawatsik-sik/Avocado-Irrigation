@@ -11,6 +11,9 @@
 <!-- ===== SEO: Canonical URL (กันปัญหา URL ซ้ำ/สับสน) ===== -->
 <link rel="canonical" href="https://panawatsik-sik.github.io/Avocado-Irrigation/">
 
+<!-- Leaflet (map for the water-status tab); JS is loaded lazily only when that tab is used -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+
 <!-- ===== SEO: อนุญาตให้ Google เก็บและแสดงผลหน้านี้ ===== -->
 <meta name="robots" content="index, follow">
 
@@ -400,6 +403,24 @@
   @keyframes spinsm{ to{ transform:rotate(360deg); } }
 
   .water-status-btn{ border-color:var(--river); color:var(--river); }
+
+  .ws-map{
+    height:340px; margin-top:14px; border-radius:var(--radius-sm); overflow:hidden;
+    border:1px solid var(--line); background:var(--surface-soft);
+    display:flex; align-items:center; justify-content:center;
+    font-size:12.5px; color:var(--muted); text-align:center; padding:16px;
+  }
+  .ws-map.has-map{ display:block; padding:0; }
+  .ws-legend{
+    display:flex; flex-wrap:wrap; gap:10px 16px; margin-top:10px; font-size:11px; color:var(--muted);
+  }
+  .ws-legend-group{ display:flex; flex-direction:column; gap:3px; }
+  .ws-legend-title{ font-weight:700; color:var(--ink); font-size:11px; }
+  .ws-legend-item{ display:inline-flex; align-items:center; gap:5px; }
+  .ws-legend-dot{ width:10px; height:10px; border-radius:50%; display:inline-block; flex-shrink:0; border:1px solid rgba(0,0,0,.15); }
+  .ws-popup{ font-family:'Sarabun',sans-serif; font-size:12.5px; line-height:1.6; }
+  .ws-popup b{ font-family:'Kanit',sans-serif; }
+
   .water-status-panel{
     margin-top:14px; padding:13px 14px; background:var(--surface-soft);
     border:1px solid var(--line); border-radius:var(--radius-sm);
@@ -828,7 +849,7 @@
   <div id="waterStatusTab" class="hidden">
     <div class="card">
       <h2><span class="num river">🌊</span><span data-i18n="waterStatusCardH2">สถานการณ์น้ำใกล้แปลง</span></h2>
-      <p class="hint" data-i18n="waterStatusCardHint">ตรวจสอบระดับน้ำในเขื่อน/อ่างเก็บน้ำ และระดับน้ำแม่น้ำ/คลองที่ใกล้แปลงของคุณ สำหรับติดตามสถานการณ์เท่านั้น ไม่ได้ใช้ในการคำนวณน้ำหรือปุ๋ยของแอป</p>
+      <p class="hint" data-i18n="waterStatusCardHint">แสดงเขื่อน/อ่างเก็บน้ำ ระดับน้ำแม่น้ำ/คลอง และฝนสะสม 24 ชม. บนแผนที่ใกล้แปลงของคุณ สำหรับติดตามสถานการณ์เท่านั้น ไม่ได้ใช้ในการคำนวณน้ำหรือปุ๋ยของแอป</p>
 
       <button type="button" class="gps-btn water-status-btn" id="waterStatusGpsBtn" onclick="fetchWaterStatusForGps()">
         <span class="spinner-sm" id="waterStatusSpinner"></span>
@@ -836,6 +857,36 @@
         <span id="waterStatusGpsBtnLabel" data-i18n="waterStatusGpsBtnLabel">ตรวจสอบจากพิกัด GPS</span>
       </button>
       <div class="gps-status" id="waterStatusGpsStatus"></div>
+
+      <!-- NOTE: no data-i18n here on purpose — once the Leaflet map is rendered inside
+           this div, the generic data-i18n refresh in switchLang() must not overwrite it
+           via textContent/innerHTML. See updateWaterStatusMapPlaceholder() in the script. -->
+      <div class="ws-map" id="waterStatusMap">กดปุ่มด้านบนเพื่อแสดงแผนที่สถานการณ์น้ำใกล้แปลง</div>
+
+      <div class="ws-legend" id="waterStatusLegend" style="display:none;">
+        <div class="ws-legend-group">
+          <span class="ws-legend-title" data-i18n="waterStatusLegendDam">เขื่อน/อ่างเก็บน้ำ (% ความจุ)</span>
+          <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#C0392B;"></span><span data-i18n="waterStatusLegendDamLow">น้ำน้อย (&lt;30%)</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#3E5B2C;"></span><span data-i18n="waterStatusLegendDamNormal">ปกติ (30–80%)</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#1F6FA8;"></span><span data-i18n="waterStatusLegendDamHigh">น้ำมาก (80–100%)</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#6B2FA8;"></span><span data-i18n="waterStatusLegendDamOver">เกินความจุ (&gt;100%)</span></span>
+        </div>
+        <div class="ws-legend-group">
+          <span class="ws-legend-title" data-i18n="waterStatusLegendRiver">จุดวัดระดับน้ำ</span>
+          <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#3E5B2C;"></span><span data-i18n="situationNormal">ปกติ</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#C08A1E;"></span><span data-i18n="situationWatch">เฝ้าระวัง</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#D9822B;"></span><span data-i18n="situationWarning">เตือนภัย</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#C0392B;"></span><span data-i18n="situationCritical">วิกฤต</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#8E1B1B;"></span><span data-i18n="situationOverbank">ล้นตลิ่ง</span></span>
+        </div>
+        <div class="ws-legend-group">
+          <span class="ws-legend-title" data-i18n="waterStatusLegendRain">ฝนสะสม 24 ชม. (มม.)</span>
+          <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#4C9A4C;"></span><span data-i18n="waterStatusLegendRainLight">น้อย (0.1–10)</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#2E86C1;"></span><span data-i18n="waterStatusLegendRainModerate">ปานกลาง (10–35)</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#E08A2B;"></span><span data-i18n="waterStatusLegendRainHeavy">หนัก (35–90)</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#C0392B;"></span><span data-i18n="waterStatusLegendRainVeryHeavy">หนักมาก (&gt;90)</span></span>
+        </div>
+      </div>
 
       <div class="water-status-panel hidden" id="waterStatusPanel">
         <div id="waterStatusContent"></div>
@@ -985,21 +1036,38 @@
       rainMetaTo: 'ถึง',
       rainMetaSource: 'แหล่งข้อมูล: Open-Meteo',
       waterStatusCardH2: 'สถานการณ์น้ำใกล้แปลง',
-      waterStatusCardHint: 'ตรวจสอบระดับน้ำในเขื่อน/อ่างเก็บน้ำ และระดับน้ำแม่น้ำ/คลองที่ใกล้แปลงของคุณ สำหรับติดตามสถานการณ์เท่านั้น ไม่ได้ใช้ในการคำนวณน้ำหรือปุ๋ยของแอป',
+      waterStatusCardHint: 'แสดงเขื่อน/อ่างเก็บน้ำ ระดับน้ำแม่น้ำ/คลอง และฝนสะสม 24 ชม. บนแผนที่ใกล้แปลงของคุณ สำหรับติดตามสถานการณ์เท่านั้น ไม่ได้ใช้ในการคำนวณน้ำหรือปุ๋ยของแอป',
       waterStatusGpsBtnLabel: 'ตรวจสอบจากพิกัด GPS',
+      waterStatusMapPlaceholder: 'กดปุ่มด้านบนเพื่อแสดงแผนที่สถานการณ์น้ำใกล้แปลง',
+      waterStatusMapLoadFail: 'โหลดแผนที่ไม่สำเร็จ (ไม่สามารถเชื่อมต่อ CDN ของ Leaflet ได้) — ยังคงแสดงข้อมูลสรุปด้านล่างได้ตามปกติ',
       waterStatusFoot: 'ข้อมูลจากคลังข้อมูลน้ำแห่งชาติ (ThaiWater) — สำหรับใช้ประกอบการติดตามสถานการณ์เท่านั้น ไม่ใช่การแจ้งเตือนภัยอย่างเป็นทางการ',
-      waterStatusCalling: 'กำลังดึงข้อมูลจากคลังข้อมูลน้ำแห่งชาติ...',
+      waterStatusCalling: 'กำลังดึงข้อมูลจากคลังข้อมูลน้ำแห่งชาติ (เขื่อน/ระดับน้ำ/ฝนสะสม)...',
       waterStatusSuccess: 'ดึงข้อมูลสำเร็จ',
       waterStatusFailed: 'ดึงข้อมูลสถานการณ์น้ำไม่สำเร็จ',
       waterStatusManualFallback: 'กรุณาลองใหม่อีกครั้ง หรือตรวจสอบที่เว็บไซต์คลังข้อมูลน้ำแห่งชาติโดยตรง',
       waterStatusDamLabel: 'เขื่อน/อ่างเก็บน้ำใกล้ที่สุด',
       waterStatusRiverLabel: 'จุดวัดระดับน้ำใกล้ที่สุด',
+      waterStatusRainLabel: 'จุดวัดฝนใกล้ที่สุด',
       waterStatusStorageLabel: 'ระดับน้ำเก็บกัก',
       waterStatusLevelLabel: 'สถานการณ์',
+      waterStatusRain24Label: 'ฝนสะสม 24 ชม.',
       waterStatusDistanceLabel: 'ห่างจากพิกัดของคุณ',
       waterStatusFar: '(ค่อนข้างไกล ข้อมูลอาจไม่ตรงกับสถานการณ์จริงในแปลง)',
-      waterStatusNoDam: 'ไม่พบข้อมูลเขื่อนในระบบ',
-      waterStatusNoRiver: 'ไม่พบข้อมูลจุดวัดระดับน้ำในระบบ',
+      waterStatusNoDam: 'ไม่พบข้อมูลเขื่อนในระยะที่แสดงบนแผนที่',
+      waterStatusNoRiver: 'ไม่พบข้อมูลจุดวัดระดับน้ำในระยะที่แสดงบนแผนที่',
+      waterStatusNoRain: 'ไม่พบข้อมูลจุดวัดฝนในระยะที่แสดงบนแผนที่',
+      waterStatusLegendDam: 'เขื่อน/อ่างเก็บน้ำ (% ความจุ)',
+      waterStatusLegendDamLow: 'น้ำน้อย (<30%)',
+      waterStatusLegendDamNormal: 'ปกติ (30–80%)',
+      waterStatusLegendDamHigh: 'น้ำมาก (80–100%)',
+      waterStatusLegendDamOver: 'เกินความจุ (>100%)',
+      waterStatusLegendRiver: 'จุดวัดระดับน้ำ',
+      waterStatusLegendRain: 'ฝนสะสม 24 ชม. (มม.)',
+      waterStatusLegendRainLight: 'น้อย (0.1–10)',
+      waterStatusLegendRainModerate: 'ปานกลาง (10–35)',
+      waterStatusLegendRainHeavy: 'หนัก (35–90)',
+      waterStatusLegendRainVeryHeavy: 'หนักมาก (>90)',
+      waterStatusYou: 'ตำแหน่งของคุณ',
       situationNormal: 'ปกติ',
       situationWatch: 'เฝ้าระวัง',
       situationWarning: 'เตือนภัย',
@@ -1209,6 +1277,7 @@
       etoRecalcAfter: 'แนะนำคำนวณใหม่หลังวันที่',
       gpsTmdFailFallback: 'ดึงข้อมูลจาก TMD ไม่สำเร็จ กำลังลองใช้ NASA POWER แทน...',
       unitKm: 'กม.',
+      unitMm: 'มม.',
       gpsNoData: 'ไม่พบข้อมูลที่ใช้งานได้ในช่วง 25 วันล่าสุด',
       gpsSuccess: 'สำเร็จ', gpsAvgFrom: 'เฉลี่ยจาก', gpsDaysRange: 'วันล่าสุด, ช่วง',
       gpsFilledIn: 'กรอกลงในช่องด้านล่างให้แล้ว ตรวจสอบ/แก้ไขได้ตามต้องการ',
@@ -1265,21 +1334,38 @@
       rainMetaTo: 'to',
       rainMetaSource: 'Source: Open-Meteo',
       waterStatusCardH2: 'Nearby Water Status',
-      waterStatusCardHint: 'Check the storage level of nearby dams/reservoirs and the water level of nearby rivers/canals. For situational awareness only — not used in the app\'s irrigation or fertilizer calculations.',
+      waterStatusCardHint: 'Shows dams/reservoirs, river/canal water levels, and 24-hour accumulated rainfall on a map near your field. For situational awareness only — not used in the app\'s irrigation or fertilizer calculations.',
       waterStatusGpsBtnLabel: 'Check from GPS location',
+      waterStatusMapPlaceholder: 'Tap the button above to show the water-status map near your field',
+      waterStatusMapLoadFail: 'The map failed to load (could not reach the Leaflet CDN) — the summary below still works normally.',
       waterStatusFoot: 'Data from Thailand\'s National Water Information Center (ThaiWater) — for situational awareness only, not an official warning.',
-      waterStatusCalling: 'Fetching data from the National Water Information Center...',
+      waterStatusCalling: 'Fetching data from the National Water Information Center (dams / water levels / rainfall)...',
       waterStatusSuccess: 'Data fetched successfully',
       waterStatusFailed: 'Failed to fetch water status data.',
       waterStatusManualFallback: 'Please try again, or check the National Water Information Center website directly.',
       waterStatusDamLabel: 'Nearest dam/reservoir',
       waterStatusRiverLabel: 'Nearest water-level station',
+      waterStatusRainLabel: 'Nearest rain gauge',
       waterStatusStorageLabel: 'Storage level',
       waterStatusLevelLabel: 'Situation',
+      waterStatusRain24Label: '24-hour rainfall',
       waterStatusDistanceLabel: 'Distance from your location',
       waterStatusFar: '(fairly far away — may not reflect the actual situation at your field)',
-      waterStatusNoDam: 'No dam data found',
-      waterStatusNoRiver: 'No water-level station data found',
+      waterStatusNoDam: 'No dam data found within the mapped range',
+      waterStatusNoRiver: 'No water-level station data found within the mapped range',
+      waterStatusNoRain: 'No rain gauge data found within the mapped range',
+      waterStatusLegendDam: 'Dam/reservoir (% capacity)',
+      waterStatusLegendDamLow: 'Low (<30%)',
+      waterStatusLegendDamNormal: 'Normal (30–80%)',
+      waterStatusLegendDamHigh: 'High (80–100%)',
+      waterStatusLegendDamOver: 'Over capacity (>100%)',
+      waterStatusLegendRiver: 'Water-level station',
+      waterStatusLegendRain: '24-hour rainfall (mm)',
+      waterStatusLegendRainLight: 'Light (0.1–10)',
+      waterStatusLegendRainModerate: 'Moderate (10–35)',
+      waterStatusLegendRainHeavy: 'Heavy (35–90)',
+      waterStatusLegendRainVeryHeavy: 'Very heavy (>90)',
+      waterStatusYou: 'Your location',
       situationNormal: 'Normal',
       situationWatch: 'Watch',
       situationWarning: 'Warning',
@@ -1489,6 +1575,7 @@
       etoRecalcAfter: 'Recommended to recalculate after',
       gpsTmdFailFallback: 'Could not reach TMD, trying NASA POWER instead...',
       unitKm: 'km',
+      unitMm: 'mm',
       gpsNoData: 'No usable data found in the last 25 days',
       gpsSuccess: 'Success', gpsAvgFrom: 'averaged from', gpsDaysRange: 'recent days, range',
       gpsFilledIn: 'Filled into the field below. Check/edit as needed.',
@@ -1538,6 +1625,7 @@
     renderFertChips();
     renderFertRadiusButtons();
     updateFertDosePreview();
+    updateWaterStatusMapPlaceholder();
     renderVisitCounter();
     updateDroughtWarning();
 
@@ -2188,6 +2276,10 @@
     document.getElementById('waterTab').classList.toggle('hidden', tab!=='water');
     document.getElementById('fertTab').classList.toggle('hidden', tab!=='fert');
     document.getElementById('waterStatusTab').classList.toggle('hidden', tab!=='waterstatus');
+    // Leaflet sizes its canvas from the container's dimensions at creation time;
+    // if the map was built while this tab was hidden (display:none => 0×0), it
+    // renders blank until told to re-measure once the tab is actually visible.
+    if(tab === 'waterstatus' && wsMap){ setTimeout(function(){ wsMap.invalidateSize(); }, 50); }
   }
   tabWaterBtn.addEventListener('click', function(){ setTab('water'); });
   tabFertBtn.addEventListener('click', function(){ setTab('fert'); });
@@ -2937,10 +3029,18 @@
   // into the irrigation/fertilizer calculation on purpose). Sourced from
   // the National Water Information Center (ThaiWater) public API, which
   // has open CORS (confirmed 2026-09), so no backend proxy is needed.
+  // Shown as a Leaflet map (dams, river/canal levels, 24h rainfall) plus
+  // a plain-text "nearest of each" summary for quick reading.
   // ===================================================================
   const THAIWATER_DAM_URL = 'https://api-v3.thaiwater.net/api/v1/thaiwater30/analyst/dam';
   const THAIWATER_WATERLEVEL_URL = 'https://api-v3.thaiwater.net/api/v1/thaiwater30/public/waterlevel_load';
-  const WATER_STATUS_FAR_KM = 50; // soft-warning threshold only — distance is always shown, never hidden
+  const THAIWATER_RAIN_URL = 'https://api-v3.thaiwater.net/api/v1/thaiwater30/public/rain_24h';
+  const WATER_STATUS_FAR_KM = 50;   // soft-warning threshold only — distance is always shown, never hidden
+  const DAM_RADIUS_KM = 150, DAM_MAX_COUNT = 25;
+  const STATION_RADIUS_KM = 100, STATION_MAX_COUNT = 40;
+  const RAIN_RADIUS_KM = 60, RAIN_MAX_COUNT = 80;
+
+  let wsMap = null; // the Leaflet map instance for the water-status tab, once created
 
   function esc(s){
     return String(s === undefined || s === null ? '' : s).replace(/[&<>"']/g, function(c){
@@ -2970,6 +3070,21 @@
     return [amphoe, province].filter(Boolean).join(', ');
   }
 
+  // Filters a list to items within maxKm of (lat, lon), sorted nearest-first
+  // and capped to maxCount — keeps the map and the API payload usable
+  // instead of plotting all ~1,000 dams / ~4,300 rain gauges nationwide.
+  function nearbyFiltered(items, latFn, lonFn, lat, lon, maxKm, maxCount){
+    const withDist = [];
+    items.forEach(function(it){
+      const la = latFn(it), lo = lonFn(it);
+      if(typeof la !== 'number' || typeof lo !== 'number') return;
+      const km = haversineKm(lat, lon, la, lo);
+      if(km <= maxKm) withDist.push({ item: it, km: km });
+    });
+    withDist.sort(function(a, b){ return a.km - b.km; });
+    return withDist.slice(0, maxCount);
+  }
+
   const SITUATION_META = {
     1: { key:'situationNormal',   color:'#3E5B2C' },
     2: { key:'situationWatch',    color:'#C08A1E' },
@@ -2977,6 +3092,55 @@
     4: { key:'situationCritical', color:'#C0392B' },
     5: { key:'situationOverbank', color:'#8E1B1B' }
   };
+
+  function damLevelMeta(pct){
+    if(typeof pct !== 'number') return { key:null, color:'#9AA593' };
+    if(pct < 30) return { key:'waterStatusLegendDamLow', color:'#C0392B' };
+    if(pct <= 80) return { key:'waterStatusLegendDamNormal', color:'#3E5B2C' };
+    if(pct <= 100) return { key:'waterStatusLegendDamHigh', color:'#1F6FA8' };
+    return { key:'waterStatusLegendDamOver', color:'#6B2FA8' };
+  }
+
+  function rainLevelMeta(mm){
+    if(typeof mm !== 'number' || mm <= 0) return null;
+    if(mm <= 10) return { key:'waterStatusLegendRainLight', color:'#4C9A4C' };
+    if(mm <= 35) return { key:'waterStatusLegendRainModerate', color:'#2E86C1' };
+    if(mm <= 90) return { key:'waterStatusLegendRainHeavy', color:'#E08A2B' };
+    return { key:'waterStatusLegendRainVeryHeavy', color:'#C0392B' };
+  }
+
+  function toDamItem(entry){
+    const d = entry.item;
+    return {
+      name: pickName(d.dam.dam_name, '—'),
+      storagePercent: (typeof d.dam_storage_percent === 'number') ? d.dam_storage_percent : null,
+      lat: d.dam.dam_lat, lon: d.dam.dam_long,
+      distanceKm: entry.km,
+      locationText: buildLocationText(d.geocode)
+    };
+  }
+  function toStationItem(entry){
+    const s = entry.item;
+    const riverName = s.river_name ? s.river_name : '';
+    return {
+      name: pickName(s.station.tele_station_name, '—') + (riverName ? (' (' + riverName + ')') : ''),
+      situationLevel: s.situation_level,
+      lat: s.station.tele_station_lat, lon: s.station.tele_station_long,
+      distanceKm: entry.km,
+      locationText: buildLocationText(s.geocode)
+    };
+  }
+  function toRainItem(entry){
+    const r = entry.item;
+    const mm = (typeof r.rain_24h === 'number') ? r.rain_24h : (r.rain_24h ? parseFloat(r.rain_24h) : null);
+    return {
+      name: pickName(r.station.tele_station_name, '—'),
+      rain24: (typeof mm === 'number' && !isNaN(mm)) ? mm : null,
+      lat: r.station.tele_station_lat, lon: r.station.tele_station_long,
+      distanceKm: entry.km,
+      locationText: buildLocationText(r.geocode)
+    };
+  }
 
   function setWaterStatusGpsStatus(msg, cls){
     const el = document.getElementById('waterStatusGpsStatus');
@@ -2996,25 +3160,35 @@
     if(label) label.textContent = loading ? t('gpsFetching') : t('waterStatusGpsBtnLabel');
   }
 
+  // Only touches the map placeholder text — never overwrites an already-
+  // rendered Leaflet map (see the HTML comment above #waterStatusMap).
+  function updateWaterStatusMapPlaceholder(){
+    const mapEl = document.getElementById('waterStatusMap');
+    if(!mapEl || mapEl.classList.contains('has-map')) return;
+    mapEl.textContent = t('waterStatusMapPlaceholder');
+  }
+
   function renderWaterStatusRow(kind, item){
-    // kind: 'dam' | 'river'
-    const label = kind === 'dam' ? t('waterStatusDamLabel') : t('waterStatusRiverLabel');
+    // kind: 'dam' | 'river' | 'rain'
+    const label = kind === 'dam' ? t('waterStatusDamLabel') : kind === 'river' ? t('waterStatusRiverLabel') : t('waterStatusRainLabel');
     if(!item){
-      const emptyMsg = kind === 'dam' ? t('waterStatusNoDam') : t('waterStatusNoRiver');
+      const emptyMsg = kind === 'dam' ? t('waterStatusNoDam') : kind === 'river' ? t('waterStatusNoRiver') : t('waterStatusNoRain');
       return '<div class="ws-row"><div class="ws-label">' + esc(label) + '</div>'
         + '<div class="ws-detail">' + esc(emptyMsg) + '</div></div>';
     }
     let detail = '';
     if(kind === 'dam'){
+      const meta = damLevelMeta(item.storagePercent);
       detail += esc(t('waterStatusStorageLabel')) + ': <b>' + (item.storagePercent !== null ? item.storagePercent.toFixed(0) + '%' : '—') + '</b>';
-    } else {
+      if(meta.key) detail += ' <span class="ws-badge" style="background:' + meta.color + ';">' + esc(t(meta.key)) + '</span>';
+    } else if(kind === 'river'){
       detail += esc(t('waterStatusLevelLabel')) + ': ';
       const meta = SITUATION_META[item.situationLevel];
-      if(meta){
-        detail += '<span class="ws-badge" style="background:' + meta.color + ';">' + esc(t(meta.key)) + '</span>';
-      } else {
-        detail += '—';
-      }
+      detail += meta ? ('<span class="ws-badge" style="background:' + meta.color + ';">' + esc(t(meta.key)) + '</span>') : '—';
+    } else {
+      const meta = rainLevelMeta(item.rain24);
+      detail += esc(t('waterStatusRain24Label')) + ': <b>' + (item.rain24 !== null ? item.rain24.toFixed(1) + ' ' + esc(t('unitMm')) : '—') + '</b>';
+      if(meta) detail += ' <span class="ws-badge" style="background:' + meta.color + ';">' + esc(t(meta.key)) + '</span>';
     }
     let html = '<div class="ws-row"><div class="ws-label">' + esc(label) + '</div>';
     html += '<div class="ws-name">' + esc(item.name) + '</div>';
@@ -3026,6 +3200,84 @@
     }
     html += '</div>';
     return html;
+  }
+
+  // Loaded dynamically (rather than a static <script> tag) so we can
+  // deterministically wait for it to finish before touching `L`, and show
+  // a clear, non-fatal error if the CDN request fails.
+  function loadLeaflet(){
+    return new Promise(function(resolve, reject){
+      if(typeof L !== 'undefined'){ resolve(); return; }
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js';
+      s.onload = function(){ resolve(); };
+      s.onerror = function(){ reject(new Error('Leaflet CDN load failed')); };
+      document.head.appendChild(s);
+    });
+  }
+
+  async function renderWaterStatusMap(lat, lon, damEntries, stationEntries, rainEntries){
+    await loadLeaflet();
+    const mapEl = document.getElementById('waterStatusMap');
+    if(!mapEl) return;
+
+    if(wsMap){ wsMap.remove(); wsMap = null; }
+    mapEl.innerHTML = '';
+    mapEl.classList.add('has-map');
+
+    wsMap = L.map(mapEl, { attributionControl: true }).setView([lat, lon], 10);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(wsMap);
+
+    L.circleMarker([lat, lon], {
+      radius: 8, color: '#fff', weight: 2, fillColor: '#3E5B2C', fillOpacity: 1
+    }).bindPopup('<div class="ws-popup"><b>' + esc(t('waterStatusYou')) + '</b></div>').addTo(wsMap);
+
+    damEntries.forEach(function(entry){
+      const it = toDamItem(entry);
+      if(typeof it.lat !== 'number' || typeof it.lon !== 'number') return;
+      const meta = damLevelMeta(it.storagePercent);
+      const pctText = it.storagePercent !== null ? it.storagePercent.toFixed(0) + '%' : '—';
+      L.circleMarker([it.lat, it.lon], {
+        radius: 7, color: '#fff', weight: 1, fillColor: meta.color, fillOpacity: 0.9
+      }).bindPopup('<div class="ws-popup"><b>' + esc(it.name) + '</b><br>'
+        + esc(t('waterStatusStorageLabel')) + ': ' + pctText + '<br>'
+        + esc(t('waterStatusDistanceLabel')) + ': ' + it.distanceKm.toFixed(1) + ' ' + esc(t('unitKm')) + '</div>'
+      ).addTo(wsMap);
+    });
+
+    stationEntries.forEach(function(entry){
+      const it = toStationItem(entry);
+      if(typeof it.lat !== 'number' || typeof it.lon !== 'number') return;
+      const meta = SITUATION_META[it.situationLevel];
+      const color = meta ? meta.color : '#9AA593';
+      const levelText = meta ? t(meta.key) : '—';
+      L.circleMarker([it.lat, it.lon], {
+        radius: 6, color: '#fff', weight: 1, fillColor: color, fillOpacity: 0.9
+      }).bindPopup('<div class="ws-popup"><b>' + esc(it.name) + '</b><br>'
+        + esc(t('waterStatusLevelLabel')) + ': ' + esc(levelText) + '<br>'
+        + esc(t('waterStatusDistanceLabel')) + ': ' + it.distanceKm.toFixed(1) + ' ' + esc(t('unitKm')) + '</div>'
+      ).addTo(wsMap);
+    });
+
+    rainEntries.forEach(function(entry){
+      const it = toRainItem(entry);
+      if(typeof it.lat !== 'number' || typeof it.lon !== 'number') return;
+      const meta = rainLevelMeta(it.rain24);
+      if(!meta) return; // skip 0/no-rain points — keeps the map readable
+      L.circleMarker([it.lat, it.lon], {
+        radius: 5, color: '#fff', weight: 1, fillColor: meta.color, fillOpacity: 0.8
+      }).bindPopup('<div class="ws-popup"><b>' + esc(it.name) + '</b><br>'
+        + esc(t('waterStatusRain24Label')) + ': ' + it.rain24.toFixed(1) + ' ' + esc(t('unitMm')) + '<br>'
+        + esc(t('waterStatusDistanceLabel')) + ': ' + it.distanceKm.toFixed(1) + ' ' + esc(t('unitKm')) + '</div>'
+      ).addTo(wsMap);
+    });
+
+    const legend = document.getElementById('waterStatusLegend');
+    if(legend) legend.style.display = 'flex';
+    setTimeout(function(){ if(wsMap) wsMap.invalidateSize(); }, 50);
   }
 
   function fetchWaterStatusForGps(){
@@ -3047,61 +3299,59 @@
         setWaterStatusGpsStatus(t('gpsCoord') + ' ' + lat.toFixed(3) + ', ' + lon.toFixed(3) + ' — ' + t('waterStatusCalling'));
 
         try{
-          const [damResp, wlResp] = await Promise.all([
+          const [damResp, wlResp, rainResp] = await Promise.all([
             fetch(THAIWATER_DAM_URL),
-            fetch(THAIWATER_WATERLEVEL_URL)
+            fetch(THAIWATER_WATERLEVEL_URL),
+            fetch(THAIWATER_RAIN_URL)
           ]);
           if(!damResp.ok) throw new Error('dam HTTP ' + damResp.status);
           if(!wlResp.ok) throw new Error('waterlevel HTTP ' + wlResp.status);
-          const damJson = await damResp.json();
-          const wlJson = await wlResp.json();
+          if(!rainResp.ok) throw new Error('rain HTTP ' + rainResp.status);
+          const [damJson, wlJson, rainJson] = await Promise.all([damResp.json(), wlResp.json(), rainResp.json()]);
 
-          // ---- Nearest dam across all 4 size tiers ----
+          // ---- Dams across all 4 size tiers ----
           const damGroups = (damJson && damJson.data) || {};
           let allDams = [];
           ['dam_hourly','dam_daily','dam_medium','dam_small_tele'].forEach(function(g){
             if(Array.isArray(damGroups[g])) allDams = allDams.concat(damGroups[g]);
           });
-          let nearestDam = null, nearestDamKm = Infinity;
-          allDams.forEach(function(d){
-            const dd = d.dam;
-            if(!dd || typeof dd.dam_lat !== 'number' || typeof dd.dam_long !== 'number') return;
-            const km = haversineKm(lat, lon, dd.dam_lat, dd.dam_long);
-            if(km < nearestDamKm){
-              nearestDamKm = km;
-              nearestDam = d;
-            }
-          });
-          const damItem = nearestDam ? {
-            name: pickName(nearestDam.dam.dam_name, '—'),
-            storagePercent: (typeof nearestDam.dam_storage_percent === 'number') ? nearestDam.dam_storage_percent : null,
-            distanceKm: nearestDamKm,
-            locationText: buildLocationText(nearestDam.geocode)
-          } : null;
+          const damNearby = nearbyFiltered(allDams,
+            function(d){ return d.dam ? d.dam.dam_lat : undefined; },
+            function(d){ return d.dam ? d.dam.dam_long : undefined; },
+            lat, lon, DAM_RADIUS_KM, DAM_MAX_COUNT);
 
-          // ---- Nearest water-level station ----
+          // ---- Water-level stations ----
           const stations = (wlJson && wlJson.waterlevel_data && Array.isArray(wlJson.waterlevel_data.data)) ? wlJson.waterlevel_data.data : [];
-          let nearestStation = null, nearestStationKm = Infinity;
-          stations.forEach(function(s){
-            const st = s.station;
-            if(!st || typeof st.tele_station_lat !== 'number' || typeof st.tele_station_long !== 'number') return;
-            const km = haversineKm(lat, lon, st.tele_station_lat, st.tele_station_long);
-            if(km < nearestStationKm){
-              nearestStationKm = km;
-              nearestStation = s;
-            }
-          });
-          const riverName = nearestStation && nearestStation.river_name ? nearestStation.river_name : '';
-          const riverItem = nearestStation ? {
-            name: pickName(nearestStation.station.tele_station_name, '—') + (riverName ? (' (' + riverName + ')') : ''),
-            situationLevel: nearestStation.situation_level,
-            distanceKm: nearestStationKm,
-            locationText: buildLocationText(nearestStation.geocode)
-          } : null;
+          const stationNearby = nearbyFiltered(stations,
+            function(s){ return s.station ? s.station.tele_station_lat : undefined; },
+            function(s){ return s.station ? s.station.tele_station_long : undefined; },
+            lat, lon, STATION_RADIUS_KM, STATION_MAX_COUNT);
+
+          // ---- Rain gauges (24h accumulated) ----
+          const rains = (rainJson && Array.isArray(rainJson.data)) ? rainJson.data : [];
+          const rainNearby = nearbyFiltered(rains,
+            function(r){ return r.station ? r.station.tele_station_lat : undefined; },
+            function(r){ return r.station ? r.station.tele_station_long : undefined; },
+            lat, lon, RAIN_RADIUS_KM, RAIN_MAX_COUNT);
+
+          try{
+            await renderWaterStatusMap(lat, lon, damNearby, stationNearby, rainNearby);
+          } catch(mapErr){
+            // Non-fatal: the CDN may be unreachable, but the text summary below still works.
+            console.warn('Water status map render failed:', mapErr);
+            const mapEl = document.getElementById('waterStatusMap');
+            if(mapEl){ mapEl.classList.remove('has-map'); mapEl.textContent = t('waterStatusMapLoadFail'); }
+          }
+
+          const damItem = damNearby.length ? toDamItem(damNearby[0]) : null;
+          const riverItem = stationNearby.length ? toStationItem(stationNearby[0]) : null;
+          const rainItem = rainNearby.length ? toRainItem(rainNearby[0]) : null;
 
           const content = document.getElementById('waterStatusContent');
           if(content){
-            content.innerHTML = renderWaterStatusRow('dam', damItem) + renderWaterStatusRow('river', riverItem);
+            content.innerHTML = renderWaterStatusRow('dam', damItem)
+              + renderWaterStatusRow('river', riverItem)
+              + renderWaterStatusRow('rain', rainItem);
           }
           if(panel) panel.classList.remove('hidden');
           setWaterStatusGpsStatus(t('gpsCoord') + ' ' + lat.toFixed(3) + ', ' + lon.toFixed(3) + ' — ' + t('waterStatusSuccess'), 'success');
