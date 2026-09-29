@@ -1076,6 +1076,9 @@
       waterStatusMapLoadFail: 'โหลดแผนที่ไม่สำเร็จ (ไม่สามารถเชื่อมต่อ CDN ของ Leaflet ได้) — ยังคงแสดงข้อมูลสรุปด้านล่างได้ตามปกติ',
       waterStatusFoot: 'ข้อมูลจากคลังข้อมูลน้ำแห่งชาติ (ThaiWater) — สำหรับใช้ประกอบการติดตามสถานการณ์เท่านั้น ไม่ใช่การแจ้งเตือนภัยอย่างเป็นทางการ',
       waterStatusCalling: 'กำลังดึงข้อมูลจากคลังข้อมูลน้ำแห่งชาติ (เขื่อน/ระดับน้ำ/ฝนสะสม)...',
+      waterStatusCallingDam: 'กำลังดึงข้อมูลเขื่อน/อ่างเก็บน้ำ...',
+      waterStatusCallingRiver: 'กำลังดึงข้อมูลระดับน้ำ...',
+      waterStatusCallingRain: 'กำลังดึงข้อมูลฝนสะสม...',
       waterStatusSuccess: 'ดึงข้อมูลสำเร็จ',
       waterStatusFailed: 'ดึงข้อมูลสถานการณ์น้ำไม่สำเร็จ',
       waterStatusManualFallback: 'กรุณาลองใหม่อีกครั้ง หรือตรวจสอบที่เว็บไซต์คลังข้อมูลน้ำแห่งชาติโดยตรง',
@@ -1380,6 +1383,9 @@
       waterStatusMapLoadFail: 'The map failed to load (could not reach the Leaflet CDN) — the summary below still works normally.',
       waterStatusFoot: 'Data from Thailand\'s National Water Information Center (ThaiWater) — for situational awareness only, not an official warning.',
       waterStatusCalling: 'Fetching data from the National Water Information Center (dams / water levels / rainfall)...',
+      waterStatusCallingDam: 'Fetching dam/reservoir data...',
+      waterStatusCallingRiver: 'Fetching water-level data...',
+      waterStatusCallingRain: 'Fetching rainfall data...',
       waterStatusSuccess: 'Data fetched successfully',
       waterStatusFailed: 'Failed to fetch water status data.',
       waterStatusManualFallback: 'Please try again, or check the National Water Information Center website directly.',
@@ -3563,6 +3569,39 @@
     setTimeout(function(){ if(wsMap) wsMap.invalidateSize(); }, 50);
   }
 
+  // Fetches one ThaiWater endpoint with automatic retry. Confirmed by
+  // testing: firing the dam/waterlevel/rain requests all at once
+  // (Promise.all) is itself what trips ThaiWater's rate limiter — hitting
+  // each endpoint one at a time, with a short gap, mostly succeeds even
+  // right after a burst has been throttled. A failure can show up either
+  // as an explicit HTTP 429, or — when the rate-limiter strips CORS
+  // headers off its own 429 response — as a raw fetch() network error
+  // that the browser can't tell apart from a real connectivity problem.
+  // Both are treated as transient and retried the same way.
+  function fetchJsonWithRetry(url, label, attempts, baseDelayMs){
+    return new Promise(function(resolve, reject){
+      let attempt = 0;
+      function tryOnce(){
+        attempt++;
+        fetch(url).then(function(resp){
+          if(!resp.ok){
+            const e = new Error(label + ' HTTP ' + resp.status);
+            e.httpStatus = resp.status;
+            throw e;
+          }
+          return resp.json();
+        }).then(resolve).catch(function(err){
+          if(attempt < attempts){
+            setTimeout(tryOnce, baseDelayMs * attempt);
+          } else {
+            reject(err);
+          }
+        });
+      }
+      tryOnce();
+    });
+  }
+
   function fetchWaterStatusForGps(){
     setWaterStatusLoading(true);
     setWaterStatusGpsStatus(t('gpsAsking'));
@@ -3583,15 +3622,15 @@
         let rateLimitHit = false;
 
         try{
-          const [damResp, wlResp, rainResp] = await Promise.all([
-            fetch(THAIWATER_DAM_URL),
-            fetch(THAIWATER_WATERLEVEL_URL),
-            fetch(THAIWATER_RAIN_URL)
-          ]);
-          if(!damResp.ok){ const e = new Error('dam HTTP ' + damResp.status); e.httpStatus = damResp.status; throw e; }
-          if(!wlResp.ok){ const e = new Error('waterlevel HTTP ' + wlResp.status); e.httpStatus = wlResp.status; throw e; }
-          if(!rainResp.ok){ const e = new Error('rain HTTP ' + rainResp.status); e.httpStatus = rainResp.status; throw e; }
-          const [damJson, wlJson, rainJson] = await Promise.all([damResp.json(), wlResp.json(), rainResp.json()]);
+          // Fetched one at a time (not Promise.all) — see fetchJsonWithRetry
+          // for why: firing all 3 requests simultaneously is what actually
+          // triggers ThaiWater's rate limiter, confirmed by testing.
+          setWaterStatusGpsStatus(t('gpsCoord') + ' ' + lat.toFixed(3) + ', ' + lon.toFixed(3) + ' — ' + t('waterStatusCallingDam'));
+          const damJson = await fetchJsonWithRetry(THAIWATER_DAM_URL, 'dam', 3, 2500);
+          setWaterStatusGpsStatus(t('gpsCoord') + ' ' + lat.toFixed(3) + ', ' + lon.toFixed(3) + ' — ' + t('waterStatusCallingRiver'));
+          const wlJson = await fetchJsonWithRetry(THAIWATER_WATERLEVEL_URL, 'waterlevel', 3, 2500);
+          setWaterStatusGpsStatus(t('gpsCoord') + ' ' + lat.toFixed(3) + ', ' + lon.toFixed(3) + ' — ' + t('waterStatusCallingRain'));
+          const rainJson = await fetchJsonWithRetry(THAIWATER_RAIN_URL, 'rain', 3, 2500);
 
           // ---- Dams across all 4 size tiers ----
           // The hourly/daily tiers are ThaiWater's major RID dams (เขื่อน,
@@ -3661,10 +3700,15 @@
           console.error('Water status fetch failed:', err);
           // ThaiWater's API applies a short burst rate-limit (HTTP 429) if
           // called too many times in quick succession — confirmed by
-          // testing, and not a bug in this app or its hosting. Give a
-          // specific, non-alarming message plus a short cooldown instead
-          // of letting the farmer immediately re-trigger the same limit.
-          if(err && err.httpStatus === 429){
+          // testing, and not a bug in this app or its hosting. When the
+          // rate-limiter strips CORS headers off its own 429 response, the
+          // browser reports it as a generic "Failed to fetch" network
+          // error instead of a readable status code — also confirmed by
+          // testing — so that's treated the same way here, after
+          // fetchJsonWithRetry has already retried a few times.
+          const isRateLimited = (err && err.httpStatus === 429)
+            || (err && /Failed to fetch|NetworkError|Load failed/i.test(err.message || ''));
+          if(isRateLimited){
             rateLimitHit = true;
             setWaterStatusGpsStatus(t('waterStatusRateLimited'), 'error');
           } else {
