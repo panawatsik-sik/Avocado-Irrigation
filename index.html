@@ -3526,13 +3526,13 @@
     mapEl.classList.add('has-map');
 
     wsMap = L.map(mapEl, { attributionControl: true }).setView([lat, lon], 10);
-    // A clean, muted basemap (CartoDB Positron) reads much better with
-    // colored data markers on top than the busier default OSM styling —
-    // same underlying OpenStreetMap data, just a calmer palette so the
-    // dam/river/rain markers are what draws the eye.
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-      maxZoom: 18,
-      attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+    // Standard OpenStreetMap raster tiles — free, no API key required.
+    // (CartoDB's basemaps.cartocdn.com now requires an API key for anonymous
+    // use and returns an "API KEY REQUIRED" watermark tile without one, which
+    // is why the map stopped rendering — switched back to plain OSM tiles.)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
     }).addTo(wsMap);
 
     attachHoverPopup(
@@ -3594,9 +3594,10 @@
       const meta = SITUATION_META[it.situationLevel];
       const color = meta ? meta.color : '#9AA593';
       const levelText = meta ? t(meta.key) : '—';
-      // เตือนภัย (4) and ล้นตลิ่ง (5) are the two genuinely urgent water-level
-      // situations — pulse those so they stand out among dozens of stations.
-      if(it.situationLevel === 4 || it.situationLevel === 5){
+      // Only ล้นตลิ่ง (5, riverbank overflow) counts as critical enough to
+      // pulse — เตือนภัย (4, warning) is elevated but not yet overflowing,
+      // so it gets its usual color only, no blink.
+      if(it.situationLevel === 5){
         addCriticalPulse(riverLayer, it.lat, it.lon, color, 20);
       }
       const marker = L.circleMarker([it.lat, it.lon], {
