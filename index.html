@@ -423,16 +423,22 @@
   .ws-legend-item{ display:inline-flex; align-items:center; gap:5px; }
   .ws-legend-dot{ width:10px; height:10px; border-radius:50%; display:inline-block; flex-shrink:0; border:1px solid rgba(0,0,0,.15); }
   .ws-legend-dot.dam-shape{ border-radius:2px; transform:rotate(45deg); }
+  .ws-legend-dot.reservoir-shape{ border-radius:3px; }
   .ws-legend-dot.rain-shape{ border-radius:50% 50% 50% 0; transform:rotate(-45deg); }
   .ws-popup{ font-family:'Sarabun',sans-serif; font-size:12.5px; line-height:1.6; }
   .ws-popup b{ font-family:'Kanit',sans-serif; }
 
-  /* Map marker shapes: dam = diamond, river/canal station = plain circle
-     (via L.circleMarker), rain gauge = teardrop — so the three data types
-     are told apart by shape, not just color. */
+  /* Map marker shapes: major dam (เขื่อน) = diamond, reservoir (อ่างเก็บน้ำ)
+     = plain square, river/canal station = plain circle (via
+     L.circleMarker), rain gauge = teardrop — so all four are told apart
+     by shape, not just color. */
   .ws-marker-dam{
     width:14px; height:14px; border:1.5px solid #fff; border-radius:2px;
     transform:rotate(45deg); box-shadow:0 1px 3px rgba(0,0,0,.35);
+  }
+  .ws-marker-reservoir{
+    width:11px; height:11px; border:1.5px solid #fff; border-radius:3px;
+    box-shadow:0 1px 3px rgba(0,0,0,.35);
   }
   .ws-marker-rain{
     width:14px; height:14px; border:1.5px solid #fff; border-radius:50% 50% 50% 0;
@@ -892,6 +898,8 @@
       <div class="ws-legend" id="waterStatusLegend" style="display:none;">
         <div class="ws-legend-group">
           <label class="ws-legend-toggle"><input type="checkbox" id="wsLayerDamToggle" checked><span class="ws-legend-title" data-i18n="waterStatusLegendDam">เขื่อน/อ่างเก็บน้ำ (% ความจุ)</span></label>
+          <span class="ws-legend-item"><span class="ws-legend-dot dam-shape" style="background:#9AA593;"></span><span data-i18n="waterStatusLegendDamShape">เขื่อนขนาดใหญ่ (◆)</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-dot reservoir-shape" style="background:#9AA593;"></span><span data-i18n="waterStatusLegendReservoirShape">อ่างเก็บน้ำ (■)</span></span>
           <span class="ws-legend-item"><span class="ws-legend-dot dam-shape" style="background:#C0392B;"></span><span data-i18n="waterStatusLegendDamLow">น้ำน้อย (&lt;30%)</span></span>
           <span class="ws-legend-item"><span class="ws-legend-dot dam-shape" style="background:#3E5B2C;"></span><span data-i18n="waterStatusLegendDamNormal">ปกติ (30–80%)</span></span>
           <span class="ws-legend-item"><span class="ws-legend-dot dam-shape" style="background:#1F6FA8;"></span><span data-i18n="waterStatusLegendDamHigh">น้ำมาก (80–100%)</span></span>
@@ -1083,6 +1091,10 @@
       waterStatusNoRiver: 'ไม่พบข้อมูลจุดวัดระดับน้ำในระยะที่แสดงบนแผนที่',
       waterStatusNoRain: 'ไม่พบข้อมูลจุดวัดฝนในระยะที่แสดงบนแผนที่',
       waterStatusLegendDam: 'เขื่อน/อ่างเก็บน้ำ (% ความจุ)',
+      waterStatusLegendDamShape: 'เขื่อนขนาดใหญ่ (◆)',
+      waterStatusLegendReservoirShape: 'อ่างเก็บน้ำ (■)',
+      waterStatusDamTypeMajor: 'เขื่อน',
+      waterStatusDamTypeReservoir: 'อ่างเก็บน้ำ',
       waterStatusLegendDamLow: 'น้ำน้อย (<30%)',
       waterStatusLegendDamNormal: 'ปกติ (30–80%)',
       waterStatusLegendDamHigh: 'น้ำมาก (80–100%)',
@@ -1381,6 +1393,10 @@
       waterStatusNoRiver: 'No water-level station data found within the mapped range',
       waterStatusNoRain: 'No rain gauge data found within the mapped range',
       waterStatusLegendDam: 'Dam/reservoir (% capacity)',
+      waterStatusLegendDamShape: 'Major dam (◆)',
+      waterStatusLegendReservoirShape: 'Reservoir (■)',
+      waterStatusDamTypeMajor: 'Dam',
+      waterStatusDamTypeReservoir: 'Reservoir',
       waterStatusLegendDamLow: 'Low (<30%)',
       waterStatusLegendDamNormal: 'Normal (30–80%)',
       waterStatusLegendDamHigh: 'High (80–100%)',
@@ -3133,6 +3149,72 @@
     return withDist.slice(0, maxCount);
   }
 
+  // Some dams/reservoirs appear more than once in the combined ThaiWater
+  // dataset under the exact same name — most commonly because the same
+  // physical dam is telemetered at both the hourly and daily granularity
+  // (or twice within the daily feed itself), and one of the duplicate
+  // points carries no real storage reading (a confirmed example:
+  // เขื่อนศรีนครินทร์/Srinagarind Dam shows up as 3 separate entries only
+  // 300–400m apart, and only one of them has a real storage_percent — the
+  // others read exactly 0 despite a large non-zero storage figure).
+  // Two entries only count as the "same" dam when their NAME matches AND
+  // they sit within DEDUPE_CLUSTER_KM of each other — plenty of small
+  // reservoirs share a generic name (e.g. "อ่างเก็บน้ำห้วยทราย") while
+  // being hundreds of km apart, and those must never be merged.
+  const DEDUPE_CLUSTER_KM = 5;
+  function dedupeDamEntries(list){
+    const byName = {};
+    list.forEach(function(d){
+      const nameObj = d.dam && d.dam.dam_name;
+      const name = (nameObj && nameObj.th) ? nameObj.th.trim() : '';
+      if(!name){
+        // Never merge unnamed entries with each other — each gets its own
+        // never-collides group key.
+        byName.__n = (byName.__n || 0) + 1;
+        byName['__unnamed_' + byName.__n] = [d];
+        return;
+      }
+      (byName[name] = byName[name] || []).push(d);
+    });
+    const result = [];
+    Object.keys(byName).forEach(function(key){
+      if(key === '__n') return;
+      const group = byName[key];
+      if(!group || group.length === 1){ if(group) result.push(group[0]); return; }
+      // Cluster this name's entries by mutual proximity — greedy single-
+      // linkage against each cluster's first member is enough at this scale.
+      const clusters = [];
+      group.forEach(function(d){
+        const la = d.dam ? d.dam.dam_lat : undefined, lo = d.dam ? d.dam.dam_long : undefined;
+        if(typeof la !== 'number' || typeof lo !== 'number'){ clusters.push([d]); return; }
+        let placed = false;
+        for(let i = 0; i < clusters.length; i++){
+          const rep = clusters[i][0];
+          const rla = rep.dam ? rep.dam.dam_lat : undefined, rlo = rep.dam ? rep.dam.dam_long : undefined;
+          if(typeof rla === 'number' && typeof rlo === 'number' && haversineKm(la, lo, rla, rlo) <= DEDUPE_CLUSTER_KM){
+            clusters[i].push(d); placed = true; break;
+          }
+        }
+        if(!placed) clusters.push([d]);
+      });
+      clusters.forEach(function(cluster){
+        if(cluster.length === 1){ result.push(cluster[0]); return; }
+        // Same physical dam/reservoir reported more than once: keep only
+        // the entry that actually carries a real (non-zero) storage
+        // reading, rather than plotting a data-less "ghost" twin next to
+        // the real one.
+        let best = cluster[0];
+        cluster.forEach(function(d){
+          const bestOk = typeof best.dam_storage_percent === 'number' && best.dam_storage_percent !== 0;
+          const dOk = typeof d.dam_storage_percent === 'number' && d.dam_storage_percent !== 0;
+          if(dOk && !bestOk) best = d;
+        });
+        result.push(best);
+      });
+    });
+    return result;
+  }
+
   const SITUATION_META = {
     1: { key:'situationNormal',   color:'#3E5B2C' },
     2: { key:'situationWatch',    color:'#C08A1E' },
@@ -3157,14 +3239,25 @@
     return { key:'waterStatusLegendRainVeryHeavy', color:'#C0392B' };
   }
 
-  // Diamond-shaped divIcon for dams — visually distinct from the plain
-  // circleMarker dots used for river/canal stations.
-  function damDivIcon(color){
+  // Diamond-shaped divIcon for major dams (เขื่อน) — visually distinct
+  // from both the square reservoir marker and the plain circleMarker dots
+  // used for river/canal stations. Reservoirs (อ่างเก็บน้ำ) get a smaller
+  // plain square instead of a diamond, per the farmer's request to tell
+  // the two apart on the map at a glance.
+  function damDivIcon(color, isMajor){
+    if(isMajor){
+      return L.divIcon({
+        className: '',
+        html: '<div class="ws-marker-dam" style="background:' + color + ';"></div>',
+        iconSize: [14, 14],
+        iconAnchor: [7, 7]
+      });
+    }
     return L.divIcon({
       className: '',
-      html: '<div class="ws-marker-dam" style="background:' + color + ';"></div>',
-      iconSize: [14, 14],
-      iconAnchor: [7, 7]
+      html: '<div class="ws-marker-reservoir" style="background:' + color + ';"></div>',
+      iconSize: [11, 11],
+      iconAnchor: [6, 6]
     });
   }
 
@@ -3211,7 +3304,12 @@
       storagePercent: (typeof d.dam_storage_percent === 'number') ? d.dam_storage_percent : null,
       lat: d.dam.dam_lat, lon: d.dam.dam_long,
       distanceKm: entry.km,
-      locationText: buildLocationText(d.geocode)
+      locationText: buildLocationText(d.geocode),
+      // Major RID dams (เขื่อน) come from the hourly/daily telemetry tiers;
+      // smaller reservoirs (อ่างเก็บน้ำ) come from the medium/small-tele
+      // tiers — tagged onto the raw entry when the tiers were combined,
+      // see fetchWaterStatusForGps.
+      isMajor: !!d.__isMajor
     };
   }
   function toStationItem(entry){
@@ -3286,7 +3384,8 @@
       if(meta) detail += ' <span class="ws-badge" style="background:' + meta.color + ';">' + esc(t(meta.key)) + '</span>';
     }
     let html = '<div class="ws-row"><div class="ws-label">' + esc(label) + '</div>';
-    html += '<div class="ws-name">' + esc(item.name) + '</div>';
+    const nameSuffix = (kind === 'dam') ? ' (' + esc(t(item.isMajor ? 'waterStatusDamTypeMajor' : 'waterStatusDamTypeReservoir')) + ')' : '';
+    html += '<div class="ws-name">' + esc(item.name) + nameSuffix + '</div>';
     html += '<div class="ws-detail">' + detail + '</div>';
     html += '<div class="ws-detail">' + esc(t('waterStatusDistanceLabel')) + ': ' + item.distanceKm.toFixed(1) + ' ' + esc(t('unitKm'))
       + (item.distanceKm > WATER_STATUS_FAR_KM ? ' <span class="ws-far">' + esc(t('waterStatusFar')) + '</span>' : '') + '</div>';
@@ -3362,8 +3461,9 @@
       if(typeof it.lat !== 'number' || typeof it.lon !== 'number') return;
       const meta = damLevelMeta(it.storagePercent);
       const pctText = it.storagePercent !== null ? it.storagePercent.toFixed(0) + '%' : '—';
-      const marker = L.marker([it.lat, it.lon], { icon: damDivIcon(meta.color) });
-      attachHoverPopup(marker, '<div class="ws-popup"><b>' + esc(it.name) + '</b><br>'
+      const typeText = t(it.isMajor ? 'waterStatusDamTypeMajor' : 'waterStatusDamTypeReservoir');
+      const marker = L.marker([it.lat, it.lon], { icon: damDivIcon(meta.color, it.isMajor) });
+      attachHoverPopup(marker, '<div class="ws-popup"><b>' + esc(it.name) + '</b> (' + esc(typeText) + ')<br>'
         + esc(t('waterStatusStorageLabel')) + ': ' + pctText + '<br>'
         + esc(t('waterStatusDistanceLabel')) + ': ' + it.distanceKm.toFixed(1) + ' ' + esc(t('unitKm')) + '</div>'
       );
@@ -3462,11 +3562,26 @@
           const [damJson, wlJson, rainJson] = await Promise.all([damResp.json(), wlResp.json(), rainResp.json()]);
 
           // ---- Dams across all 4 size tiers ----
+          // The hourly/daily tiers are ThaiWater's major RID dams (เขื่อน,
+          // e.g. ภูมิพล, สิริกิติ์); the medium/small-tele tiers are the
+          // smaller reservoirs (อ่างเก็บน้ำ). Tag each raw entry with which
+          // it is so the map can give them different marker shapes.
           const damGroups = (damJson && damJson.data) || {};
           let allDams = [];
           ['dam_hourly','dam_daily','dam_medium','dam_small_tele'].forEach(function(g){
-            if(Array.isArray(damGroups[g])) allDams = allDams.concat(damGroups[g]);
+            if(Array.isArray(damGroups[g])){
+              damGroups[g].forEach(function(d){
+                d.__isMajor = (g === 'dam_hourly' || g === 'dam_daily');
+                allDams.push(d);
+              });
+            }
           });
+          // Collapse duplicate entries for the same physical dam/reservoir
+          // (same name, close together) down to one, preferring whichever
+          // entry actually has a real storage reading — see
+          // dedupeDamEntries for why this is needed (confirmed example:
+          // เขื่อนศรีนครินทร์/Srinagarind Dam).
+          allDams = dedupeDamEntries(allDams);
           // Skip dams with no storage reading at all — showing them with a
           // "—" placeholder was more confusing than useful.
           allDams = allDams.filter(function(d){ return typeof d.dam_storage_percent === 'number'; });
