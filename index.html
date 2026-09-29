@@ -65,6 +65,8 @@
     --pit-pale:#EAD9C6;
     --gold:#C08A1E;
     --gold-light:#F4E3B8;
+    --river:#1F6FA8;
+    --river-light:#DCEAF4;
     --radius:16px;
     --radius-sm:10px;
   }
@@ -116,6 +118,7 @@
     background:var(--leaf-pale); color:var(--leaf); border-radius:50%; font-size:12.5px; font-weight:700; flex-shrink:0;
   }
   .card h2 .num.pit{ background:var(--pit-pale); color:var(--pit); }
+  .card h2 .num.river{ background:var(--river-light); color:var(--river); }
   .card .hint{ font-size:13px; color:var(--muted); margin:0 0 14px; padding-right:4px; }
 
   label.field-label{ display:block; font-size:13.5px; font-weight:600; color:var(--ink); margin-bottom:8px; }
@@ -215,18 +218,23 @@
   .drought-warning .dw-icon{ font-size:15px; line-height:1.4; flex-shrink:0; }
 
   .tab-bar{
-    display:grid; grid-template-columns:1fr 1fr; gap:8px;
+    display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;
     background:var(--surface-soft); border:1px solid var(--line); border-radius:14px;
     padding:5px; margin-top:20px;
   }
   .tab-btn{
-    border:none; background:transparent; border-radius:10px; padding:12px 8px;
-    font-family:'Kanit',sans-serif; font-size:14.5px; font-weight:600; color:var(--muted);
-    cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;
-    transition:.15s ease;
+    border:none; background:transparent; border-radius:10px; padding:12px 6px;
+    font-family:'Kanit',sans-serif; font-size:13px; font-weight:600; color:var(--muted);
+    cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px;
+    transition:.15s ease; text-align:center;
   }
   .tab-btn.active.water{ background:var(--leaf); color:#fff; }
   .tab-btn.active.fert{ background:var(--pit); color:#fff; }
+  .tab-btn.active.water-status{ background:var(--river); color:#fff; }
+
+  @media (max-width:360px){
+    .tab-bar{ grid-template-columns:1fr; }
+  }
 
   .stage-list{ display:flex; flex-direction:column; gap:8px; }
   .stage-item{
@@ -391,6 +399,22 @@
   .spinner-sm.show{ display:inline-block; }
   @keyframes spinsm{ to{ transform:rotate(360deg); } }
 
+  .water-status-btn{ border-color:var(--river); color:var(--river); }
+  .water-status-panel{
+    margin-top:14px; padding:13px 14px; background:var(--surface-soft);
+    border:1px solid var(--line); border-radius:var(--radius-sm);
+  }
+  .ws-row{ padding:9px 0; }
+  .ws-row + .ws-row{ border-top:1px dashed var(--line); }
+  .ws-row .ws-label{ font-size:11.5px; color:var(--muted); font-weight:600; margin-bottom:3px; }
+  .ws-row .ws-name{ font-size:13.5px; font-weight:600; color:var(--ink); }
+  .ws-row .ws-detail{ font-size:12.5px; color:var(--ink); margin-top:3px; line-height:1.6; }
+  .ws-row .ws-far{ font-size:11.5px; color:var(--muted); font-style:italic; }
+  .ws-badge{
+    display:inline-flex; align-items:center; gap:4px; padding:2px 9px; border-radius:20px;
+    font-size:11.5px; font-weight:700; color:#fff; margin-left:6px; vertical-align:middle;
+  }
+
   @media (max-width:380px){
     .result-box .big{font-size:26px;}
     header .eyebrow{font-size:20px;}
@@ -435,6 +459,7 @@
   <div class="tab-bar">
     <button class="tab-btn active water" id="tabWaterBtn" data-tab="water" data-i18n="tabWaterBtn">💧 คำนวณการให้น้ำ</button>
     <button class="tab-btn fert" id="tabFertBtn" data-tab="fert" data-i18n="tabFertBtn">🌿 คำนวณปุ๋ย</button>
+    <button class="tab-btn water-status" id="tabWaterStatusBtn" data-tab="waterstatus" data-i18n="tabWaterStatusBtn">🌊 ติดตามสถานการณ์น้ำ</button>
   </div>
 
   <!-- ===== แท็บน้ำ ===== -->
@@ -799,6 +824,27 @@
     </div>
   </div>
 
+  <!-- ===== แท็บติดตามสถานการณ์น้ำ (ไม่เกี่ยวกับการคำนวณน้ำ/ปุ๋ย) ===== -->
+  <div id="waterStatusTab" class="hidden">
+    <div class="card">
+      <h2><span class="num river">🌊</span><span data-i18n="waterStatusCardH2">สถานการณ์น้ำใกล้แปลง</span></h2>
+      <p class="hint" data-i18n="waterStatusCardHint">ตรวจสอบระดับน้ำในเขื่อน/อ่างเก็บน้ำ และระดับน้ำแม่น้ำ/คลองที่ใกล้แปลงของคุณ สำหรับติดตามสถานการณ์เท่านั้น ไม่ได้ใช้ในการคำนวณน้ำหรือปุ๋ยของแอป</p>
+
+      <button type="button" class="gps-btn water-status-btn" id="waterStatusGpsBtn" onclick="fetchWaterStatusForGps()">
+        <span class="spinner-sm" id="waterStatusSpinner"></span>
+        <svg id="waterStatusGpsIcon" width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <span id="waterStatusGpsBtnLabel" data-i18n="waterStatusGpsBtnLabel">ตรวจสอบจากพิกัด GPS</span>
+      </button>
+      <div class="gps-status" id="waterStatusGpsStatus"></div>
+
+      <div class="water-status-panel hidden" id="waterStatusPanel">
+        <div id="waterStatusContent"></div>
+      </div>
+
+      <p class="hint" style="margin-top:14px; font-size:11px;" data-i18n="waterStatusFoot">ข้อมูลจากคลังข้อมูลน้ำแห่งชาติ (ThaiWater) — สำหรับใช้ประกอบการติดตามสถานการณ์เท่านั้น ไม่ใช่การแจ้งเตือนภัยอย่างเป็นทางการ</p>
+    </div>
+  </div>
+
   <div class="big-note" data-i18n="footerText">เครื่องมือช่วยประมาณการให้น้ำและปุ๋ย · สำหรับใช้เป็นแนวทางเบื้องต้นเท่านั้น</div>
 
   <div class="footer-ru-note" data-i18n="headerCreditProject">ภายใต้ทุนด้านการนำผลงานวิจัยและนวัตกรรมไปใช้ประโยชน์<br>(RU: Research Utilization)<br>ซึ่งสนับสนุนงบประมาณโดย สำนักงานพัฒนาการวิจัยการเกษตร (องค์การมหาชน)</div>
@@ -921,6 +967,7 @@
       stageCardHint: 'ใช้กำหนดค่า Kc และความถี่การให้น้ำของระยะนั้น',
       tabWaterBtn: '💧 คำนวณการให้น้ำ',
       tabFertBtn: '🌿 คำนวณปุ๋ย',
+      tabWaterStatusBtn: '🌊 ติดตามสถานการณ์น้ำ',
       etoCardH2: 'ค่า ETo',
       etoCardHint: 'ตรวจสอบค่า ETo ราย 10 วันได้จากเพจกรมอุตุนิยมวิทยาเกษตร หรือดึงอัตโนมัติจากพิกัด GPS',
       tmdCredit: 'ข้อมูล ETo ได้รับความอนุเคราะห์จากส่วนอุตุนิยมวิทยาเกษตร กองพัฒนาอุตุนิยมวิทยา กรมอุตุนิยมวิทยา',
@@ -937,6 +984,27 @@
       rainMetaPrefix: 'ปริมาณน้ำฝนคาดการณ์ช่วงวันที่',
       rainMetaTo: 'ถึง',
       rainMetaSource: 'แหล่งข้อมูล: Open-Meteo',
+      waterStatusCardH2: 'สถานการณ์น้ำใกล้แปลง',
+      waterStatusCardHint: 'ตรวจสอบระดับน้ำในเขื่อน/อ่างเก็บน้ำ และระดับน้ำแม่น้ำ/คลองที่ใกล้แปลงของคุณ สำหรับติดตามสถานการณ์เท่านั้น ไม่ได้ใช้ในการคำนวณน้ำหรือปุ๋ยของแอป',
+      waterStatusGpsBtnLabel: 'ตรวจสอบจากพิกัด GPS',
+      waterStatusFoot: 'ข้อมูลจากคลังข้อมูลน้ำแห่งชาติ (ThaiWater) — สำหรับใช้ประกอบการติดตามสถานการณ์เท่านั้น ไม่ใช่การแจ้งเตือนภัยอย่างเป็นทางการ',
+      waterStatusCalling: 'กำลังดึงข้อมูลจากคลังข้อมูลน้ำแห่งชาติ...',
+      waterStatusSuccess: 'ดึงข้อมูลสำเร็จ',
+      waterStatusFailed: 'ดึงข้อมูลสถานการณ์น้ำไม่สำเร็จ',
+      waterStatusManualFallback: 'กรุณาลองใหม่อีกครั้ง หรือตรวจสอบที่เว็บไซต์คลังข้อมูลน้ำแห่งชาติโดยตรง',
+      waterStatusDamLabel: 'เขื่อน/อ่างเก็บน้ำใกล้ที่สุด',
+      waterStatusRiverLabel: 'จุดวัดระดับน้ำใกล้ที่สุด',
+      waterStatusStorageLabel: 'ระดับน้ำเก็บกัก',
+      waterStatusLevelLabel: 'สถานการณ์',
+      waterStatusDistanceLabel: 'ห่างจากพิกัดของคุณ',
+      waterStatusFar: '(ค่อนข้างไกล ข้อมูลอาจไม่ตรงกับสถานการณ์จริงในแปลง)',
+      waterStatusNoDam: 'ไม่พบข้อมูลเขื่อนในระบบ',
+      waterStatusNoRiver: 'ไม่พบข้อมูลจุดวัดระดับน้ำในระบบ',
+      situationNormal: 'ปกติ',
+      situationWatch: 'เฝ้าระวัง',
+      situationWarning: 'เตือนภัย',
+      situationCritical: 'วิกฤต',
+      situationOverbank: 'ล้นตลิ่ง',
       canopyAreaPreviewPrefix: 'พื้นที่ทรงพุ่มโดยประมาณ',
       measureGuideSummary: 'ดูวิธีวัดรัศมีทรงพุ่ม',
       measureGuideTopView: 'มุมมองจากด้านบน',
@@ -1179,6 +1247,7 @@
       stageCardHint: 'Used to look up the Kc value and irrigation frequency for that stage',
       tabWaterBtn: '💧 Calculate Irrigation',
       tabFertBtn: '🌿 Calculate Fertilizer',
+      tabWaterStatusBtn: '🌊 Water Status Tracker',
       etoCardH2: 'ETo Value',
       etoCardHint: 'Check the 10-day ETo value from your national meteorological department, or fetch it automatically from GPS',
       tmdCredit: 'ETo data kindly provided by the Agrometeorology Section, Meteorological Development Division, Thai Meteorological Department',
@@ -1195,6 +1264,27 @@
       rainMetaPrefix: 'Forecast rainfall for',
       rainMetaTo: 'to',
       rainMetaSource: 'Source: Open-Meteo',
+      waterStatusCardH2: 'Nearby Water Status',
+      waterStatusCardHint: 'Check the storage level of nearby dams/reservoirs and the water level of nearby rivers/canals. For situational awareness only — not used in the app\'s irrigation or fertilizer calculations.',
+      waterStatusGpsBtnLabel: 'Check from GPS location',
+      waterStatusFoot: 'Data from Thailand\'s National Water Information Center (ThaiWater) — for situational awareness only, not an official warning.',
+      waterStatusCalling: 'Fetching data from the National Water Information Center...',
+      waterStatusSuccess: 'Data fetched successfully',
+      waterStatusFailed: 'Failed to fetch water status data.',
+      waterStatusManualFallback: 'Please try again, or check the National Water Information Center website directly.',
+      waterStatusDamLabel: 'Nearest dam/reservoir',
+      waterStatusRiverLabel: 'Nearest water-level station',
+      waterStatusStorageLabel: 'Storage level',
+      waterStatusLevelLabel: 'Situation',
+      waterStatusDistanceLabel: 'Distance from your location',
+      waterStatusFar: '(fairly far away — may not reflect the actual situation at your field)',
+      waterStatusNoDam: 'No dam data found',
+      waterStatusNoRiver: 'No water-level station data found',
+      situationNormal: 'Normal',
+      situationWatch: 'Watch',
+      situationWarning: 'Warning',
+      situationCritical: 'Critical',
+      situationOverbank: 'Over-bank',
       canopyAreaPreviewPrefix: 'Approx. canopy area',
       measureGuideSummary: 'How to measure canopy radius',
       measureGuideTopView: 'Top view',
@@ -2089,15 +2179,19 @@
 
   const tabWaterBtn = document.getElementById('tabWaterBtn');
   const tabFertBtn = document.getElementById('tabFertBtn');
+  const tabWaterStatusBtn = document.getElementById('tabWaterStatusBtn');
   function setTab(tab){
     activeTab = tab;
     tabWaterBtn.classList.toggle('active', tab==='water');
     tabFertBtn.classList.toggle('active', tab==='fert');
+    tabWaterStatusBtn.classList.toggle('active', tab==='waterstatus');
     document.getElementById('waterTab').classList.toggle('hidden', tab!=='water');
     document.getElementById('fertTab').classList.toggle('hidden', tab!=='fert');
+    document.getElementById('waterStatusTab').classList.toggle('hidden', tab!=='waterstatus');
   }
   tabWaterBtn.addEventListener('click', function(){ setTab('water'); });
   tabFertBtn.addEventListener('click', function(){ setTab('fert'); });
+  tabWaterStatusBtn.addEventListener('click', function(){ setTab('waterstatus'); });
 
   function setupToggle(groupId){
     const group = document.getElementById(groupId);
@@ -2833,6 +2927,199 @@
         else msg += err.message;
         setGpsStatus(msg + ' — ' + t('gpsManualFallback'), 'error');
         setGpsLoading(false);
+      },
+      { enableHighAccuracy:true, timeout:15000, maximumAge:0 }
+    );
+  }
+
+  // ===================================================================
+  // Water Status Tracker (separate tab — informational only, NOT wired
+  // into the irrigation/fertilizer calculation on purpose). Sourced from
+  // the National Water Information Center (ThaiWater) public API, which
+  // has open CORS (confirmed 2026-09), so no backend proxy is needed.
+  // ===================================================================
+  const THAIWATER_DAM_URL = 'https://api-v3.thaiwater.net/api/v1/thaiwater30/analyst/dam';
+  const THAIWATER_WATERLEVEL_URL = 'https://api-v3.thaiwater.net/api/v1/thaiwater30/public/waterlevel_load';
+  const WATER_STATUS_FAR_KM = 50; // soft-warning threshold only — distance is always shown, never hidden
+
+  function esc(s){
+    return String(s === undefined || s === null ? '' : s).replace(/[&<>"']/g, function(c){
+      return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+    });
+  }
+
+  function haversineKm(lat1, lon1, lat2, lon2){
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2)
+      + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
+  function pickName(nameObj, fallback){
+    if(!nameObj || typeof nameObj !== 'object') return fallback || '';
+    const lang = (typeof currentLang !== 'undefined' && currentLang === 'en') ? 'en' : 'th';
+    return nameObj[lang] || nameObj.th || nameObj.en || fallback || '';
+  }
+
+  function buildLocationText(geocode){
+    if(!geocode) return '';
+    const amphoe = pickName(geocode.amphoe_name, '');
+    const province = pickName(geocode.province_name, '');
+    return [amphoe, province].filter(Boolean).join(', ');
+  }
+
+  const SITUATION_META = {
+    1: { key:'situationNormal',   color:'#3E5B2C' },
+    2: { key:'situationWatch',    color:'#C08A1E' },
+    3: { key:'situationWarning',  color:'#D9822B' },
+    4: { key:'situationCritical', color:'#C0392B' },
+    5: { key:'situationOverbank', color:'#8E1B1B' }
+  };
+
+  function setWaterStatusGpsStatus(msg, cls){
+    const el = document.getElementById('waterStatusGpsStatus');
+    if(!el) return;
+    el.textContent = msg;
+    el.className = 'gps-status show' + (cls ? ' ' + cls : '');
+  }
+
+  function setWaterStatusLoading(loading){
+    const btn = document.getElementById('waterStatusGpsBtn');
+    const spinner = document.getElementById('waterStatusSpinner');
+    const icon = document.getElementById('waterStatusGpsIcon');
+    const label = document.getElementById('waterStatusGpsBtnLabel');
+    if(btn) btn.disabled = loading;
+    if(spinner) spinner.classList.toggle('show', loading);
+    if(icon) icon.style.display = loading ? 'none' : 'inline-block';
+    if(label) label.textContent = loading ? t('gpsFetching') : t('waterStatusGpsBtnLabel');
+  }
+
+  function renderWaterStatusRow(kind, item){
+    // kind: 'dam' | 'river'
+    const label = kind === 'dam' ? t('waterStatusDamLabel') : t('waterStatusRiverLabel');
+    if(!item){
+      const emptyMsg = kind === 'dam' ? t('waterStatusNoDam') : t('waterStatusNoRiver');
+      return '<div class="ws-row"><div class="ws-label">' + esc(label) + '</div>'
+        + '<div class="ws-detail">' + esc(emptyMsg) + '</div></div>';
+    }
+    let detail = '';
+    if(kind === 'dam'){
+      detail += esc(t('waterStatusStorageLabel')) + ': <b>' + (item.storagePercent !== null ? item.storagePercent.toFixed(0) + '%' : '—') + '</b>';
+    } else {
+      detail += esc(t('waterStatusLevelLabel')) + ': ';
+      const meta = SITUATION_META[item.situationLevel];
+      if(meta){
+        detail += '<span class="ws-badge" style="background:' + meta.color + ';">' + esc(t(meta.key)) + '</span>';
+      } else {
+        detail += '—';
+      }
+    }
+    let html = '<div class="ws-row"><div class="ws-label">' + esc(label) + '</div>';
+    html += '<div class="ws-name">' + esc(item.name) + '</div>';
+    html += '<div class="ws-detail">' + detail + '</div>';
+    html += '<div class="ws-detail">' + esc(t('waterStatusDistanceLabel')) + ': ' + item.distanceKm.toFixed(1) + ' ' + esc(t('unitKm'))
+      + (item.distanceKm > WATER_STATUS_FAR_KM ? ' <span class="ws-far">' + esc(t('waterStatusFar')) + '</span>' : '') + '</div>';
+    if(item.locationText){
+      html += '<div class="ws-detail ws-far">' + esc(item.locationText) + '</div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function fetchWaterStatusForGps(){
+    setWaterStatusLoading(true);
+    setWaterStatusGpsStatus(t('gpsAsking'));
+    const panel = document.getElementById('waterStatusPanel');
+    if(panel) panel.classList.add('hidden');
+
+    if(!navigator.geolocation){
+      setWaterStatusGpsStatus(t('gpsNoSupport'), 'error');
+      setWaterStatusLoading(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        setWaterStatusGpsStatus(t('gpsCoord') + ' ' + lat.toFixed(3) + ', ' + lon.toFixed(3) + ' — ' + t('waterStatusCalling'));
+
+        try{
+          const [damResp, wlResp] = await Promise.all([
+            fetch(THAIWATER_DAM_URL),
+            fetch(THAIWATER_WATERLEVEL_URL)
+          ]);
+          if(!damResp.ok) throw new Error('dam HTTP ' + damResp.status);
+          if(!wlResp.ok) throw new Error('waterlevel HTTP ' + wlResp.status);
+          const damJson = await damResp.json();
+          const wlJson = await wlResp.json();
+
+          // ---- Nearest dam across all 4 size tiers ----
+          const damGroups = (damJson && damJson.data) || {};
+          let allDams = [];
+          ['dam_hourly','dam_daily','dam_medium','dam_small_tele'].forEach(function(g){
+            if(Array.isArray(damGroups[g])) allDams = allDams.concat(damGroups[g]);
+          });
+          let nearestDam = null, nearestDamKm = Infinity;
+          allDams.forEach(function(d){
+            const dd = d.dam;
+            if(!dd || typeof dd.dam_lat !== 'number' || typeof dd.dam_long !== 'number') return;
+            const km = haversineKm(lat, lon, dd.dam_lat, dd.dam_long);
+            if(km < nearestDamKm){
+              nearestDamKm = km;
+              nearestDam = d;
+            }
+          });
+          const damItem = nearestDam ? {
+            name: pickName(nearestDam.dam.dam_name, '—'),
+            storagePercent: (typeof nearestDam.dam_storage_percent === 'number') ? nearestDam.dam_storage_percent : null,
+            distanceKm: nearestDamKm,
+            locationText: buildLocationText(nearestDam.geocode)
+          } : null;
+
+          // ---- Nearest water-level station ----
+          const stations = (wlJson && wlJson.waterlevel_data && Array.isArray(wlJson.waterlevel_data.data)) ? wlJson.waterlevel_data.data : [];
+          let nearestStation = null, nearestStationKm = Infinity;
+          stations.forEach(function(s){
+            const st = s.station;
+            if(!st || typeof st.tele_station_lat !== 'number' || typeof st.tele_station_long !== 'number') return;
+            const km = haversineKm(lat, lon, st.tele_station_lat, st.tele_station_long);
+            if(km < nearestStationKm){
+              nearestStationKm = km;
+              nearestStation = s;
+            }
+          });
+          const riverName = nearestStation && nearestStation.river_name ? nearestStation.river_name : '';
+          const riverItem = nearestStation ? {
+            name: pickName(nearestStation.station.tele_station_name, '—') + (riverName ? (' (' + riverName + ')') : ''),
+            situationLevel: nearestStation.situation_level,
+            distanceKm: nearestStationKm,
+            locationText: buildLocationText(nearestStation.geocode)
+          } : null;
+
+          const content = document.getElementById('waterStatusContent');
+          if(content){
+            content.innerHTML = renderWaterStatusRow('dam', damItem) + renderWaterStatusRow('river', riverItem);
+          }
+          if(panel) panel.classList.remove('hidden');
+          setWaterStatusGpsStatus(t('gpsCoord') + ' ' + lat.toFixed(3) + ', ' + lon.toFixed(3) + ' — ' + t('waterStatusSuccess'), 'success');
+        } catch(err){
+          console.error('Water status fetch failed:', err);
+          setWaterStatusGpsStatus(t('waterStatusFailed') + ' — ' + t('waterStatusManualFallback'), 'error');
+        } finally {
+          setWaterStatusLoading(false);
+        }
+      },
+      (err) => {
+        let msg = t('gpsLocationDenied') + ' ';
+        if(err.code === 1) msg += t('gpsErr1');
+        else if(err.code === 2) msg += t('gpsErr2');
+        else if(err.code === 3) msg += t('gpsErr3');
+        else msg += err.message;
+        setWaterStatusGpsStatus(msg, 'error');
+        setWaterStatusLoading(false);
       },
       { enableHighAccuracy:true, timeout:15000, maximumAge:0 }
     );
