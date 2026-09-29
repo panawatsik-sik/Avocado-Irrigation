@@ -1079,6 +1079,8 @@
       waterStatusSuccess: 'ดึงข้อมูลสำเร็จ',
       waterStatusFailed: 'ดึงข้อมูลสถานการณ์น้ำไม่สำเร็จ',
       waterStatusManualFallback: 'กรุณาลองใหม่อีกครั้ง หรือตรวจสอบที่เว็บไซต์คลังข้อมูลน้ำแห่งชาติโดยตรง',
+      waterStatusRateLimited: 'คลังข้อมูลน้ำมีการเรียกใช้งานถี่เกินไปในขณะนี้ (ไม่ใช่ปัญหาของแอป) กรุณารอสักครู่แล้วลองใหม่อีกครั้ง',
+      waterStatusRateLimitWait: 'กรุณารอสักครู่',
       waterStatusDamLabel: 'เขื่อน/อ่างเก็บน้ำใกล้ที่สุด',
       waterStatusRiverLabel: 'จุดวัดระดับน้ำใกล้ที่สุด',
       waterStatusRainLabel: 'จุดวัดฝนใกล้ที่สุด',
@@ -1381,6 +1383,8 @@
       waterStatusSuccess: 'Data fetched successfully',
       waterStatusFailed: 'Failed to fetch water status data.',
       waterStatusManualFallback: 'Please try again, or check the National Water Information Center website directly.',
+      waterStatusRateLimited: 'The National Water Information Center is receiving too many requests right now (not an issue with this app). Please wait a moment and try again.',
+      waterStatusRateLimitWait: 'Please wait',
       waterStatusDamLabel: 'Nearest dam/reservoir',
       waterStatusRiverLabel: 'Nearest water-level station',
       waterStatusRainLabel: 'Nearest rain gauge',
@@ -3353,6 +3357,33 @@
     if(label) label.textContent = loading ? t('gpsFetching') : t('waterStatusGpsBtnLabel');
   }
 
+  const WATER_STATUS_RATE_LIMIT_COOLDOWN_SEC = 45;
+  let wsCooldownTimer = null;
+
+  // ThaiWater's API briefly returns HTTP 429 if hit too many times in a
+  // short window (confirmed by testing — not a bug in this app). Rather
+  // than letting the farmer immediately tap "ใช้ตำแหน่ง GPS" again and hit
+  // the same limit, keep the button disabled for a short countdown.
+  function startWaterStatusCooldown(seconds){
+    const btn = document.getElementById('waterStatusGpsBtn');
+    const label = document.getElementById('waterStatusGpsBtnLabel');
+    if(wsCooldownTimer){ clearTimeout(wsCooldownTimer); wsCooldownTimer = null; }
+    let remain = seconds;
+    function tick(){
+      if(remain <= 0){
+        if(btn) btn.disabled = false;
+        if(label) label.textContent = t('waterStatusGpsBtnLabel');
+        wsCooldownTimer = null;
+        return;
+      }
+      if(btn) btn.disabled = true;
+      if(label) label.textContent = t('waterStatusRateLimitWait') + ' (' + remain + 's)';
+      remain -= 1;
+      wsCooldownTimer = setTimeout(tick, 1000);
+    }
+    tick();
+  }
+
   // Only touches the map placeholder text — never overwrites an already-
   // rendered Leaflet map (see the HTML comment above #waterStatusMap).
   function updateWaterStatusMapPlaceholder(){
@@ -3549,6 +3580,7 @@
         const lat = pos.coords.latitude;
         const lon = pos.coords.longitude;
         setWaterStatusGpsStatus(t('gpsCoord') + ' ' + lat.toFixed(3) + ', ' + lon.toFixed(3) + ' — ' + t('waterStatusCalling'));
+        let rateLimitHit = false;
 
         try{
           const [damResp, wlResp, rainResp] = await Promise.all([
@@ -3556,9 +3588,9 @@
             fetch(THAIWATER_WATERLEVEL_URL),
             fetch(THAIWATER_RAIN_URL)
           ]);
-          if(!damResp.ok) throw new Error('dam HTTP ' + damResp.status);
-          if(!wlResp.ok) throw new Error('waterlevel HTTP ' + wlResp.status);
-          if(!rainResp.ok) throw new Error('rain HTTP ' + rainResp.status);
+          if(!damResp.ok){ const e = new Error('dam HTTP ' + damResp.status); e.httpStatus = damResp.status; throw e; }
+          if(!wlResp.ok){ const e = new Error('waterlevel HTTP ' + wlResp.status); e.httpStatus = wlResp.status; throw e; }
+          if(!rainResp.ok){ const e = new Error('rain HTTP ' + rainResp.status); e.httpStatus = rainResp.status; throw e; }
           const [damJson, wlJson, rainJson] = await Promise.all([damResp.json(), wlResp.json(), rainResp.json()]);
 
           // ---- Dams across all 4 size tiers ----
@@ -3627,9 +3659,20 @@
           setWaterStatusGpsStatus(t('gpsCoord') + ' ' + lat.toFixed(3) + ', ' + lon.toFixed(3) + ' — ' + t('waterStatusSuccess'), 'success');
         } catch(err){
           console.error('Water status fetch failed:', err);
-          setWaterStatusGpsStatus(t('waterStatusFailed') + ' — ' + t('waterStatusManualFallback'), 'error');
+          // ThaiWater's API applies a short burst rate-limit (HTTP 429) if
+          // called too many times in quick succession — confirmed by
+          // testing, and not a bug in this app or its hosting. Give a
+          // specific, non-alarming message plus a short cooldown instead
+          // of letting the farmer immediately re-trigger the same limit.
+          if(err && err.httpStatus === 429){
+            rateLimitHit = true;
+            setWaterStatusGpsStatus(t('waterStatusRateLimited'), 'error');
+          } else {
+            setWaterStatusGpsStatus(t('waterStatusFailed') + ' — ' + t('waterStatusManualFallback'), 'error');
+          }
         } finally {
           setWaterStatusLoading(false);
+          if(rateLimitHit) startWaterStatusCooldown(WATER_STATUS_RATE_LIMIT_COOLDOWN_SEC);
         }
       },
       (err) => {
