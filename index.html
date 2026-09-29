@@ -453,6 +453,26 @@
   }
   .ws-marker-you svg{ transform:rotate(45deg); }
 
+  /* Pulsing halo for genuinely critical points (dam over capacity, river
+     ล้นตลิ่ง/เตือนภัย) — a plain expanding-and-fading ring under the real
+     marker, purely decorative (pointer-events:none, non-interactive). */
+  @keyframes wsCriticalPulse{
+    0%{ transform:scale(0.55); opacity:.6; }
+    70%{ transform:scale(2.3); opacity:0; }
+    100%{ transform:scale(2.3); opacity:0; }
+  }
+  .ws-marker-pulse{
+    border-radius:50%; pointer-events:none;
+    animation:wsCriticalPulse 1.6s ease-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .ws-marker-pulse{ animation:none; opacity:.4; }
+  }
+  .ws-legend-pulse-demo{ position:relative; width:14px; height:14px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .ws-legend-pulse-demo .ws-marker-pulse{ position:absolute; }
+  .ws-legend-pulse-dot{ width:7px; height:7px; border-radius:50%; background:#C0392B; border:1px solid rgba(0,0,0,.15); }
+  .ws-legend-critical-note{ flex-direction:row; align-items:center; }
+
   .water-status-panel{
     margin-top:14px; padding:13px 14px; background:var(--surface-soft);
     border:1px solid var(--line); border-radius:var(--radius-sm);
@@ -920,6 +940,9 @@
           <span class="ws-legend-item"><span class="ws-legend-dot rain-shape" style="background:#E08A2B;"></span><span data-i18n="waterStatusLegendRainHeavy">หนัก (35–90)</span></span>
           <span class="ws-legend-item"><span class="ws-legend-dot rain-shape" style="background:#C0392B;"></span><span data-i18n="waterStatusLegendRainVeryHeavy">หนักมาก (&gt;90)</span></span>
         </div>
+        <div class="ws-legend-group ws-legend-critical-note">
+          <span class="ws-legend-item"><span class="ws-legend-pulse-demo"><span class="ws-marker-pulse" style="background:#C0392B; width:14px; height:14px;"></span><span class="ws-legend-pulse-dot"></span></span><span data-i18n="waterStatusCriticalNote">จุดกระพริบ = สถานการณ์วิกฤต (น้ำล้นตลิ่ง/เขื่อนเกินความจุ)</span></span>
+        </div>
       </div>
 
       <div class="water-status-panel hidden" id="waterStatusPanel">
@@ -1100,6 +1123,7 @@
       waterStatusLegendReservoirShape: 'อ่างเก็บน้ำ (■)',
       waterStatusDamTypeMajor: 'เขื่อน',
       waterStatusDamTypeReservoir: 'อ่างเก็บน้ำ',
+      waterStatusCriticalNote: 'จุดกระพริบ = สถานการณ์วิกฤต (น้ำล้นตลิ่ง/เขื่อนเกินความจุ)',
       waterStatusLegendDamLow: 'น้ำน้อย (<30%)',
       waterStatusLegendDamNormal: 'ปกติ (30–80%)',
       waterStatusLegendDamHigh: 'น้ำมาก (80–100%)',
@@ -1407,6 +1431,7 @@
       waterStatusLegendReservoirShape: 'Reservoir (■)',
       waterStatusDamTypeMajor: 'Dam',
       waterStatusDamTypeReservoir: 'Reservoir',
+      waterStatusCriticalNote: 'Blinking point = critical situation (river overflow / dam over capacity)',
       waterStatusLegendDamLow: 'Low (<30%)',
       waterStatusLegendDamNormal: 'Normal (30–80%)',
       waterStatusLegendDamHigh: 'High (80–100%)',
@@ -3297,6 +3322,31 @@
     });
   }
 
+  // A pulsing "halo" placed under a marker for genuinely urgent readings —
+  // a river station at เตือนภัย/ล้นตลิ่ง (situation 4-5) or a dam that's
+  // over capacity — so those specific points draw the eye immediately
+  // instead of the farmer having to scan every marker's color. Purely
+  // decorative and non-interactive: it never intercepts hover/click, which
+  // is why it's a separate marker rather than an ::after on the real one
+  // (some of the real markers are SVG circleMarkers, not styleable divs).
+  function criticalPulseIcon(color, size){
+    size = size || 22;
+    return L.divIcon({
+      className: '',
+      html: '<div class="ws-marker-pulse" style="background:' + color + '; width:' + size + 'px; height:' + size + 'px;"></div>',
+      iconSize: [size, size],
+      iconAnchor: [size / 2, size / 2]
+    });
+  }
+  function addCriticalPulse(layer, lat, lon, color, size){
+    L.marker([lat, lon], {
+      icon: criticalPulseIcon(color, size),
+      interactive: false,
+      keyboard: false,
+      zIndexOffset: -1000
+    }).addTo(layer);
+  }
+
   // Binds a popup that opens both on tap/click (Leaflet's default) and on
   // hover, so a farmer panning a mouse across the map sees the readout
   // immediately instead of having to tap each point first.
@@ -3363,7 +3413,7 @@
     if(label) label.textContent = loading ? t('gpsFetching') : t('waterStatusGpsBtnLabel');
   }
 
-  const WATER_STATUS_RATE_LIMIT_COOLDOWN_SEC = 45;
+  const WATER_STATUS_RATE_LIMIT_COOLDOWN_SEC = 90;
   let wsCooldownTimer = null;
 
   // ThaiWater's API briefly returns HTTP 429 if hit too many times in a
@@ -3457,9 +3507,13 @@
     mapEl.classList.add('has-map');
 
     wsMap = L.map(mapEl, { attributionControl: true }).setView([lat, lon], 10);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    // A clean, muted basemap (CartoDB Positron) reads much better with
+    // colored data markers on top than the busier default OSM styling —
+    // same underlying OpenStreetMap data, just a calmer palette so the
+    // dam/river/rain markers are what draws the eye.
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
       maxZoom: 18,
-      attribution: '&copy; OpenStreetMap contributors'
+      attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
     }).addTo(wsMap);
 
     attachHoverPopup(
@@ -3499,6 +3553,11 @@
       const meta = damLevelMeta(it.storagePercent);
       const pctText = it.storagePercent !== null ? it.storagePercent.toFixed(0) + '%' : '—';
       const typeText = t(it.isMajor ? 'waterStatusDamTypeMajor' : 'waterStatusDamTypeReservoir');
+      // A dam over capacity (>100%) is the urgent case worth flagging at a
+      // glance — spilling / near-spilling risk.
+      if(meta.key === 'waterStatusLegendDamOver'){
+        addCriticalPulse(damLayer, it.lat, it.lon, meta.color, it.isMajor ? 26 : 20);
+      }
       const marker = L.marker([it.lat, it.lon], { icon: damDivIcon(meta.color, it.isMajor) });
       attachHoverPopup(marker, '<div class="ws-popup"><b>' + esc(it.name) + '</b> (' + esc(typeText) + ')<br>'
         + esc(t('waterStatusStorageLabel')) + ': ' + pctText + '<br>'
@@ -3516,6 +3575,11 @@
       const meta = SITUATION_META[it.situationLevel];
       const color = meta ? meta.color : '#9AA593';
       const levelText = meta ? t(meta.key) : '—';
+      // เตือนภัย (4) and ล้นตลิ่ง (5) are the two genuinely urgent water-level
+      // situations — pulse those so they stand out among dozens of stations.
+      if(it.situationLevel === 4 || it.situationLevel === 5){
+        addCriticalPulse(riverLayer, it.lat, it.lon, color, 20);
+      }
       const marker = L.circleMarker([it.lat, it.lon], {
         radius: 6, color: '#fff', weight: 1, fillColor: color, fillOpacity: 0.9
       });
@@ -3626,11 +3690,11 @@
           // for why: firing all 3 requests simultaneously is what actually
           // triggers ThaiWater's rate limiter, confirmed by testing.
           setWaterStatusGpsStatus(t('gpsCoord') + ' ' + lat.toFixed(3) + ', ' + lon.toFixed(3) + ' — ' + t('waterStatusCallingDam'));
-          const damJson = await fetchJsonWithRetry(THAIWATER_DAM_URL, 'dam', 3, 2500);
+          const damJson = await fetchJsonWithRetry(THAIWATER_DAM_URL, 'dam', 3, 6000);
           setWaterStatusGpsStatus(t('gpsCoord') + ' ' + lat.toFixed(3) + ', ' + lon.toFixed(3) + ' — ' + t('waterStatusCallingRiver'));
-          const wlJson = await fetchJsonWithRetry(THAIWATER_WATERLEVEL_URL, 'waterlevel', 3, 2500);
+          const wlJson = await fetchJsonWithRetry(THAIWATER_WATERLEVEL_URL, 'waterlevel', 3, 6000);
           setWaterStatusGpsStatus(t('gpsCoord') + ' ' + lat.toFixed(3) + ', ' + lon.toFixed(3) + ' — ' + t('waterStatusCallingRain'));
-          const rainJson = await fetchJsonWithRetry(THAIWATER_RAIN_URL, 'rain', 3, 2500);
+          const rainJson = await fetchJsonWithRetry(THAIWATER_RAIN_URL, 'rain', 3, 6000);
 
           // ---- Dams across all 4 size tiers ----
           // The hourly/daily tiers are ThaiWater's major RID dams (เขื่อน,
