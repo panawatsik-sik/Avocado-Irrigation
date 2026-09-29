@@ -1105,8 +1105,9 @@
       waterStatusSuccess: 'ดึงข้อมูลสำเร็จ',
       waterStatusFailed: 'ดึงข้อมูลสถานการณ์น้ำไม่สำเร็จ',
       waterStatusManualFallback: 'กรุณาลองใหม่อีกครั้ง หรือตรวจสอบที่เว็บไซต์คลังข้อมูลน้ำแห่งชาติโดยตรง',
-      waterStatusRateLimited: 'คลังข้อมูลน้ำมีการเรียกใช้งานถี่เกินไปในขณะนี้ (ไม่ใช่ปัญหาของแอป) กรุณารอสักครู่แล้วลองใหม่อีกครั้ง',
+      waterStatusRateLimited: 'ไม่สามารถดึงข้อมูลสถานการณ์น้ำได้ในขณะนี้ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่อีกครั้ง',
       waterStatusRateLimitWait: 'กรุณารอสักครู่',
+      waterStatusCacheUpdated: 'ข้อมูลอัปเดตล่าสุด',
       waterStatusDamLabel: 'เขื่อน/อ่างเก็บน้ำใกล้ที่สุด',
       waterStatusRiverLabel: 'จุดวัดระดับน้ำใกล้ที่สุด',
       waterStatusRainLabel: 'จุดวัดฝนใกล้ที่สุด',
@@ -1413,8 +1414,9 @@
       waterStatusSuccess: 'Data fetched successfully',
       waterStatusFailed: 'Failed to fetch water status data.',
       waterStatusManualFallback: 'Please try again, or check the National Water Information Center website directly.',
-      waterStatusRateLimited: 'The National Water Information Center is receiving too many requests right now (not an issue with this app). Please wait a moment and try again.',
+      waterStatusRateLimited: 'Could not fetch water status data right now. Please check your internet connection and try again.',
       waterStatusRateLimitWait: 'Please wait',
+      waterStatusCacheUpdated: 'Data last updated',
       waterStatusDamLabel: 'Nearest dam/reservoir',
       waterStatusRiverLabel: 'Nearest water-level station',
       waterStatusRainLabel: 'Nearest rain gauge',
@@ -3112,9 +3114,13 @@
   // station = circle, rain gauge = teardrop), not just color, and every
   // marker opens its popup on hover as well as on tap/click.
   // ===================================================================
-  const THAIWATER_DAM_URL = 'https://api-v3.thaiwater.net/api/v1/thaiwater30/analyst/dam';
-  const THAIWATER_WATERLEVEL_URL = 'https://api-v3.thaiwater.net/api/v1/thaiwater30/public/waterlevel_load';
-  const THAIWATER_RAIN_URL = 'https://api-v3.thaiwater.net/api/v1/thaiwater30/public/rain_24h';
+  // ThaiWater's own endpoints are no longer called directly from the
+  // browser — every farmer's phone hitting them individually is what was
+  // tripping ThaiWater's rate limiter (confirmed by testing). Instead, a
+  // Supabase Edge Function fetches ThaiWater server-side every 3 hours and
+  // caches the combined result here as one JSON file; this is the only
+  // thing the app fetches at runtime. See supabase/functions/thaiwater-cache.
+  const THAIWATER_CACHE_URL = 'https://jmdnnbwhjuiqfvfdhmgm.supabase.co/storage/v1/object/public/water-status-cache/thaiwater-latest.json';
   const WATER_STATUS_FAR_KM = 50;   // soft-warning threshold only — distance is always shown, never hidden
   const DAM_RADIUS_KM = 150, DAM_MAX_COUNT = 25;
   const STATION_RADIUS_KM = 100, STATION_MAX_COUNT = 40;
@@ -3167,6 +3173,19 @@
     const amphoe = pickName(geocode.amphoe_name, '');
     const province = pickName(geocode.province_name, '');
     return [amphoe, province].filter(Boolean).join(', ');
+  }
+
+  // The cached data is refreshed every 3 hours (not real-time), so its
+  // "fetchedAt" timestamp is shown alongside the result — never hiding how
+  // fresh the numbers actually are, per the same transparency principle as
+  // always showing exact distance rather than a vague "far away".
+  function formatCacheTime(iso){
+    if(!iso) return '';
+    try{
+      const d = new Date(iso);
+      if(isNaN(d.getTime())) return '';
+      return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: 'short', timeStyle: 'short' });
+    } catch(e){ return ''; }
   }
 
   // Filters a list to items within maxKm of (lat, lon), sorted nearest-first
@@ -3413,7 +3432,7 @@
     if(label) label.textContent = loading ? t('gpsFetching') : t('waterStatusGpsBtnLabel');
   }
 
-  const WATER_STATUS_RATE_LIMIT_COOLDOWN_SEC = 90;
+  const WATER_STATUS_RATE_LIMIT_COOLDOWN_SEC = 20;
   let wsCooldownTimer = null;
 
   // ThaiWater's API briefly returns HTTP 429 if hit too many times in a
@@ -3686,15 +3705,14 @@
         let rateLimitHit = false;
 
         try{
-          // Fetched one at a time (not Promise.all) — see fetchJsonWithRetry
-          // for why: firing all 3 requests simultaneously is what actually
-          // triggers ThaiWater's rate limiter, confirmed by testing.
-          setWaterStatusGpsStatus(t('gpsCoord') + ' ' + lat.toFixed(3) + ', ' + lon.toFixed(3) + ' — ' + t('waterStatusCallingDam'));
-          const damJson = await fetchJsonWithRetry(THAIWATER_DAM_URL, 'dam', 3, 6000);
-          setWaterStatusGpsStatus(t('gpsCoord') + ' ' + lat.toFixed(3) + ', ' + lon.toFixed(3) + ' — ' + t('waterStatusCallingRiver'));
-          const wlJson = await fetchJsonWithRetry(THAIWATER_WATERLEVEL_URL, 'waterlevel', 3, 6000);
-          setWaterStatusGpsStatus(t('gpsCoord') + ' ' + lat.toFixed(3) + ', ' + lon.toFixed(3) + ' — ' + t('waterStatusCallingRain'));
-          const rainJson = await fetchJsonWithRetry(THAIWATER_RAIN_URL, 'rain', 3, 6000);
+          // One fetch to our own pre-cached JSON (refreshed every 3 hours
+          // by a Supabase Edge Function) instead of calling ThaiWater's 3
+          // endpoints directly from the browser.
+          const cacheJson = await fetchJsonWithRetry(THAIWATER_CACHE_URL, 'water-status-cache', 3, 2000);
+          const damJson = cacheJson.dam;
+          const wlJson = cacheJson.waterlevel;
+          const rainJson = cacheJson.rain;
+          const cacheTimeText = formatCacheTime(cacheJson.fetchedAt);
 
           // ---- Dams across all 4 size tiers ----
           // The hourly/daily tiers are ThaiWater's major RID dams (เขื่อน,
@@ -3759,25 +3777,17 @@
               + renderWaterStatusRow('rain', rainItem);
           }
           if(panel) panel.classList.remove('hidden');
-          setWaterStatusGpsStatus(t('gpsCoord') + ' ' + lat.toFixed(3) + ', ' + lon.toFixed(3) + ' — ' + t('waterStatusSuccess'), 'success');
+          setWaterStatusGpsStatus(t('gpsCoord') + ' ' + lat.toFixed(3) + ', ' + lon.toFixed(3) + ' — ' + t('waterStatusSuccess')
+            + (cacheTimeText ? (' (' + t('waterStatusCacheUpdated') + ': ' + cacheTimeText + ')') : ''), 'success');
         } catch(err){
           console.error('Water status fetch failed:', err);
-          // ThaiWater's API applies a short burst rate-limit (HTTP 429) if
-          // called too many times in quick succession — confirmed by
-          // testing, and not a bug in this app or its hosting. When the
-          // rate-limiter strips CORS headers off its own 429 response, the
-          // browser reports it as a generic "Failed to fetch" network
-          // error instead of a readable status code — also confirmed by
-          // testing — so that's treated the same way here, after
-          // fetchJsonWithRetry has already retried a few times.
-          const isRateLimited = (err && err.httpStatus === 429)
-            || (err && /Failed to fetch|NetworkError|Load failed/i.test(err.message || ''));
-          if(isRateLimited){
-            rateLimitHit = true;
-            setWaterStatusGpsStatus(t('waterStatusRateLimited'), 'error');
-          } else {
-            setWaterStatusGpsStatus(t('waterStatusFailed') + ' — ' + t('waterStatusManualFallback'), 'error');
-          }
+          // The cache file is served from Supabase Storage (a public CDN),
+          // so a failure here is much less likely than when the browser
+          // called ThaiWater directly — but still handled the same way,
+          // as a transient/temporary problem worth a short cooldown rather
+          // than a confusing raw error message.
+          rateLimitHit = true;
+          setWaterStatusGpsStatus(t('waterStatusRateLimited'), 'error');
         } finally {
           setWaterStatusLoading(false);
           if(rateLimitHit) startWaterStatusCooldown(WATER_STATUS_RATE_LIMIT_COOLDOWN_SEC);
