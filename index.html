@@ -416,10 +416,36 @@
   }
   .ws-legend-group{ display:flex; flex-direction:column; gap:3px; }
   .ws-legend-title{ font-weight:700; color:var(--ink); font-size:11px; }
+  .ws-legend-toggle{
+    display:inline-flex; align-items:center; gap:6px; cursor:pointer; user-select:none;
+  }
+  .ws-legend-toggle input{ width:14px; height:14px; accent-color:var(--river); cursor:pointer; flex-shrink:0; }
   .ws-legend-item{ display:inline-flex; align-items:center; gap:5px; }
   .ws-legend-dot{ width:10px; height:10px; border-radius:50%; display:inline-block; flex-shrink:0; border:1px solid rgba(0,0,0,.15); }
+  .ws-legend-dot.dam-shape{ border-radius:2px; transform:rotate(45deg); }
+  .ws-legend-dot.rain-shape{ border-radius:50% 50% 50% 0; transform:rotate(-45deg); }
   .ws-popup{ font-family:'Sarabun',sans-serif; font-size:12.5px; line-height:1.6; }
   .ws-popup b{ font-family:'Kanit',sans-serif; }
+
+  /* Map marker shapes: dam = diamond, river/canal station = plain circle
+     (via L.circleMarker), rain gauge = teardrop — so the three data types
+     are told apart by shape, not just color. */
+  .ws-marker-dam{
+    width:14px; height:14px; border:1.5px solid #fff; border-radius:2px;
+    transform:rotate(45deg); box-shadow:0 1px 3px rgba(0,0,0,.35);
+  }
+  .ws-marker-rain{
+    width:14px; height:14px; border:1.5px solid #fff; border-radius:50% 50% 50% 0;
+    transform:rotate(-45deg); box-shadow:0 1px 3px rgba(0,0,0,.35);
+  }
+  .ws-dam-tooltip.leaflet-tooltip{
+    font-family:'Sarabun',sans-serif; font-size:10.5px; font-weight:600; color:var(--ink);
+    background:rgba(255,255,255,.92); border:1px solid var(--line); border-radius:6px;
+    padding:2px 6px; box-shadow:0 1px 3px rgba(0,0,0,.2);
+    /* The permanent label floats right above the marker and would otherwise
+       intercept the hover/click meant for the marker underneath it. */
+    pointer-events:none;
+  }
 
   .water-status-panel{
     margin-top:14px; padding:13px 14px; background:var(--surface-soft);
@@ -865,14 +891,14 @@
 
       <div class="ws-legend" id="waterStatusLegend" style="display:none;">
         <div class="ws-legend-group">
-          <span class="ws-legend-title" data-i18n="waterStatusLegendDam">เขื่อน/อ่างเก็บน้ำ (% ความจุ)</span>
-          <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#C0392B;"></span><span data-i18n="waterStatusLegendDamLow">น้ำน้อย (&lt;30%)</span></span>
-          <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#3E5B2C;"></span><span data-i18n="waterStatusLegendDamNormal">ปกติ (30–80%)</span></span>
-          <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#1F6FA8;"></span><span data-i18n="waterStatusLegendDamHigh">น้ำมาก (80–100%)</span></span>
-          <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#6B2FA8;"></span><span data-i18n="waterStatusLegendDamOver">เกินความจุ (&gt;100%)</span></span>
+          <label class="ws-legend-toggle"><input type="checkbox" id="wsLayerDamToggle" checked><span class="ws-legend-title" data-i18n="waterStatusLegendDam">เขื่อน/อ่างเก็บน้ำ (% ความจุ)</span></label>
+          <span class="ws-legend-item"><span class="ws-legend-dot dam-shape" style="background:#C0392B;"></span><span data-i18n="waterStatusLegendDamLow">น้ำน้อย (&lt;30%)</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-dot dam-shape" style="background:#3E5B2C;"></span><span data-i18n="waterStatusLegendDamNormal">ปกติ (30–80%)</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-dot dam-shape" style="background:#1F6FA8;"></span><span data-i18n="waterStatusLegendDamHigh">น้ำมาก (80–100%)</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-dot dam-shape" style="background:#6B2FA8;"></span><span data-i18n="waterStatusLegendDamOver">เกินความจุ (&gt;100%)</span></span>
         </div>
         <div class="ws-legend-group">
-          <span class="ws-legend-title" data-i18n="waterStatusLegendRiver">จุดวัดระดับน้ำ</span>
+          <label class="ws-legend-toggle"><input type="checkbox" id="wsLayerRiverToggle" checked><span class="ws-legend-title" data-i18n="waterStatusLegendRiver">จุดวัดระดับน้ำ</span></label>
           <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#3E5B2C;"></span><span data-i18n="situationNormal">ปกติ</span></span>
           <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#C08A1E;"></span><span data-i18n="situationWatch">เฝ้าระวัง</span></span>
           <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#D9822B;"></span><span data-i18n="situationWarning">เตือนภัย</span></span>
@@ -880,11 +906,11 @@
           <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#8E1B1B;"></span><span data-i18n="situationOverbank">ล้นตลิ่ง</span></span>
         </div>
         <div class="ws-legend-group">
-          <span class="ws-legend-title" data-i18n="waterStatusLegendRain">ฝนสะสม 24 ชม. (มม.)</span>
-          <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#4C9A4C;"></span><span data-i18n="waterStatusLegendRainLight">น้อย (0.1–10)</span></span>
-          <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#2E86C1;"></span><span data-i18n="waterStatusLegendRainModerate">ปานกลาง (10–35)</span></span>
-          <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#E08A2B;"></span><span data-i18n="waterStatusLegendRainHeavy">หนัก (35–90)</span></span>
-          <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#C0392B;"></span><span data-i18n="waterStatusLegendRainVeryHeavy">หนักมาก (&gt;90)</span></span>
+          <label class="ws-legend-toggle"><input type="checkbox" id="wsLayerRainToggle" checked><span class="ws-legend-title" data-i18n="waterStatusLegendRain">ฝนสะสม 24 ชม. (มม.)</span></label>
+          <span class="ws-legend-item"><span class="ws-legend-dot rain-shape" style="background:#4C9A4C;"></span><span data-i18n="waterStatusLegendRainLight">น้อย (0.1–10)</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-dot rain-shape" style="background:#2E86C1;"></span><span data-i18n="waterStatusLegendRainModerate">ปานกลาง (10–35)</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-dot rain-shape" style="background:#E08A2B;"></span><span data-i18n="waterStatusLegendRainHeavy">หนัก (35–90)</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-dot rain-shape" style="background:#C0392B;"></span><span data-i18n="waterStatusLegendRainVeryHeavy">หนักมาก (&gt;90)</span></span>
         </div>
       </div>
 
@@ -1625,9 +1651,9 @@
     renderFertChips();
     renderFertRadiusButtons();
     updateFertDosePreview();
-    updateWaterStatusMapPlaceholder();
     renderVisitCounter();
     updateDroughtWarning();
+    updateWaterStatusMapPlaceholder();
 
     try{ localStorage.setItem('avocado_app_lang', lang); }catch(e){}
   }
@@ -3030,7 +3056,10 @@
   // the National Water Information Center (ThaiWater) public API, which
   // has open CORS (confirmed 2026-09), so no backend proxy is needed.
   // Shown as a Leaflet map (dams, river/canal levels, 24h rainfall) plus
-  // a plain-text "nearest of each" summary for quick reading.
+  // a plain-text "nearest of each" summary for quick reading. The three
+  // data types use distinct marker SHAPES (dam = diamond, river/canal
+  // station = circle, rain gauge = teardrop), not just color, and every
+  // marker opens its popup on hover as well as on tap/click.
   // ===================================================================
   const THAIWATER_DAM_URL = 'https://api-v3.thaiwater.net/api/v1/thaiwater30/analyst/dam';
   const THAIWATER_WATERLEVEL_URL = 'https://api-v3.thaiwater.net/api/v1/thaiwater30/public/waterlevel_load';
@@ -3041,6 +3070,25 @@
   const RAIN_RADIUS_KM = 60, RAIN_MAX_COUNT = 80;
 
   let wsMap = null; // the Leaflet map instance for the water-status tab, once created
+  let wsDamLayer = null, wsRiverLayer = null, wsRainLayer = null; // current layer groups, for the legend checkboxes below to toggle
+
+  // The dam/river/rain show-hide checkboxes live in the legend under the map
+  // (not as a floating Leaflet control on top of it) — a control box that
+  // stays open over a ~340px-tall mobile map can end up sitting on top of
+  // the very markers it's meant to help read.
+  function wireWaterStatusLayerToggle(checkboxId, getLayer){
+    const el = document.getElementById(checkboxId);
+    if(!el) return;
+    el.addEventListener('change', function(){
+      const layer = getLayer();
+      if(!wsMap || !layer) return;
+      if(el.checked){ if(!wsMap.hasLayer(layer)) wsMap.addLayer(layer); }
+      else { if(wsMap.hasLayer(layer)) wsMap.removeLayer(layer); }
+    });
+  }
+  wireWaterStatusLayerToggle('wsLayerDamToggle', function(){ return wsDamLayer; });
+  wireWaterStatusLayerToggle('wsLayerRiverToggle', function(){ return wsRiverLayer; });
+  wireWaterStatusLayerToggle('wsLayerRainToggle', function(){ return wsRainLayer; });
 
   function esc(s){
     return String(s === undefined || s === null ? '' : s).replace(/[&<>"']/g, function(c){
@@ -3107,6 +3155,38 @@
     if(mm <= 35) return { key:'waterStatusLegendRainModerate', color:'#2E86C1' };
     if(mm <= 90) return { key:'waterStatusLegendRainHeavy', color:'#E08A2B' };
     return { key:'waterStatusLegendRainVeryHeavy', color:'#C0392B' };
+  }
+
+  // Diamond-shaped divIcon for dams — visually distinct from the plain
+  // circleMarker dots used for river/canal stations.
+  function damDivIcon(color){
+    return L.divIcon({
+      className: '',
+      html: '<div class="ws-marker-dam" style="background:' + color + ';"></div>',
+      iconSize: [14, 14],
+      iconAnchor: [7, 7]
+    });
+  }
+
+  // Teardrop-shaped divIcon for rain gauges, per the farmer's request
+  // ("จุดสถานการณ์ฝนอาจจะเป็นรูปหยดน้ำก็ได้").
+  function rainDivIcon(color){
+    return L.divIcon({
+      className: '',
+      html: '<div class="ws-marker-rain" style="background:' + color + ';"></div>',
+      iconSize: [14, 14],
+      iconAnchor: [7, 13]
+    });
+  }
+
+  // Binds a popup that opens both on tap/click (Leaflet's default) and on
+  // hover, so a farmer panning a mouse across the map sees the readout
+  // immediately instead of having to tap each point first.
+  function attachHoverPopup(layer, html){
+    layer.bindPopup(html);
+    layer.on('mouseover', function(){ this.openPopup(); });
+    layer.on('mouseout', function(){ this.closePopup(); });
+    return layer;
   }
 
   function toDamItem(entry){
@@ -3231,49 +3311,110 @@
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(wsMap);
 
-    L.circleMarker([lat, lon], {
-      radius: 8, color: '#fff', weight: 2, fillColor: '#3E5B2C', fillOpacity: 1
-    }).bindPopup('<div class="ws-popup"><b>' + esc(t('waterStatusYou')) + '</b></div>').addTo(wsMap);
+    attachHoverPopup(
+      L.circleMarker([lat, lon], { radius: 8, color: '#fff', weight: 2, fillColor: '#3E5B2C', fillOpacity: 1 }).addTo(wsMap),
+      '<div class="ws-popup"><b>' + esc(t('waterStatusYou')) + '</b></div>'
+    );
 
+    // Points used to frame the initial view. A fixed zoom level isn't enough —
+    // dams up to 150 km / stations up to 100 km away are allowed on the map
+    // but shouldn't force the *initial* view to zoom out that far, so only
+    // points within FIT_BOUNDS_MAX_KM decide the starting frame; farther
+    // markers still render and are reachable by panning/zooming out.
+    const FIT_BOUNDS_MAX_KM = 60;
+    const boundsPoints = [[lat, lon]];
+    function maybeFrame(it){
+      if(typeof it.lat === 'number' && typeof it.lon === 'number' && it.distanceKm <= FIT_BOUNDS_MAX_KM){
+        boundsPoints.push([it.lat, it.lon]);
+      }
+    }
+
+    // Each data type is its own Leaflet layer group so the farmer can turn
+    // dams / river-and-overflow stations / rain gauges on and off
+    // independently from the layer-control box, on top of already being
+    // told apart by marker shape and color.
+    const damLayer = L.layerGroup();
+    const riverLayer = L.layerGroup();
+    const rainLayer = L.layerGroup();
+
+    // Dams: diamond marker + a permanent name label next to it, as requested
+    // ("ขอให้แสดงชื่อเขื่อนด้วย") — dams are sparse enough on the map that
+    // always-on labels stay readable, unlike the denser river/rain layers.
+    // Dams with no storage-percent reading are skipped entirely (filtered
+    // further up, before this function is even called) rather than shown
+    // with a confusing "—" placeholder.
     damEntries.forEach(function(entry){
       const it = toDamItem(entry);
       if(typeof it.lat !== 'number' || typeof it.lon !== 'number') return;
       const meta = damLevelMeta(it.storagePercent);
       const pctText = it.storagePercent !== null ? it.storagePercent.toFixed(0) + '%' : '—';
-      L.circleMarker([it.lat, it.lon], {
-        radius: 7, color: '#fff', weight: 1, fillColor: meta.color, fillOpacity: 0.9
-      }).bindPopup('<div class="ws-popup"><b>' + esc(it.name) + '</b><br>'
+      const marker = L.marker([it.lat, it.lon], { icon: damDivIcon(meta.color) });
+      marker.bindTooltip(esc(it.name), {
+        permanent: true, direction: 'top', offset: [0, -9], className: 'ws-dam-tooltip', opacity: 0.92
+      });
+      attachHoverPopup(marker, '<div class="ws-popup"><b>' + esc(it.name) + '</b><br>'
         + esc(t('waterStatusStorageLabel')) + ': ' + pctText + '<br>'
         + esc(t('waterStatusDistanceLabel')) + ': ' + it.distanceKm.toFixed(1) + ' ' + esc(t('unitKm')) + '</div>'
-      ).addTo(wsMap);
+      );
+      marker.addTo(damLayer);
+      maybeFrame(it);
     });
 
+    // River/canal water-level & overflow stations: plain circle marker
+    // (Leaflet's circleMarker), left un-labeled since there can be dozens nearby.
     stationEntries.forEach(function(entry){
       const it = toStationItem(entry);
       if(typeof it.lat !== 'number' || typeof it.lon !== 'number') return;
       const meta = SITUATION_META[it.situationLevel];
       const color = meta ? meta.color : '#9AA593';
       const levelText = meta ? t(meta.key) : '—';
-      L.circleMarker([it.lat, it.lon], {
+      const marker = L.circleMarker([it.lat, it.lon], {
         radius: 6, color: '#fff', weight: 1, fillColor: color, fillOpacity: 0.9
-      }).bindPopup('<div class="ws-popup"><b>' + esc(it.name) + '</b><br>'
+      });
+      attachHoverPopup(marker, '<div class="ws-popup"><b>' + esc(it.name) + '</b><br>'
         + esc(t('waterStatusLevelLabel')) + ': ' + esc(levelText) + '<br>'
         + esc(t('waterStatusDistanceLabel')) + ': ' + it.distanceKm.toFixed(1) + ' ' + esc(t('unitKm')) + '</div>'
-      ).addTo(wsMap);
+      );
+      marker.addTo(riverLayer);
+      maybeFrame(it);
     });
 
+    // Rain gauges: teardrop marker, per the farmer's own suggestion, in
+    // their own toggleable layer.
     rainEntries.forEach(function(entry){
       const it = toRainItem(entry);
       if(typeof it.lat !== 'number' || typeof it.lon !== 'number') return;
       const meta = rainLevelMeta(it.rain24);
       if(!meta) return; // skip 0/no-rain points — keeps the map readable
-      L.circleMarker([it.lat, it.lon], {
-        radius: 5, color: '#fff', weight: 1, fillColor: meta.color, fillOpacity: 0.8
-      }).bindPopup('<div class="ws-popup"><b>' + esc(it.name) + '</b><br>'
+      const marker = L.marker([it.lat, it.lon], { icon: rainDivIcon(meta.color) });
+      attachHoverPopup(marker, '<div class="ws-popup"><b>' + esc(it.name) + '</b><br>'
         + esc(t('waterStatusRain24Label')) + ': ' + it.rain24.toFixed(1) + ' ' + esc(t('unitMm')) + '<br>'
         + esc(t('waterStatusDistanceLabel')) + ': ' + it.distanceKm.toFixed(1) + ' ' + esc(t('unitKm')) + '</div>'
-      ).addTo(wsMap);
+      );
+      marker.addTo(rainLayer);
+      maybeFrame(it);
     });
+
+    wsDamLayer = damLayer;
+    wsRiverLayer = riverLayer;
+    wsRainLayer = rainLayer;
+    // Respect whatever the legend checkboxes were already set to (e.g. the
+    // farmer turned rain off, then tapped "check" again) rather than
+    // silently re-showing everything on every fetch.
+    const damToggle = document.getElementById('wsLayerDamToggle');
+    const riverToggle = document.getElementById('wsLayerRiverToggle');
+    const rainToggle = document.getElementById('wsLayerRainToggle');
+    if(!damToggle || damToggle.checked) damLayer.addTo(wsMap);
+    if(!riverToggle || riverToggle.checked) riverLayer.addTo(wsMap);
+    if(!rainToggle || rainToggle.checked) rainLayer.addTo(wsMap);
+
+    // Frame the view around the farmer + whatever's actually nearby, instead
+    // of leaving a fixed zoom that can put markers outside the visible crop.
+    if(boundsPoints.length > 1){
+      wsMap.fitBounds(L.latLngBounds(boundsPoints), { padding: [28, 28], maxZoom: 12 });
+    } else {
+      wsMap.setView([lat, lon], 11);
+    }
 
     const legend = document.getElementById('waterStatusLegend');
     if(legend) legend.style.display = 'flex';
@@ -3315,6 +3456,9 @@
           ['dam_hourly','dam_daily','dam_medium','dam_small_tele'].forEach(function(g){
             if(Array.isArray(damGroups[g])) allDams = allDams.concat(damGroups[g]);
           });
+          // Skip dams with no storage reading at all — showing them with a
+          // "—" placeholder was more confusing than useful.
+          allDams = allDams.filter(function(d){ return typeof d.dam_storage_percent === 'number'; });
           const damNearby = nearbyFiltered(allDams,
             function(d){ return d.dam ? d.dam.dam_lat : undefined; },
             function(d){ return d.dam ? d.dam.dam_long : undefined; },
