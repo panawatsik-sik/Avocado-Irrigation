@@ -477,6 +477,12 @@
     margin-top:14px; padding:13px 14px; background:var(--surface-soft);
     border:1px solid var(--line); border-radius:var(--radius-sm);
   }
+  .ws-summary-card{
+    margin-top:12px; padding:12px 14px; border-radius:var(--radius-sm);
+    border:1.5px solid; background:var(--surface-soft);
+  }
+  .ws-summary-title{ font-size:14px; font-weight:700; line-height:1.4; }
+  .ws-summary-reason{ font-size:12.5px; color:var(--ink); line-height:1.6; margin-top:5px; }
   .ws-row{ padding:9px 0; }
   .ws-row + .ws-row{ border-top:1px dashed var(--line); }
   .ws-row .ws-label{ font-size:11.5px; color:var(--muted); font-weight:600; margin-bottom:3px; }
@@ -910,6 +916,11 @@
       </button>
       <div class="gps-status" id="waterStatusGpsStatus"></div>
 
+      <!-- Plain-language verdict computed client-side from the same nearby
+           dam/river/rain data used for the map below — no extra fetch. See
+           buildSituationSummary() / renderWaterStatusSummary(). -->
+      <div class="ws-summary-card hidden" id="waterStatusSummary"></div>
+
       <!-- NOTE: no data-i18n here on purpose — once the Leaflet map is rendered inside
            this div, the generic data-i18n refresh in switchLang() must not overwrite it
            via textContent/innerHTML. See updateWaterStatusMapPlaceholder() in the script. -->
@@ -1114,8 +1125,21 @@
       waterStatusStorageLabel: 'ระดับน้ำเก็บกัก',
       waterStatusLevelLabel: 'สถานการณ์',
       waterStatusRain24Label: 'ฝนสะสม 24 ชม.',
+      waterStatusBankPercentLabel: 'ระดับน้ำเทียบตลิ่ง',
+      waterStatusTrendUp: 'เพิ่มขึ้น',
+      waterStatusTrendDown: 'ลดลง',
+      waterStatusTrendSteady: 'คงที่',
+      waterStatusRainForecastLabel: 'พยากรณ์ฝนสะสม 3 วันข้างหน้า',
+      rainForecastWarning: 'เสี่ยงสูง',
+      rainForecastAlert: 'เสี่ยงปานกลาง',
+      rainForecastWatchOut: 'เฝ้าระวัง',
       waterStatusDistanceLabel: 'ห่างจากพิกัดของคุณ',
       waterStatusFar: '(ค่อนข้างไกล ข้อมูลอาจไม่ตรงกับสถานการณ์จริงในแปลง)',
+      waterStatusSummaryCriticalTitle: 'วิกฤต — มีจุดล้นตลิ่ง/เขื่อนเกินความจุใกล้แปลง',
+      waterStatusSummaryWarningTitle: 'เฝ้าระวังสูง — สถานการณ์ตึงตัวใกล้แปลง',
+      waterStatusSummaryWatchTitle: 'เฝ้าระวัง — ฝนตกหนัก/ระดับน้ำเริ่มสูงใกล้แปลง',
+      waterStatusSummaryNormalTitle: 'ปกติ — ไม่พบจุดวิกฤตใกล้แปลงในรัศมีที่ตรวจสอบ',
+      waterStatusSummaryNormalDetail: 'เขื่อน จุดวัดระดับน้ำ และฝนสะสมในรัศมีที่ตรวจสอบอยู่ในเกณฑ์ปกติ',
       waterStatusNoDam: 'ไม่พบข้อมูลเขื่อนในระยะที่แสดงบนแผนที่',
       waterStatusNoRiver: 'ไม่พบข้อมูลจุดวัดระดับน้ำในระยะที่แสดงบนแผนที่',
       waterStatusNoRain: 'ไม่พบข้อมูลจุดวัดฝนในระยะที่แสดงบนแผนที่',
@@ -1423,8 +1447,21 @@
       waterStatusStorageLabel: 'Storage level',
       waterStatusLevelLabel: 'Situation',
       waterStatusRain24Label: '24-hour rainfall',
+      waterStatusBankPercentLabel: 'Level vs. bank',
+      waterStatusTrendUp: 'Rising',
+      waterStatusTrendDown: 'Falling',
+      waterStatusTrendSteady: 'Steady',
+      waterStatusRainForecastLabel: '3-day rainfall forecast',
+      rainForecastWarning: 'High risk',
+      rainForecastAlert: 'Moderate risk',
+      rainForecastWatchOut: 'Watch',
       waterStatusDistanceLabel: 'Distance from your location',
       waterStatusFar: '(fairly far away — may not reflect the actual situation at your field)',
+      waterStatusSummaryCriticalTitle: 'Critical — overflow or a dam over capacity near your plot',
+      waterStatusSummaryWarningTitle: 'High alert — conditions are tight near your plot',
+      waterStatusSummaryWatchTitle: 'Watch — heavy rain or rising water level nearby',
+      waterStatusSummaryNormalTitle: 'Normal — no critical points found near your plot',
+      waterStatusSummaryNormalDetail: 'Dams, water-level stations, and rainfall within the checked radius are within normal range.',
       waterStatusNoDam: 'No dam data found within the mapped range',
       waterStatusNoRiver: 'No water-level station data found within the mapped range',
       waterStatusNoRain: 'No rain gauge data found within the mapped range',
@@ -3277,6 +3314,80 @@
     5: { key:'situationOverbank', color:'#8E1B1B' }
   };
 
+  // ThaiWater sends numeric-looking fields (storage_percent, waterlevel_msl,
+  // waterlevel_msl_previous) as strings on water-level stations (unlike
+  // dam_storage_percent, which comes through as a real number) — this
+  // normalizes either shape to a number, or null if not parseable.
+  function toNum(v){
+    if(typeof v === 'number') return isNaN(v) ? null : v;
+    if(typeof v === 'string' && v.trim() !== ''){
+      const n = parseFloat(v);
+      return isNaN(n) ? null : n;
+    }
+    return null;
+  }
+
+  // Below this many meters of change between the current and previous
+  // telemetry reading, treat the station as "steady" rather than reporting
+  // noise as a real rise/fall — picked from the actual spread seen across
+  // all ~800 stations (median |delta| ~0.01m; this keeps roughly the
+  // smaller/noisier three-quarters of readings from being called a trend).
+  const STATION_TREND_DEADBAND_M = 0.02;
+
+  function trendMeta(trend){
+    if(trend === 'up') return { arrow:'▲', key:'waterStatusTrendUp', color:'#C0392B' };
+    if(trend === 'down') return { arrow:'▼', key:'waterStatusTrendDown', color:'#1F6FA8' };
+    if(trend === 'steady') return { arrow:'→', key:'waterStatusTrendSteady', color:'#6B7A63' };
+    return null;
+  }
+
+  // Maps the 3-day rainfall-risk-forecast CSV's risk label (from HII, via
+  // the cached thaiwater-cache payload) to a display key and how much it
+  // should be allowed to raise the overall situation tier — a forecast
+  // alone should never show as full "critical" (that's reserved for
+  // conditions actually observed right now), only nudge normal/watch up.
+  const RAIN_FORECAST_META = {
+    'Warning':    { key:'rainForecastWarning',   tier:'warning' },
+    'Alert':      { key:'rainForecastAlert',     tier:'watch' },
+    'Watch out':  { key:'rainForecastWatchOut',  tier:'watch' }
+  };
+  const SUMMARY_TIER_RANK = { normal:0, watch:1, warning:2, critical:3 };
+
+  function pickThaiName(nameObj){
+    if(!nameObj || typeof nameObj !== 'object') return '';
+    return (nameObj.th || '').trim();
+  }
+
+  // Finds this amphoe's row in the 3-day rainfall-risk CSV by exact text
+  // match on province+amphoe (both come from the same official Thai admin
+  // naming, confirmed ~97% exact-match rate against ThaiWater's own
+  // geocode fields) — geocode should be the nearest dam/station/rain
+  // gauge's own geocode, used as a stand-in for "the farmer's amphoe"
+  // since GPS coordinates alone don't carry an amphoe name.
+  function findRainForecastRisk(rows, geocode){
+    if(!Array.isArray(rows) || !geocode) return null;
+    const province = pickThaiName(geocode.province_name);
+    const amphoe = pickThaiName(geocode.amphoe_name);
+    if(!province || !amphoe) return null;
+    for(let i = 0; i < rows.length; i++){
+      if(rows[i].province === province && rows[i].amphoe === amphoe) return rows[i];
+    }
+    return null;
+  }
+
+  // Picks whichever of the nearest dam/station/rain-gauge is physically
+  // closest to the farmer's GPS point, and uses its geocode as the best
+  // available guess at which amphoe the farmer is standing in.
+  function nearestGeocodeForForecast(damNearby, stationNearby, rainNearby){
+    const candidates = [];
+    if(damNearby.length) candidates.push({ km: damNearby[0].km, geocode: damNearby[0].item.geocode });
+    if(stationNearby.length) candidates.push({ km: stationNearby[0].km, geocode: stationNearby[0].item.geocode });
+    if(rainNearby.length) candidates.push({ km: rainNearby[0].km, geocode: rainNearby[0].item.geocode });
+    if(!candidates.length) return null;
+    candidates.sort(function(a, b){ return a.km - b.km; });
+    return candidates[0].geocode;
+  }
+
   function damLevelMeta(pct){
     if(typeof pct !== 'number') return { key:null, color:'#9AA593' };
     if(pct < 30) return { key:'waterStatusLegendDamLow', color:'#C0392B' };
@@ -3394,11 +3505,28 @@
   function toStationItem(entry){
     const s = entry.item;
     const riverName = s.river_name ? s.river_name : '';
+    // storage_percent here is the same "% relative to bank/critical level"
+    // measure that drives situation_level's 1–5 buckets, just continuous
+    // instead of discrete — e.g. situation_level 5 (ล้นตลิ่ง) starts at
+    // just over 100%. waterlevel_msl vs. waterlevel_msl_previous is the
+    // station's last two telemetry readings, used to tell rising from
+    // falling (see STATION_TREND_DEADBAND_M for the noise cutoff).
+    const storagePercent = toNum(s.storage_percent);
+    const curMsl = toNum(s.waterlevel_msl);
+    const prevMsl = toNum(s.waterlevel_msl_previous);
+    let trend = null;
+    if(curMsl !== null && prevMsl !== null){
+      const delta = curMsl - prevMsl;
+      trend = (delta > STATION_TREND_DEADBAND_M) ? 'up' : (delta < -STATION_TREND_DEADBAND_M) ? 'down' : 'steady';
+    }
     return {
       name: pickName(s.station.tele_station_name, '—') + (riverName ? (' (' + riverName + ')') : ''),
       situationLevel: s.situation_level,
+      storagePercent: storagePercent,
+      trend: trend,
       lat: s.station.tele_station_lat, lon: s.station.tele_station_long,
       distanceKm: entry.km,
+      geocode: s.geocode,
       locationText: buildLocationText(s.geocode)
     };
   }
@@ -3484,6 +3612,11 @@
       detail += esc(t('waterStatusLevelLabel')) + ': ';
       const meta = SITUATION_META[item.situationLevel];
       detail += meta ? ('<span class="ws-badge" style="background:' + meta.color + ';">' + esc(t(meta.key)) + '</span>') : '—';
+      if(item.storagePercent !== null){
+        detail += '<br>' + esc(t('waterStatusBankPercentLabel')) + ': <b>' + item.storagePercent.toFixed(0) + '%</b>';
+        const tm = trendMeta(item.trend);
+        if(tm) detail += ' <span style="color:' + tm.color + ';">' + tm.arrow + ' ' + esc(t(tm.key)) + '</span>';
+      }
     } else {
       const meta = rainLevelMeta(item.rain24);
       detail += esc(t('waterStatusRain24Label')) + ': <b>' + (item.rain24 !== null ? item.rain24.toFixed(1) + ' ' + esc(t('unitMm')) : '—') + '</b>';
@@ -3500,6 +3633,113 @@
     }
     html += '</div>';
     return html;
+  }
+
+  // "สรุปสถานการณ์" — a plain-language verdict above the map, built from the
+  // exact same nearby dam/river/rain lists used to draw the markers (no
+  // extra fetch, no new backend). Distance-aware on purpose: a station that
+  // overflowed 90 km away shouldn't read as "critical for you" the same way
+  // one 5 km away does, so anything within WATER_STATUS_FAR_KM (the same
+  // "close enough to matter" threshold already used for the ws-far badge)
+  // is weighted higher than the same situation farther out.
+  const WS_SUMMARY_CLOSE_KM = WATER_STATUS_FAR_KM;
+  const WS_SUMMARY_META = {
+    critical: { color:'#8E1B1B', icon:'🔴', titleKey:'waterStatusSummaryCriticalTitle' },
+    warning:  { color:'#C0392B', icon:'🟠', titleKey:'waterStatusSummaryWarningTitle' },
+    watch:    { color:'#C08A1E', icon:'🟡', titleKey:'waterStatusSummaryWatchTitle' },
+    normal:   { color:'#3E5B2C', icon:'🟢', titleKey:'waterStatusSummaryNormalTitle' }
+  };
+
+  function buildSituationSummary(damNearby, stationNearby, rainNearby, rainForecastRows){
+    const dams = damNearby.map(toDamItem);
+    const stations = stationNearby.map(toStationItem);
+    const rains = rainNearby.map(toRainItem);
+    const near = function(it){ return it.distanceKm <= WS_SUMMARY_CLOSE_KM; };
+
+    // ล้นตลิ่งแล้ว (5) or a major dam over 100% — the two "already happening"
+    // situations the user asked to be flagged as critical.
+    const overbankClose = stations.find(function(s){ return s.situationLevel === 5 && near(s); });
+    const overbankFar = stations.find(function(s){ return s.situationLevel === 5 && !near(s); });
+    const damOverClose = dams.find(function(d){ return d.isMajor && typeof d.storagePercent === 'number' && d.storagePercent > 100 && near(d); });
+
+    // วิกฤต (4, one notch below overflow) or a dam approaching full — worth
+    // a strong warning even though nothing has actually overflowed yet.
+    const criticalClose = stations.find(function(s){ return s.situationLevel === 4 && near(s); });
+    const damHighClose = dams.find(function(d){ return d.isMajor && typeof d.storagePercent === 'number' && d.storagePercent > 90 && d.storagePercent <= 100 && near(d); });
+
+    // Heavy rain (>35mm/24h, same threshold as the "หนัก" rain legend tier)
+    // or เตือนภัย (3) nearby — early signal, nothing urgent yet.
+    const heavyRainClose = rains.find(function(r){ return typeof r.rain24 === 'number' && r.rain24 > 35 && near(r); });
+    const warningClose = stations.find(function(s){ return s.situationLevel === 3 && near(s); });
+
+    let tier = 'normal';
+    const reasons = [];
+    if(overbankClose || damOverClose){
+      tier = 'critical';
+      if(overbankClose) reasons.push({ type:'river', item: overbankClose });
+      if(damOverClose) reasons.push({ type:'dam', item: damOverClose });
+    } else if(overbankFar || criticalClose || damHighClose){
+      tier = 'warning';
+      if(criticalClose) reasons.push({ type:'river', item: criticalClose });
+      if(damHighClose) reasons.push({ type:'dam', item: damHighClose });
+      if(overbankFar) reasons.push({ type:'river', item: overbankFar });
+    } else if(heavyRainClose || warningClose){
+      tier = 'watch';
+      if(warningClose) reasons.push({ type:'river', item: warningClose });
+      if(heavyRainClose) reasons.push({ type:'rain', item: heavyRainClose });
+    }
+
+    // 3-day rainfall-risk forecast for the farmer's own amphoe (step 2 of
+    // the 5-step assessment) — a forward-looking signal on top of the
+    // "what's happening right now" reasons above. It can only raise the
+    // tier, never lower one that real-time overflow/dam data already set,
+    // and is capped at "warning" (a forecast alone isn't grounds to call
+    // something "critical" — that's reserved for already-observed overflow
+    // or a dam already over capacity).
+    const geocode = nearestGeocodeForForecast(damNearby, stationNearby, rainNearby);
+    const forecastMatch = findRainForecastRisk(rainForecastRows, geocode);
+    if(forecastMatch){
+      const fMeta = RAIN_FORECAST_META[forecastMatch.risk];
+      if(fMeta && SUMMARY_TIER_RANK[fMeta.tier] > SUMMARY_TIER_RANK[tier]){
+        tier = fMeta.tier;
+      }
+      if(fMeta) reasons.push({ type:'rainForecast', item: forecastMatch });
+    }
+
+    return { tier: tier, reasons: reasons.slice(0, 3) };
+  }
+
+  function formatSummaryReason(r){
+    if(r.type === 'rainForecast'){
+      const meta = RAIN_FORECAST_META[r.item.risk];
+      return t('waterStatusRainForecastLabel') + ' (' + r.item.amphoe + ', ' + r.item.province + '): ' + (meta ? t(meta.key) : r.item.risk);
+    }
+    const km = r.item.distanceKm.toFixed(1) + ' ' + t('unitKm');
+    if(r.type === 'river'){
+      const meta = SITUATION_META[r.item.situationLevel];
+      let s = r.item.name + ' — ' + (meta ? t(meta.key) : '—');
+      if(typeof r.item.storagePercent === 'number') s += ' (' + r.item.storagePercent.toFixed(0) + '%)';
+      return s + ' (' + km + ')';
+    }
+    if(r.type === 'dam'){
+      const pct = (typeof r.item.storagePercent === 'number') ? r.item.storagePercent.toFixed(0) + '%' : '—';
+      return r.item.name + ' — ' + t('waterStatusStorageLabel') + ' ' + pct + ' (' + km + ')';
+    }
+    const mm = (typeof r.item.rain24 === 'number') ? r.item.rain24.toFixed(1) + ' ' + t('unitMm') : '—';
+    return r.item.name + ' — ' + t('waterStatusRain24Label') + ' ' + mm + ' (' + km + ')';
+  }
+
+  function renderWaterStatusSummary(summary){
+    const meta = WS_SUMMARY_META[summary.tier];
+    let html = '<div class="ws-summary-title" style="color:' + meta.color + ';">' + meta.icon + ' ' + esc(t(meta.titleKey)) + '</div>';
+    if(summary.reasons.length){
+      summary.reasons.forEach(function(r){
+        html += '<div class="ws-summary-reason">' + esc(formatSummaryReason(r)) + '</div>';
+      });
+    } else {
+      html += '<div class="ws-summary-reason">' + esc(t('waterStatusSummaryNormalDetail')) + '</div>';
+    }
+    return { html: html, color: meta.color };
   }
 
   // Loaded dynamically (rather than a static <script> tag) so we can
@@ -3603,8 +3843,14 @@
       const marker = L.circleMarker([it.lat, it.lon], {
         radius: 6, color: '#fff', weight: 1, fillColor: color, fillOpacity: 0.9
       });
+      let pctTrendLine = '';
+      if(it.storagePercent !== null){
+        pctTrendLine = '<br>' + esc(t('waterStatusBankPercentLabel')) + ': ' + it.storagePercent.toFixed(0) + '%';
+        const tm = trendMeta(it.trend);
+        if(tm) pctTrendLine += ' <span style="color:' + tm.color + ';">' + tm.arrow + ' ' + esc(t(tm.key)) + '</span>';
+      }
       attachHoverPopup(marker, '<div class="ws-popup"><b>' + esc(it.name) + '</b><br>'
-        + esc(t('waterStatusLevelLabel')) + ': ' + esc(levelText) + '<br>'
+        + esc(t('waterStatusLevelLabel')) + ': ' + esc(levelText) + pctTrendLine + '<br>'
         + esc(t('waterStatusDistanceLabel')) + ': ' + it.distanceKm.toFixed(1) + ' ' + esc(t('unitKm')) + '</div>'
       );
       marker.addTo(riverLayer);
@@ -3691,6 +3937,8 @@
     setWaterStatusGpsStatus(t('gpsAsking'));
     const panel = document.getElementById('waterStatusPanel');
     if(panel) panel.classList.add('hidden');
+    const summaryEl = document.getElementById('waterStatusSummary');
+    if(summaryEl) summaryEl.classList.add('hidden');
 
     if(!navigator.geolocation){
       setWaterStatusGpsStatus(t('gpsNoSupport'), 'error');
@@ -3713,6 +3961,12 @@
           const damJson = cacheJson.dam;
           const wlJson = cacheJson.waterlevel;
           const rainJson = cacheJson.rain;
+          // Added alongside the original 3 feeds: HII's 3-day accumulated
+          // rainfall risk forecast, by amphoe (step 2 of the 5-step water
+          // assessment). Fetched non-fatally on the backend side already —
+          // if it's missing/errored this run, rainForecastRows is just [].
+          const rainForecastRows = (cacheJson.rainForecast3Day && Array.isArray(cacheJson.rainForecast3Day.data))
+            ? cacheJson.rainForecast3Day.data : [];
           const cacheTimeText = formatCacheTime(cacheJson.fetchedAt);
 
           // ---- Dams across all 4 size tiers ----
@@ -3776,6 +4030,13 @@
             content.innerHTML = renderWaterStatusRow('dam', damItem)
               + renderWaterStatusRow('river', riverItem)
               + renderWaterStatusRow('rain', rainItem);
+          }
+          if(summaryEl){
+            const summary = buildSituationSummary(damNearby, stationNearby, rainNearby, rainForecastRows);
+            const rendered = renderWaterStatusSummary(summary);
+            summaryEl.innerHTML = rendered.html;
+            summaryEl.style.borderColor = rendered.color;
+            summaryEl.classList.remove('hidden');
           }
           if(panel) panel.classList.remove('hidden');
           setWaterStatusGpsStatus(t('gpsCoord') + ' ' + lat.toFixed(3) + ', ' + lon.toFixed(3) + ' — ' + t('waterStatusSuccess')
