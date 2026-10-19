@@ -478,7 +478,7 @@
   .ws-legend-pulse-dot{ width:7px; height:7px; border-radius:50%; background:#C0392B; border:1px solid rgba(0,0,0,.15); }
   .ws-legend-critical-note{ flex-direction:row; align-items:center; }
 
-  /* Rain radar (RainViewer) + 1-hour extrapolation nowcast. Forecast frames
+  /* Rain radar (TMD composite) + 1-hour extrapolation nowcast. Forecast frames
      get a purple dashed frame so they are never mistaken for observed radar. */
   .ws-radar-card{
     margin-top:12px; padding:12px 14px; border-radius:var(--radius-sm);
@@ -987,7 +987,7 @@
         <div class="ws-radar-track">
           <input type="range" id="wsRadarSlider" min="0" max="18" step="1" value="12">
           <div class="ws-radar-bar" id="wsRadarBar"></div>
-          <div class="ws-radar-ticks"><span data-i18n="radarTickMinus2">−2 ชม.</span><span data-i18n="radarTickMinus1">−1 ชม.</span><span class="now" data-i18n="radarNow">ตอนนี้</span><span class="fc" data-i18n="radarTickPlus1">+1 ชม.</span></div>
+          <div class="ws-radar-ticks"><span data-i18n="radarTickMinus2">−2 ชม.</span><span data-i18n="radarTickMinus1">−1 ชม.</span><span class="now" data-i18n="radarNow">ล่าสุด</span><span class="fc" data-i18n="radarTickPlus1">+1 ชม.</span></div>
         </div>
         <div class="ws-radar-strip-label"><span data-i18n="radarFarmStrip">ฝนที่แปลงของคุณ (รัศมี 2 กม.)</span><b id="wsRadarCellLabel"></b></div>
         <div class="ws-radar-cells" id="wsRadarCells"></div>
@@ -996,11 +996,11 @@
       <div class="ws-legend" id="waterStatusLegend" style="display:none;">
         <div class="ws-legend-group">
           <label class="ws-legend-toggle"><input type="checkbox" id="wsLayerRadarToggle" checked><span class="ws-legend-title" data-i18n="radarLegendTitle">เรดาร์ฝน (ย้อนหลัง 2 ชม. + คาดการณ์ 1 ชม.)</span></label>
-          <span class="ws-legend-item"><span class="ws-legend-swatch" style="background:#0077AA;"></span><span data-i18n="radarClassLight">ฝนเล็กน้อย–ปานกลาง</span></span>
-          <span class="ws-legend-item"><span class="ws-legend-swatch" style="background:#FFB700;"></span><span data-i18n="radarClassHeavy">ฝนปานกลาง–หนัก</span></span>
-          <span class="ws-legend-item"><span class="ws-legend-swatch" style="background:#D91B00;"></span><span data-i18n="radarClassVeryHeavy">ฝนหนักมาก</span></span>
-          <span class="ws-legend-item"><span class="ws-legend-swatch" style="background:#FF77FF;"></span><span data-i18n="radarClassHail">ฝนหนักมาก อาจมีลูกเห็บ</span></span>
-          <span class="ws-legend-note" data-i18n="radarLegendNote">ภาพคาดการณ์มีกรอบเส้นประสีม่วง · ความแรงฝนประมาณจากค่าสะท้อนเรดาร์</span>
+          <span class="ws-legend-item"><span class="ws-legend-swatch" style="background:#73DE45;"></span><span data-i18n="radarLegendLight">ฝนเล็กน้อย (0.5–3 มม./ชม.)</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-swatch" style="background:#DEDF4B;"></span><span data-i18n="radarLegendModerate">ฝนปานกลาง (3–9 มม./ชม.)</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-swatch" style="background:#E3622A;"></span><span data-i18n="radarLegendHeavy">ฝนหนัก (9–50 มม./ชม.)</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-swatch" style="background:#B72D54;"></span><span data-i18n="radarLegendVeryHeavy">ฝนหนักมาก (มากกว่า 50 มม./ชม.)</span></span>
+          <span class="ws-legend-note" data-i18n="radarLegendNote">ภาพคาดการณ์มีกรอบเส้นประสีม่วง · ปริมาณฝนประมาณจากเรดาร์ของกรมอุตุนิยมวิทยา</span>
         </div>
         <div class="ws-legend-group">
           <label class="ws-legend-toggle"><input type="checkbox" id="wsLayerDamToggle" checked><span class="ws-legend-title" data-i18n="waterStatusLegendDam">เขื่อน/อ่างเก็บน้ำ (% ความจุ)</span></label>
@@ -1257,19 +1257,24 @@
       radarNearStillHead: 'มีกลุ่มฝนอยู่ใกล้แปลงในระยะ {km} กม. และแทบไม่เคลื่อนที่',
       radarNearestMoving: '{near} {motion}',
       radarApproach: 'กลุ่มฝนที่กำลังเข้ามาอยู่ห่างราว {km} กม. ทางทิศ{dir} เคลื่อนที่ราว {spd} กม./ชม.',
-      radarPeak: 'ตกหนักที่สุด ({cls}) ราว +{m} นาที',
+      radarPeak: 'ตกหนักที่สุด ({cls}) ราวเวลา {time}',
       radarIntensity: 'ความแรงคาดการณ์: {cls}',
       radarActComing: 'คำแนะนำ: เลื่อนการให้น้ำรอบถัดไป และงดใส่ปุ๋ยหรือพ่นสารทางใบจนกว่าฝนจะผ่านไป',
       radarActRaining: 'คำแนะนำ: งดให้น้ำ และงดใส่ปุ๋ยหรือพ่นสารทางใบระหว่างที่ฝนตก',
       radarActClear: 'คำแนะนำ: ให้น้ำและทำงานในแปลงตามแผนได้ตามปกติ',
-      radarNote: 'ภาพเรดาร์ล่าสุดเวลา {time} น. จาก RainViewer (เรดาร์กรมอุตุนิยมวิทยา) · เรดาร์วัดเม็ดฝนในอากาศ หลังพายุผ่านไปอาจยังแสดงฝนอยู่ทั้งที่ที่พื้นฝนหยุดแล้ว · ช่วงคาดการณ์คำนวณโดยเลื่อนกลุ่มฝนตามทิศทางล่าสุด (ทดลอง) ไม่รวมฝนที่อาจก่อตัวขึ้นใหม่',
-      radarClassLight: 'ฝนเล็กน้อย–ปานกลาง',
-      radarClassHeavy: 'ฝนปานกลาง–หนัก',
+      radarNote: 'ภาพเรดาร์ล่าสุดเวลา {time} น. จากกรมอุตุนิยมวิทยา (เรดาร์ผสมทั่วประเทศที่ระดับสูง 2 กม. ออกทุก 15 นาที ช้ากว่าเวลาจริงราว 15–20 นาที) · ช่วงคาดการณ์คำนวณโดยเลื่อนกลุ่มฝนตามทิศทางล่าสุด (ทดลอง) ไม่รวมฝนที่อาจก่อตัวขึ้นใหม่',
+      radarClassLight: 'ฝนเล็กน้อย',
+      radarClassModerate: 'ฝนปานกลาง',
+      radarLegendLight: 'ฝนเล็กน้อย (0.5–3 มม./ชม.)',
+      radarLegendModerate: 'ฝนปานกลาง (3–9 มม./ชม.)',
+      radarLegendHeavy: 'ฝนหนัก (9–50 มม./ชม.)',
+      radarLegendVeryHeavy: 'ฝนหนักมาก (มากกว่า 50 มม./ชม.)',
+      radarClassHeavy: 'ฝนหนัก',
       radarClassVeryHeavy: 'ฝนหนักมาก',
       radarClassHail: 'ฝนหนักมาก อาจมีลูกเห็บ',
       radarLegendTitle: 'เรดาร์ฝน (ย้อนหลัง 2 ชม. + คาดการณ์ 1 ชม.)',
-      radarLegendNote: 'ภาพคาดการณ์มีกรอบเส้นประสีม่วง · ความแรงฝนประมาณจากค่าสะท้อนเรดาร์',
-      radarNow: 'ตอนนี้',
+      radarLegendNote: 'ภาพคาดการณ์มีกรอบเส้นประสีม่วง · ปริมาณฝนประมาณจากเรดาร์ของกรมอุตุนิยมวิทยา',
+      radarNow: 'ล่าสุด',
       radarForecastTag: 'คาดการณ์',
       radarMinutesAgo: '{m} นาทีที่แล้ว',
       radarMinutesAhead: '+{m} นาที',
@@ -1631,19 +1636,24 @@
       radarNearStillHead: 'Rain is sitting {km} km from your orchard and barely moving',
       radarNearestMoving: '{near}, {motion}',
       radarApproach: 'The approaching rain is about {km} km to the {dir}, moving at about {spd} km/h',
-      radarPeak: 'Heaviest ({cls}) at about +{m} min',
+      radarPeak: 'Heaviest ({cls}) around {time}',
       radarIntensity: 'Expected intensity: {cls}',
       radarActComing: 'Recommendation: postpone the next irrigation and hold off on fertilizer or foliar sprays until the rain passes',
       radarActRaining: 'Recommendation: skip irrigation and hold off on fertilizer or foliar sprays while it rains',
       radarActClear: 'Recommendation: irrigation and field work can go ahead as planned',
-      radarNote: 'Latest radar frame {time} from RainViewer (Thai Meteorological Department radars) · Radar measures raindrops in the air, so after a storm passes it can still show rain where it has stopped at the ground · The forecast moves current rain along its recent direction (experimental) and does not include new rain that may form',
-      radarClassLight: 'Light–moderate rain',
-      radarClassHeavy: 'Moderate to heavy rain',
+      radarNote: 'Latest radar frame {time} from the Thai Meteorological Department (national composite at 2 km altitude, every 15 minutes, about 15–20 minutes behind real time) · The forecast moves current rain along its recent direction (experimental) and does not include new rain that may form',
+      radarClassLight: 'Light rain',
+      radarClassModerate: 'Moderate rain',
+      radarLegendLight: 'Light rain (0.5–3 mm/h)',
+      radarLegendModerate: 'Moderate rain (3–9 mm/h)',
+      radarLegendHeavy: 'Heavy rain (9–50 mm/h)',
+      radarLegendVeryHeavy: 'Very heavy rain (over 50 mm/h)',
+      radarClassHeavy: 'Heavy rain',
       radarClassVeryHeavy: 'Very heavy rain',
       radarClassHail: 'Very heavy rain, possible hail',
       radarLegendTitle: 'Rain radar (past 2 h + 1 h forecast)',
-      radarLegendNote: 'Forecast frames have a purple dashed frame · Intensity estimated from radar reflectivity',
-      radarNow: 'Now',
+      radarLegendNote: 'Forecast frames have a purple dashed frame · Rain rate estimated from Thai Meteorological Department radar',
+      radarNow: 'Latest',
       radarForecastTag: 'Forecast',
       radarMinutesAgo: '{m} min ago',
       radarMinutesAhead: '+{m} min',
@@ -4191,128 +4201,104 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
   }
 
   // =====================================================================
-  // Rain radar (RainViewer) + 1-hour nowcast
+  // Rain radar (Thai Meteorological Department) + 1-hour nowcast
   // ---------------------------------------------------------------------
-  // RainViewer's free Weather Maps API gives the past 2 hours of radar
-  // (Thai Meteorological Department radars) in 10-minute frames. Its own
-  // nowcast was discontinued on 1 Jan 2026, so the next hour is computed
-  // here the same way Windy does it: estimate how the rain field moved over
-  // the last 20 minutes and carry the latest frame forward along that
-  // motion for 6 more 10-minute steps. It cannot predict rain that forms
-  // from nothing, which the UI says plainly.
+  // Source: TMD's national radar composite, PCAPPI at 2 km altitude turned
+  // into rain rate (mm/h) with Z = 200R^1.6, one frame every 15 minutes.
+  // A Supabase Edge Function (tmd-radar-cache, every 5 min) mirrors the
+  // last 2 hours of frames into Storage with CORS, so the app can both show
+  // them and read the rain rate at the farm from the pixel colours.
   //
-  // Requests stay well under RainViewer's 100 requests/min/IP limit: the
-  // analysis reads ≤4 tiles for 3 frames plus the one farm tile for the
-  // other frames; the map loads the other past frames only when the farmer
-  // presses play; forecast frames reuse the latest frame's tiles, shifted.
+  // Switched from RainViewer on 19 Oct 2026: RainViewer's composite of the
+  // same radars kept showing 35–40 dBZ over Kamphaeng Saen for 30+ minutes
+  // after rain had stopped at the ground; TMD's 2 km product did not, which
+  // matched what was seen on site and on Windy.
+  //
+  // The next hour is extrapolated the way Windy does it: estimate how the
+  // rain field moved over the last 30 minutes and carry the latest frame
+  // forward along that motion for 4 more 15-minute steps. It cannot predict
+  // rain that forms from nothing, which the UI says plainly.
   // =====================================================================
-  const RADAR_MAPS_URL = 'https://api.rainviewer.com/public/weather-maps.json';
-  const RADAR_Z = 7, RADAR_TS = 256;           // analysis zoom (RainViewer's max)
-  const RADAR_STEPS = 6, RADAR_STEP_MIN = 10;  // 6 × 10 min = 1 hour ahead
+  const RADAR_INDEX_URL = 'https://jmdnnbwhjuiqfvfdhmgm.supabase.co/storage/v1/object/public/water-status-cache/tmd-radar/index.json';
+  const RADAR_STEPS = 4;                       // 4 × 15 min = 1 hour ahead
   const RADAR_ROI_KM = 100;                    // area searched around the farm
   const RADAR_FARM_RADIUS_KM = 2;              // "rain at the farm" radius
   const RADAR_NEAR_KM = 5;                     // "rain passing close to the farm" radius
   const RADAR_MAX_SPEED_KMH = 90;              // motion search limit
   const RADAR_MIN_SCORE = 0.35;                // below this the motion estimate is not trusted
-  const RADAR_DISPLAY_OPACITY = 0.72;
-  // RainViewer "Universal Blue" (color scheme 2) rain colours, 15–65 dBZ.
-  // Translucent colours below 15 dBZ are mostly cloud/drizzle aloft and are ignored.
-  const RADAR_PALETTE = [[15,0x88ddee],[16,0x6cd1eb],[17,0x51c5e8],[18,0x36bae5],[19,0x1baee2],[20,0x00a3e0],[21,0x009ad5],[22,0x0091ca],[23,0x0088bf],[24,0x007fb4],[25,0x0077aa],[26,0x0070a3],[27,0x00699c],[28,0x006295],[29,0x005b8e],[30,0x005588],[31,0x005180],[32,0x004e78],[33,0x004a70],[34,0x004768],[35,0xffee00],[36,0xffe000],[37,0xffd200],[38,0xffc500],[39,0xffb700],[40,0xffaa00],[41,0xff9f00],[42,0xff9500],[43,0xff8b00],[44,0xff8100],[45,0xff4400],[46,0xf23600],[47,0xe62800],[48,0xd91b00],[49,0xcd0d00],[50,0xc10000],[51,0xa80000],[52,0x8f0000],[53,0x760000],[54,0x5d0000],[55,0xffaaff],[56,0xff9fff],[57,0xff95ff],[58,0xff8bff],[59,0xff81ff],[60,0xff77ff],[61,0xff6cff],[62,0xff62ff],[63,0xff58ff],[64,0xff4eff],[65,0xffffff]];
-  const RADAR_COLOR_TO_DBZ = (function(){ const m = {}; RADAR_PALETTE.forEach(function(p){ m[p[1]] = p[0]; }); return m; })();
-  // Intensity classes follow RainViewer's colour bands so the legend matches
-  // the map. Approximate rain rates (Marshall–Palmer, Z = 200R^1.6):
-  // 15 dBZ ≈ 0.3 mm/h, 35 dBZ ≈ 5.6 mm/h, 45 dBZ ≈ 24 mm/h, 55 dBZ ≈ 100 mm/h.
-  // Against the WMO hourly scale (light < 2.5, moderate 2.5–7.6, heavy > 7.6
-  // mm/h) the yellow band (35–44) spans moderate to heavy, hence its label.
-  const RADAR_CLASSES = [
-    { min:55, color:'#FF77FF', key:'radarClassHail' },
-    { min:45, color:'#D91B00', key:'radarClassVeryHeavy' },
-    { min:35, color:'#FFB700', key:'radarClassHeavy' },
-    { min:15, color:'#0077AA', key:'radarClassLight' }
+  const RADAR_RAIN_MMH = 0.5;                  // below this counts as no rain (drizzle/noise)
+  const RADAR_DISPLAY_OPACITY = 0.75;
+  // TMD composite legend: colour → lower bound of the rain-rate bin (mm/h).
+  // Some colours cover two legend steps; the lower bound is used.
+  const RADAR_PALETTE = [
+    [0x54A431, 0.21], [0x5EB738, 0.24], [0x66C43C, 0.50], [0x69CB5A, 1.03], [0x73DE45, 1.47],
+    [0x7BEC4B, 2.10], [0xF3F453, 3.00], [0xDEDF4B, 4.29], [0xD6D648, 6.13], [0xF1C946, 8.76],
+    [0xD79C37, 12.5], [0xE3622A, 25.6], [0xD43320, 36.5], [0xCA325D, 52.2], [0xB72D54, 74.6],
+    [0xE345F5, 152.5], [0xEA8CF8, 217.9], [0xF3CBFA, 311.4], [0xEFE6F1, 445.0]
   ];
-  function radarClass(dbz){
-    if(dbz === null || dbz === undefined || dbz < 15) return null;
-    for(let i = 0; i < RADAR_CLASSES.length; i++){ if(dbz >= RADAR_CLASSES[i].min) return RADAR_CLASSES[i]; }
+  const RADAR_COLOR_TO_MMH = (function(){ const m = {}; RADAR_PALETTE.forEach(function(p){ m[p[0]] = p[1]; }); return m; })();
+  // Intensity classes on the WMO hourly scale (light < 2.5, moderate
+  // 2.5–7.6, heavy > 7.6 mm/h), snapped to TMD's legend bins.
+  const RADAR_CLASSES = [
+    { min:52.2, color:'#B72D54', key:'radarClassVeryHeavy' },
+    { min:8.76, color:'#E3622A', key:'radarClassHeavy' },
+    { min:3.0,  color:'#DEDF4B', key:'radarClassModerate' },
+    { min:RADAR_RAIN_MMH, color:'#73DE45', key:'radarClassLight' }
+  ];
+  function radarClass(mmh){
+    if(mmh === null || mmh === undefined || mmh < RADAR_RAIN_MMH) return null;
+    for(let i = 0; i < RADAR_CLASSES.length; i++){ if(mmh >= RADAR_CLASSES[i].min) return RADAR_CLASSES[i]; }
     return null;
   }
   function fmt(str, vals){ return String(str).replace(/\{(\w+)\}/g, function(_, k){ return vals[k] !== undefined ? vals[k] : ''; }); }
   function radarDir(deg){ const dirs = t('radarDirs'); return dirs[Math.round((((deg % 360) + 360) % 360) / 45) % 8]; }
   function radarClock(sec){ const d = new Date(sec * 1000); return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); }
-
-  // Web Mercator helpers in world pixels at zoom z.
-  function rmX(lon, z){ return (lon + 180) / 360 * Math.pow(2, z) * RADAR_TS; }
-  function rmY(lat, z){ const r = lat * Math.PI / 180; return (1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * Math.pow(2, z) * RADAR_TS; }
-  function rmLon(x, z){ return x / (Math.pow(2, z) * RADAR_TS) * 360 - 180; }
-  function rmLat(y, z){ const n = Math.PI - 2 * Math.PI * y / (Math.pow(2, z) * RADAR_TS); return 180 / Math.PI * Math.atan(Math.sinh(n)); }
+  function mercN(lat){ return Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360)); }
 
   var wsRadar = null;        // analysis result + frame list for the current farm
   var wsRadarView = null;    // Leaflet layers/state for the current wsMap
   var wsRadarTimer = null;
 
-  function radarTileUrl(host, path, x, y, smooth){
-    return host + path + '/' + RADAR_TS + '/' + RADAR_Z + '/' + x + '/' + y + '/2/' + (smooth ? '1' : '0') + '_0.png';
-  }
-
-  // Loads one radar tile and returns its pixels converted to dBZ (Int8,
-  // -1 = no rain). Missing tiles (e.g. outside radar coverage) read as empty.
-  function radarTileDbz(url){
+  function radarLoadImage(url){
     return new Promise(function(resolve){
       const img = new Image();
       img.crossOrigin = 'anonymous';
-      img.onload = function(){
-        try{
-          const c = document.createElement('canvas'); c.width = RADAR_TS; c.height = RADAR_TS;
-          const g = c.getContext('2d'); g.drawImage(img, 0, 0, RADAR_TS, RADAR_TS);
-          const px = g.getImageData(0, 0, RADAR_TS, RADAR_TS).data;
-          const out = new Int8Array(RADAR_TS * RADAR_TS).fill(-1);
-          for(let i = 0, j = 0; i < px.length; i += 4, j++){
-            if(px[i + 3] < 250) continue;
-            const key = (px[i] << 16) | (px[i + 1] << 8) | px[i + 2];
-            let dbz = RADAR_COLOR_TO_DBZ[key];
-            if(dbz === undefined){ // tolerate slight colour drift: nearest palette colour
-              let best = 1e9;
-              for(let k = 0; k < RADAR_PALETTE.length; k++){
-                const c2 = RADAR_PALETTE[k][1];
-                const d = Math.pow(px[i] - (c2 >> 16), 2) + Math.pow(px[i + 1] - ((c2 >> 8) & 255), 2) + Math.pow(px[i + 2] - (c2 & 255), 2);
-                if(d < best){ best = d; dbz = RADAR_PALETTE[k][0]; }
-              }
-            }
-            out[j] = dbz;
-          }
-          resolve(out);
-        } catch(e){ resolve(null); }
-      };
+      img.onload = function(){ resolve(img); };
       img.onerror = function(){ resolve(null); };
       img.src = url;
     });
   }
 
-  // Assembles a dBZ grid for world-pixel box [x0,x0+w) × [y0,y0+h) at RADAR_Z.
-  async function radarGrid(host, path, x0, y0, w, h){
-    const grid = new Int8Array(w * h).fill(-1);
-    const tx0 = Math.floor(x0 / RADAR_TS), tx1 = Math.floor((x0 + w - 1) / RADAR_TS);
-    const ty0 = Math.floor(y0 / RADAR_TS), ty1 = Math.floor((y0 + h - 1) / RADAR_TS);
-    const jobs = [];
-    for(let tx = tx0; tx <= tx1; tx++){
-      for(let ty = ty0; ty <= ty1; ty++){
-        jobs.push(radarTileDbz(radarTileUrl(host, path, tx, ty, false)).then(function(tile){
-          if(!tile) return 0;
-          for(let yy = Math.max(y0, ty * RADAR_TS); yy < Math.min(y0 + h, (ty + 1) * RADAR_TS); yy++){
-            for(let xx = Math.max(x0, tx * RADAR_TS); xx < Math.min(x0 + w, (tx + 1) * RADAR_TS); xx++){
-              grid[(yy - y0) * w + (xx - x0)] = tile[(yy - ty * RADAR_TS) * RADAR_TS + (xx - tx * RADAR_TS)];
-            }
+  // Reads rain rate (mm/h, 0 = none) for image-pixel box [x0,x0+w)×[y0,y0+h).
+  function radarReadBox(img, x0, y0, w, h){
+    const out = new Float32Array(w * h);
+    if(!img) return null;
+    try{
+      const c = document.createElement('canvas'); c.width = w; c.height = h;
+      const g = c.getContext('2d');
+      g.drawImage(img, x0, y0, w, h, 0, 0, w, h);
+      const px = g.getImageData(0, 0, w, h).data;
+      for(let i = 0, j = 0; i < px.length; i += 4, j++){
+        if(px[i + 3] < 200) continue;
+        const key = (px[i] << 16) | (px[i + 1] << 8) | px[i + 2];
+        let v = RADAR_COLOR_TO_MMH[key];
+        if(v === undefined){ // tolerate slight colour drift: nearest legend colour
+          let best = 1e9;
+          for(let k = 0; k < RADAR_PALETTE.length; k++){
+            const c2 = RADAR_PALETTE[k][0];
+            const d = Math.pow(px[i] - (c2 >> 16), 2) + Math.pow(px[i + 1] - ((c2 >> 8) & 255), 2) + Math.pow(px[i + 2] - (c2 & 255), 2);
+            if(d < best){ best = d; v = RADAR_PALETTE[k][1]; }
           }
-          return 1;
-        }));
+        }
+        out[j] = v;
       }
-    }
-    const loaded = (await Promise.all(jobs)).reduce(function(a, b){ return a + b; }, 0);
-    return loaded ? grid : null;
+      return out;
+    } catch(e){ return null; }
   }
 
-  // Max dBZ within radius r (grid px) of (cx, cy); null if no rain / outside the grid.
+  // Max rain rate within radius r (grid px) of (cx, cy); null if no rain / outside the grid.
   function radarMaxAround(grid, w, h, cx, cy, r){
-    let best = -1;
+    let best = 0;
     const r2 = r * r;
     for(let y = Math.floor(cy - r); y <= Math.ceil(cy + r); y++){
       if(y < 0 || y >= h) continue;
@@ -4323,20 +4309,19 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
         if(v > best) best = v;
       }
     }
-    return best >= 15 ? best : null;
+    return best >= RADAR_RAIN_MMH ? best : null;
   }
 
   // Single motion vector (pure translation) that best maps the older rain
   // field onto the newer one: normalised cross-correlation of the rain
-  // masks, coarse search on a 2× downsampled grid, then refined at full res.
+  // masks, coarse search on a downsampled grid, then refined at full res.
   function radarEstimateMotion(older, newer, w, h, maxShift){
     function mask(grid, f){
       const W = Math.floor(w / f), H = Math.floor(h / f), m = new Float32Array(W * H);
       for(let y = 0; y < H * f; y++) for(let x = 0; x < W * f; x++){
-        if(grid[y * w + x] >= 15) m[Math.floor(y / f) * W + Math.floor(x / f)] = 1;
+        if(grid[y * w + x] >= RADAR_RAIN_MMH) m[Math.floor(y / f) * W + Math.floor(x / f)] = 1;
       }
-      // 3×3 box blur so near-misses still count
-      const b = new Float32Array(W * H);
+      const b = new Float32Array(W * H); // 3×3 box blur so near-misses still count
       for(let y = 0; y < H; y++) for(let x = 0; x < W; x++){
         let s = 0, n = 0;
         for(let dy = -1; dy <= 1; dy++) for(let dx = -1; dx <= 1; dx++){
@@ -4348,7 +4333,6 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
       return { m: b, W: W, H: H };
     }
     function score(a, b, W, H, dx, dy){
-      // older pixel (x,y) should appear at (x+dx, y+dy) in the newer frame
       let sab = 0, saa = 0, sbb = 0;
       for(let y = Math.max(0, -dy); y < Math.min(H, H - dy); y++){
         const ro = y * W, rn = (y + dy) * W;
@@ -4359,16 +4343,17 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
       }
       return (saa > 0 && sbb > 0) ? sab / Math.sqrt(saa * sbb) : 0;
     }
-    const c1 = mask(older, 2), c2 = mask(newer, 2);
-    const R = Math.ceil(maxShift / 2);
+    const F = 3;
+    const c1 = mask(older, F), c2 = mask(newer, F);
+    const R = Math.ceil(maxShift / F);
     let best = { s: -1, dx: 0, dy: 0 };
     for(let dy = -R; dy <= R; dy++) for(let dx = -R; dx <= R; dx++){
       const s = score(c1.m, c2.m, c1.W, c1.H, dx, dy);
       if(s > best.s) best = { s: s, dx: dx, dy: dy };
     }
     const f1 = mask(older, 1), f2 = mask(newer, 1);
-    let fine = { s: -1, dx: best.dx * 2, dy: best.dy * 2 };
-    for(let dy = best.dy * 2 - 2; dy <= best.dy * 2 + 2; dy++) for(let dx = best.dx * 2 - 2; dx <= best.dx * 2 + 2; dx++){
+    let fine = { s: -1, dx: best.dx * F, dy: best.dy * F };
+    for(let dy = best.dy * F - F; dy <= best.dy * F + F; dy++) for(let dx = best.dx * F - F; dx <= best.dx * F + F; dx++){
       const s = score(f1.m, f2.m, f1.W, f1.H, dx, dy);
       if(s > fine.s) fine = { s: s, dx: dx, dy: dy };
     }
@@ -4376,61 +4361,73 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
   }
 
   async function analyzeRainRadar(lat, lon){
-    const res = await fetch(RADAR_MAPS_URL, { cache: 'no-cache' });
-    if(!res.ok) throw new Error('RainViewer maps HTTP ' + res.status);
-    const maps = await res.json();
-    const frames = (maps && maps.radar && Array.isArray(maps.radar.past)) ? maps.radar.past : [];
-    if(frames.length < 3) throw new Error('RainViewer: not enough radar frames');
-    const host = maps.host;
+    const res = await fetch(RADAR_INDEX_URL, { cache: 'no-cache' });
+    if(!res.ok) throw new Error('radar index HTTP ' + res.status);
+    const idx = await res.json();
+    const frames = (idx && Array.isArray(idx.frames)) ? idx.frames : [];
+    if(frames.length < 3) throw new Error('radar: not enough frames');
+    const B = idx.bounds;
+    const stepMin = idx.stepMinutes || 15;
     const L0 = frames.length - 1;
 
-    const kmPx = 40075.016686 * Math.cos(lat * Math.PI / 180) / (Math.pow(2, RADAR_Z) * RADAR_TS);
-    const fxW = rmX(lon, RADAR_Z), fyW = rmY(lat, RADAR_Z);
+    const latestImg = await radarLoadImage(frames[L0].url);
+    if(!latestImg) throw new Error('radar: latest frame unavailable');
+    const IW = latestImg.naturalWidth, IH = latestImg.naturalHeight;
+    const toPx = function(la, lo){
+      return { x: (lo - B.west) / (B.east - B.west) * IW,
+               y: (mercN(B.north) - mercN(la)) / (mercN(B.north) - mercN(B.south)) * IH };
+    };
+    const toLatLon = function(x, y){
+      const n = mercN(B.north) - y / IH * (mercN(B.north) - mercN(B.south));
+      return { lat: (2 * Math.atan(Math.exp(n)) - Math.PI / 2) * 180 / Math.PI, lon: B.west + x / IW * (B.east - B.west) };
+    };
+    const kmPx = (B.east - B.west) / IW * 111.32 * Math.cos(lat * Math.PI / 180);
+    const fp = toPx(lat, lon);
+    if(fp.x < 0 || fp.y < 0 || fp.x >= IW || fp.y >= IH) throw new Error('radar: farm outside the composite');
     const half = Math.ceil(RADAR_ROI_KM / kmPx);
-    const x0 = Math.floor(fxW) - half, y0 = Math.floor(fyW) - half, w = half * 2 + 1, h = half * 2 + 1;
-    const fx = fxW - x0, fy = fyW - y0;
+    const x0 = Math.max(0, Math.floor(fp.x) - half), y0 = Math.max(0, Math.floor(fp.y) - half);
+    const w = Math.min(IW, Math.floor(fp.x) + half + 1) - x0, h = Math.min(IH, Math.floor(fp.y) + half + 1) - y0;
+    const fx = fp.x - x0, fy = fp.y - y0;
     const rFarm = Math.max(1.5, RADAR_FARM_RADIUS_KM / kmPx);
 
-    // Latest and 20-minutes-earlier frames over the whole search area.
-    const latest = await radarGrid(host, frames[L0].path, x0, y0, w, h);
-    if(!latest) throw new Error('RainViewer: latest frame unavailable');
-    const older = await radarGrid(host, frames[L0 - 2].path, x0, y0, w, h);
+    const latest = radarReadBox(latestImg, x0, y0, w, h);
+    if(!latest) throw new Error('radar: cannot read latest frame');
+    const olderIdx = L0 - 2; // 30 minutes earlier
+    const older = radarReadBox(await radarLoadImage(frames[olderIdx].url), x0, y0, w, h);
 
-    // Past rain at the farm: a small box around the farm for each earlier frame.
-    const sb = Math.ceil(rFarm) + 1;
+    // Rain at the farm in every earlier frame (small box around the farm).
+    const sb = Math.ceil(rFarm) + 1, bx = Math.floor(fp.x) - sb, by = Math.floor(fp.y) - sb, bw = sb * 2 + 1;
     const pastAtFarm = await Promise.all(frames.map(function(f, i){
       if(i === L0) return radarMaxAround(latest, w, h, fx, fy, rFarm);
-      if(i === L0 - 2 && older) return radarMaxAround(older, w, h, fx, fy, rFarm);
-      const bx = Math.floor(fxW) - sb, by = Math.floor(fyW) - sb, bw = sb * 2 + 1;
-      return radarGrid(host, f.path, bx, by, bw, bw).then(function(g){
-        return g ? radarMaxAround(g, bw, bw, fxW - bx, fyW - by, rFarm) : null;
+      if(i === olderIdx && older) return radarMaxAround(older, w, h, fx, fy, rFarm);
+      return radarLoadImage(f.url).then(function(img){
+        const g = radarReadBox(img, bx, by, bw, bw);
+        return g ? radarMaxAround(g, bw, bw, fp.x - bx, fp.y - by, rFarm) : null;
       });
     }));
 
-    // Nearest rain right now.
+    // Nearest rain in the latest frame.
     let nearest = null;
     for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){
-      if(latest[y * w + x] < 15) continue;
+      if(latest[y * w + x] < RADAR_RAIN_MMH) continue;
       const d = Math.hypot(x - fx, y - fy) * kmPx;
-      if(!nearest || d < nearest.km){
-        nearest = { km: d, bearing: (Math.atan2(x - fx, -(y - fy)) * 180 / Math.PI + 360) % 360 };
-      }
+      if(!nearest || d < nearest.km) nearest = { km: d, bearing: (Math.atan2(x - fx, -(y - fy)) * 180 / Math.PI + 360) % 360 };
     }
 
-    // Motion over the last 20 minutes → per 10-minute step.
+    // Motion over the last 30 minutes → per 15-minute step.
     let motion = null;
-    const rainPx = function(g){ let n = 0; for(let i = 0; i < g.length; i++) if(g[i] >= 15) n++; return n; };
+    const rainPx = function(g){ let n = 0; for(let i = 0; i < g.length; i++) if(g[i] >= RADAR_RAIN_MMH) n++; return n; };
     if(older && nearest && rainPx(latest) >= 30 && rainPx(older) >= 30){
-      const maxShift = Math.ceil(RADAR_MAX_SPEED_KMH * (2 * RADAR_STEP_MIN / 60) / kmPx);
+      const maxShift = Math.ceil(RADAR_MAX_SPEED_KMH * (2 * stepMin / 60) / kmPx);
       const m = radarEstimateMotion(older, latest, w, h, maxShift);
       if(m.s >= RADAR_MIN_SCORE){
-        const vx = m.dx / 2, vy = m.dy / 2; // grid px per 10 min
+        const vx = m.dx / 2, vy = m.dy / 2; // image px per step
+        const moved = toLatLon(fp.x + vx, fp.y + vy);
         motion = {
           vx: vx, vy: vy, score: m.s,
-          speedKmh: Math.hypot(vx, vy) * kmPx * (60 / RADAR_STEP_MIN),
+          speedKmh: Math.hypot(vx, vy) * kmPx * (60 / stepMin),
           heading: (Math.atan2(vx, -vy) * 180 / Math.PI + 360) % 360,
-          dLon: rmLon(fxW + vx, RADAR_Z) - lon,
-          dLat: rmLat(fyW + vy, RADAR_Z) - lat
+          dLat: moved.lat - lat, dLon: moved.lon - lon
         };
       }
     }
@@ -4444,28 +4441,33 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
     }
 
     // Where the rain that reaches the farm is now: walk upstream from the
-    // farm (against the motion) until the farm-sized circle hits rain.
+    // farm until the farm-sized circle hits rain.
     let approach = null;
     const firstWetK = forecastAtFarm.findIndex(function(v){ return v !== null; });
     if(motion && firstWetK >= 0){
-      const len = Math.hypot(motion.vx, motion.vy) * (firstWetK + 1);
-      for(let s = 0; s <= len + 0.01; s += 0.5){
-        const ux = motion.vx / Math.hypot(motion.vx, motion.vy), uy = motion.vy / Math.hypot(motion.vx, motion.vy);
+      const sp = Math.hypot(motion.vx, motion.vy), ux = motion.vx / sp, uy = motion.vy / sp;
+      for(let s = 0; s <= sp * (firstWetK + 1) + 0.01; s += 0.5){
         if(radarMaxAround(latest, w, h, fx - ux * s, fy - uy * s, rFarm) !== null){
-          approach = { km: Math.max(0, s * kmPx), bearing: (motion.heading + 180) % 360 };
+          approach = { km: s * kmPx, bearing: (motion.heading + 180) % 360 };
           break;
         }
       }
     }
 
     return {
-      lat: lat, lon: lon, host: host, frames: frames, latestIndex: L0, approach: approach, forecastNear: forecastNear,
+      lat: lat, lon: lon, frames: frames, bounds: B, stepMin: stepMin, latestIndex: L0,
+      approach: approach, forecastNear: forecastNear,
       times: frames.map(function(f){ return f.time; }).concat(
-        Array.from({ length: RADAR_STEPS }, function(_, k){ return frames[L0].time + (k + 1) * RADAR_STEP_MIN * 60; })),
+        Array.from({ length: RADAR_STEPS }, function(_, k){ return frames[L0].time + (k + 1) * stepMin * 60; })),
       timeline: pastAtFarm.concat(forecastAtFarm),
       nearest: nearest, motion: motion
     };
   }
+
+  // Minutes from the farmer's "now" until frame i (radar frames arrive
+  // ~15–20 min after their timestamp, so forecast steps are counted from
+  // the clock, not from the frame).
+  function radarMinutesFromNow(r, i){ return Math.round((r.times[i] - Date.now() / 1000) / 60); }
 
   function renderRadarCard(){
     const card = document.getElementById('wsRadarCard');
@@ -4487,6 +4489,7 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
     const firstDry = fut.findIndex(function(v){ return v === null; });
     let peak = null, peakK = -1;
     fut.forEach(function(v, k){ if(v !== null && (peak === null || v > peak)){ peak = v; peakK = k; } });
+    const inMin = function(k){ return Math.max(5, radarMinutesFromNow(r, L0 + 1 + k)); };
     const parts = [];
     const nearestTxt = r.nearest ? fmt(t('radarNearest'), { km: r.nearest.km.toFixed(1), dir: radarDir(r.nearest.bearing) }) : '';
     const still = r.motion && r.motion.speedKmh < 5;
@@ -4495,24 +4498,19 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
     let head, act = '', cls = '';
     if(now !== null){
       cls = 'is-raining';
-      // Weakening: the reading at the farm has dropped ≥ 6 dBZ (about half
-      // the rain rate or less) from its peak within the past hour. Radar
-      // keeps showing echo aloft after a storm core passes, so this is the
-      // case where "radar says rain" and "rain at the ground" disagree most.
+      // Weakening: the rate at the farm is half (or less) of its peak in the past hour.
       let peakPast = null, peakPastI = -1;
-      for(let i = Math.max(0, L0 - 6); i < L0; i++){
+      for(let i = Math.max(0, L0 - 4); i < L0; i++){
         const v = r.timeline[i];
         if(v !== null && (peakPast === null || v > peakPast)){ peakPast = v; peakPastI = i; }
       }
-      const weakening = peakPast !== null && peakPast - now >= 6;
+      const weakening = peakPast !== null && now <= peakPast / 2;
       head = fmt(t(weakening ? 'radarWeakeningHead' : 'radarRainingHead'), { cls: t(radarClass(now).key) });
       if(weakening){
         parts.push(fmt(t('radarWeakeningDetail'), { time: radarClock(r.times[peakPastI]) + t('radarTimeSuffix'), cls: t(radarClass(peakPast).key) }));
       }
       if(r.motion){
-        // While weakening, radar echo often lingers after rain at the ground
-        // has stopped, so a "will keep raining" line would mislead.
-        if(!weakening) parts.push(firstDry === -1 ? t('radarRainingContinue') : fmt(t('radarRainingStop'), { m: (firstDry + 1) * RADAR_STEP_MIN }));
+        if(!weakening) parts.push(firstDry === -1 ? t('radarRainingContinue') : fmt(t('radarRainingStop'), { m: inMin(firstDry) }));
         if(motionTxt) parts.push(motionTxt.charAt(0).toUpperCase() + motionTxt.slice(1));
       }
       act = t(weakening ? 'radarActWeakening' : 'radarActRaining');
@@ -4524,13 +4522,13 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
       parts.push(nearestTxt, t('radarNoMotionDetail'));
     } else if(firstWet >= 0){
       cls = 'is-coming';
-      head = fmt(t('radarComingHead'), { m: (firstWet + 1) * RADAR_STEP_MIN });
+      head = fmt(t('radarComingHead'), { m: inMin(firstWet) });
       parts.push(r.approach
         ? fmt(t('radarApproach'), { km: r.approach.km.toFixed(1), dir: radarDir(r.approach.bearing), spd: Math.round(r.motion.speedKmh) })
         : fmt(t('radarNearestMoving'), { near: nearestTxt, motion: motionTxt }));
       if(peak !== null){
-        parts.push(peak >= 35
-          ? fmt(t('radarPeak'), { cls: t(radarClass(peak).key), m: (peakK + 1) * RADAR_STEP_MIN })
+        parts.push(peak >= 8.76
+          ? fmt(t('radarPeak'), { cls: t(radarClass(peak).key), time: radarClock(r.times[L0 + 1 + peakK]) + t('radarTimeSuffix') })
           : fmt(t('radarIntensity'), { cls: t(radarClass(peak).key) }));
       }
       act = t('radarActComing');
@@ -4540,12 +4538,11 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
       // track would bring it over the orchard — give the advice anyway.
       cls = 'is-coming';
       const kNear = r.forecastNear.findIndex(function(v){ return v !== null; });
-      head = (still && r.nearest && r.nearest.km <= RADAR_NEAR_KM)
+      const stillClose = still && r.nearest && r.nearest.km <= RADAR_NEAR_KM;
+      head = stillClose
         ? fmt(t('radarNearStillHead'), { km: r.nearest.km.toFixed(1) })
-        : fmt(t('radarNearHead'), { m: (kNear + 1) * RADAR_STEP_MIN, km: RADAR_NEAR_KM });
-      if(!(still && r.nearest && r.nearest.km <= RADAR_NEAR_KM)){
-        parts.push(fmt(t('radarNearestMoving'), { near: nearestTxt, motion: motionTxt }));
-      }
+        : fmt(t('radarNearHead'), { m: inMin(kNear), km: RADAR_NEAR_KM });
+      if(!stillClose) parts.push(fmt(t('radarNearestMoving'), { near: nearestTxt, motion: motionTxt }));
       act = t('radarActComing');
     } else {
       head = t('radarClearHead');
@@ -4583,20 +4580,21 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
   }
 
   function radarLayer(i){
-    const v = wsRadarView, r = wsRadar.result;
+    const v = wsRadarView, r = wsRadar.result, B = r.bounds;
+    const bounds = [[B.south, B.west], [B.north, B.east]];
     const isFc = i > r.latestIndex;
     if(isFc){
       if(!v.fc){
-        v.fc = L.tileLayer(r.host + r.frames[r.latestIndex].path + '/256/{z}/{x}/{y}/2/1_0.png', {
-          tileSize: 256, maxNativeZoom: RADAR_Z, maxZoom: 19, opacity: 0, pane: 'wsRadarFcPane'
+        v.fc = L.imageOverlay(r.frames[r.latestIndex].url, bounds, {
+          opacity: 0, pane: 'wsRadarFcPane', interactive: false
         }).addTo(v.map);
       }
       return v.fc;
     }
     if(!v.past[i]){
-      v.past[i] = L.tileLayer(r.host + r.frames[i].path + '/256/{z}/{x}/{y}/2/1_0.png', {
-        tileSize: 256, maxNativeZoom: RADAR_Z, maxZoom: 19, opacity: 0, pane: 'wsRadarPane',
-        attribution: i === r.latestIndex ? 'Radar &copy; <a href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer</a>' : ''
+      v.past[i] = L.imageOverlay(r.frames[i].url, bounds, {
+        opacity: 0, pane: 'wsRadarPane', interactive: false,
+        attribution: i === r.latestIndex ? 'เรดาร์ &copy; <a href="https://weather.tmd.go.th/composite/index_composite.html" target="_blank" rel="noopener">กรมอุตุนิยมวิทยา</a>' : ''
       }).addTo(v.map);
     }
     return v.past[i];
@@ -4631,8 +4629,7 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
     v.stamp.style.display = on ? '' : 'none';
     v.stamp.classList.toggle('is-fc', isFc);
     const rel = i === L0 ? t('radarNow')
-      : (isFc ? t('radarForecastTag') + ' ' + fmt(t('radarMinutesAhead'), { m: (i - L0) * RADAR_STEP_MIN })
-              : fmt(t('radarMinutesAgo'), { m: (L0 - i) * RADAR_STEP_MIN }));
+      : (isFc ? t('radarForecastTag') : fmt(t('radarMinutesAgo'), { m: (L0 - i) * r.stepMin }));
     v.stamp.innerHTML = esc(radarClock(r.times[i]) + t('radarTimeSuffix')) + '<small>' + esc(rel) + '</small>';
 
     const slider = document.getElementById('wsRadarSlider');
@@ -4661,12 +4658,11 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
   function radarPlay(){
     if(!wsRadar || wsRadar.state !== 'ready' || !wsRadarView) return;
     const n = wsRadar.result.times.length;
-    // Create every frame's layer up front so tiles load before they are shown.
-    for(let i = 0; i < n; i++) radarLayer(i);
+    for(let i = 0; i < n; i++) radarLayer(i); // create every overlay up front so images load before they show
     let i = (wsRadarView.index === null || wsRadarView.index >= n - 1) ? 0 : wsRadarView.index;
     radarSetPlayIcon(true);
     radarShow(i);
-    wsRadarTimer = setInterval(function(){ i = (i + 1) % n; radarShow(i); }, 600);
+    wsRadarTimer = setInterval(function(){ i = (i + 1) % n; radarShow(i); }, 700);
   }
 
   function radarSetupView(){
@@ -4700,9 +4696,7 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
   function renderRadarUI(){
     if(!wsRadar) return;
     renderRadarCard();
-    if(wsRadar.state === 'ready' && wsRadarView){
-      radarSetupView();
-    }
+    if(wsRadar.state === 'ready' && wsRadarView) radarSetupView();
   }
 
   (function wireRadarControls(){
