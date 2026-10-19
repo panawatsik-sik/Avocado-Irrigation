@@ -478,6 +478,52 @@
   .ws-legend-pulse-dot{ width:7px; height:7px; border-radius:50%; background:#C0392B; border:1px solid rgba(0,0,0,.15); }
   .ws-legend-critical-note{ flex-direction:row; align-items:center; }
 
+  /* Rain radar (RainViewer) + 1-hour extrapolation nowcast. Forecast frames
+     get a purple dashed frame so they are never mistaken for observed radar. */
+  .ws-radar-card{
+    margin-top:12px; padding:12px 14px; border-radius:var(--radius-sm);
+    border:1.5px solid var(--line); background:var(--surface-soft);
+  }
+  .ws-radar-card.is-coming{ background:#FFF4DA; border-color:#E8C676; }
+  .ws-radar-card.is-raining{ background:var(--river-light); border-color:#8DB6D6; }
+  .ws-radar-kicker{ font-size:11px; font-weight:700; color:var(--river); letter-spacing:.02em; }
+  .ws-radar-card.is-coming .ws-radar-kicker{ color:#9A5B00; }
+  .ws-radar-head{ font-size:14.5px; font-weight:700; color:var(--ink); line-height:1.45; margin-top:2px; }
+  .ws-radar-detail{ font-size:12.5px; color:var(--ink); line-height:1.6; margin-top:4px; }
+  .ws-radar-act{ font-size:12.5px; color:var(--ink); line-height:1.6; margin-top:8px; padding-top:7px; border-top:1px dashed var(--line); }
+  .ws-radar-note{ font-size:11px; color:var(--muted); line-height:1.5; margin-top:6px; }
+  .ws-radar-player{ margin-top:10px; display:grid; grid-template-columns:auto minmax(0,1fr); gap:6px 10px; align-items:center; }
+  .ws-radar-play{
+    width:36px; height:36px; border-radius:50%; border:0; background:var(--river); color:#fff;
+    display:grid; place-items:center; cursor:pointer; padding:0;
+  }
+  .ws-radar-play:focus-visible, #wsRadarSlider:focus-visible{ outline:3px solid var(--gold); outline-offset:2px; }
+  .ws-radar-play svg{ width:16px; height:16px; }
+  .ws-radar-track{ min-width:0; }
+  #wsRadarSlider{ width:100%; margin:0; accent-color:var(--river); }
+  .ws-radar-bar{ height:5px; border-radius:3px; margin-top:1px;
+    background:linear-gradient(90deg, var(--river) 0 var(--split, 66%), transparent var(--split, 66%)); position:relative; }
+  .ws-radar-bar::after{ content:""; position:absolute; top:0; bottom:0; right:0; left:var(--split, 66%); border-radius:3px;
+    background:repeating-linear-gradient(90deg, #7A4FB5 0 6px, transparent 6px 10px); }
+  .ws-radar-ticks{ display:flex; justify-content:space-between; font-size:10.5px; color:var(--muted); margin-top:2px; }
+  .ws-radar-ticks .now{ color:var(--ink); font-weight:700; }
+  .ws-radar-ticks .fc{ color:#7A4FB5; font-weight:700; }
+  .ws-radar-strip-label{ grid-column:1/-1; display:flex; justify-content:space-between; gap:8px; font-size:11px; color:var(--muted); margin-top:2px; }
+  .ws-radar-strip-label b{ color:var(--ink); }
+  .ws-radar-cells{ grid-column:1/-1; display:grid; grid-template-columns:repeat(19, minmax(0,1fr)); gap:2px; }
+  .ws-radar-cells i{ height:16px; border-radius:3px; background:var(--surface); border:1px solid var(--line); cursor:pointer; position:relative; }
+  .ws-radar-cells i.fc{ border-style:dashed; border-color:#7A4FB5; }
+  .ws-radar-cells i.cur{ outline:2px solid var(--ink); outline-offset:1px; }
+  .ws-radar-cells i.now::after{ content:""; position:absolute; right:-3px; top:-4px; bottom:-4px; width:2px; background:var(--ink); }
+  .ws-radar-stamp{
+    background:rgba(255,255,255,.94); border-radius:8px; padding:3px 8px; font-family:'Sarabun',sans-serif;
+    font-size:12px; font-weight:700; color:var(--ink); box-shadow:0 1px 5px rgba(0,0,0,.25); line-height:1.35;
+  }
+  .ws-radar-stamp small{ display:block; font-size:10.5px; font-weight:600; color:var(--muted); }
+  .ws-radar-stamp.is-fc, .ws-radar-stamp.is-fc small{ color:#7A4FB5; }
+  .ws-map.is-radar-fc{ outline:3px dashed #7A4FB5; outline-offset:-3px; }
+  .ws-legend-swatch{ width:18px; height:9px; border-radius:2px; display:inline-block; flex-shrink:0; }
+
   .water-status-panel{
     margin-top:14px; padding:13px 14px; background:var(--surface-soft);
     border:1px solid var(--line); border-radius:var(--radius-sm);
@@ -926,12 +972,36 @@
            buildSituationSummary() / renderWaterStatusSummary(). -->
       <div class="ws-summary-card hidden" id="waterStatusSummary"></div>
 
+      <!-- Rain radar + 1-hour nowcast for the farm. Filled by loadRainRadar();
+           independent of the ThaiWater cache, so a radar failure never blocks
+           the rest of this tab. -->
+      <div class="ws-radar-card hidden" id="wsRadarCard" aria-live="polite"></div>
+
       <!-- NOTE: no data-i18n here on purpose — once the Leaflet map is rendered inside
            this div, the generic data-i18n refresh in switchLang() must not overwrite it
            via textContent/innerHTML. See updateWaterStatusMapPlaceholder() in the script. -->
       <div class="ws-map" id="waterStatusMap">กดปุ่มด้านบนเพื่อแสดงแผนที่สถานการณ์น้ำใกล้แปลง</div>
 
+      <div class="ws-radar-player hidden" id="wsRadarPlayer">
+        <button type="button" class="ws-radar-play" id="wsRadarPlayBtn"></button>
+        <div class="ws-radar-track">
+          <input type="range" id="wsRadarSlider" min="0" max="18" step="1" value="12">
+          <div class="ws-radar-bar" id="wsRadarBar"></div>
+          <div class="ws-radar-ticks"><span data-i18n="radarTickMinus2">−2 ชม.</span><span data-i18n="radarTickMinus1">−1 ชม.</span><span class="now" data-i18n="radarNow">ตอนนี้</span><span class="fc" data-i18n="radarTickPlus1">+1 ชม.</span></div>
+        </div>
+        <div class="ws-radar-strip-label"><span data-i18n="radarFarmStrip">ฝนที่แปลงของคุณ (รัศมี 2 กม.)</span><b id="wsRadarCellLabel"></b></div>
+        <div class="ws-radar-cells" id="wsRadarCells"></div>
+      </div>
+
       <div class="ws-legend" id="waterStatusLegend" style="display:none;">
+        <div class="ws-legend-group">
+          <label class="ws-legend-toggle"><input type="checkbox" id="wsLayerRadarToggle" checked><span class="ws-legend-title" data-i18n="radarLegendTitle">เรดาร์ฝน (ย้อนหลัง 2 ชม. + คาดการณ์ 1 ชม.)</span></label>
+          <span class="ws-legend-item"><span class="ws-legend-swatch" style="background:#0077AA;"></span><span data-i18n="radarClassLight">ฝนเล็กน้อย–ปานกลาง</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-swatch" style="background:#FFB700;"></span><span data-i18n="radarClassHeavy">ฝนหนัก</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-swatch" style="background:#D91B00;"></span><span data-i18n="radarClassVeryHeavy">ฝนหนักมาก</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-swatch" style="background:#FF77FF;"></span><span data-i18n="radarClassHail">ฝนหนักมาก อาจมีลูกเห็บ</span></span>
+          <span class="ws-legend-note" data-i18n="radarLegendNote">ภาพคาดการณ์มีกรอบเส้นประสีม่วง · ความแรงฝนประมาณจากค่าสะท้อนเรดาร์</span>
+        </div>
         <div class="ws-legend-group">
           <label class="ws-legend-toggle"><input type="checkbox" id="wsLayerDamToggle" checked><span class="ws-legend-title" data-i18n="waterStatusLegendDam">เขื่อน/อ่างเก็บน้ำ (% ความจุ)</span></label>
           <span class="ws-legend-item"><span class="ws-legend-dot dam-shape" style="background:#9AA593;"></span><span data-i18n="waterStatusLegendDamShape">เขื่อนขนาดใหญ่ (◆)</span></span>
@@ -1166,6 +1236,47 @@
       waterStatusDamTypeMajor: 'เขื่อน',
       waterStatusDamTypeReservoir: 'อ่างเก็บน้ำ',
       waterStatusCriticalNote: 'จุดกระพริบ = สถานการณ์วิกฤต (น้ำล้นตลิ่ง/เขื่อนเกินความจุ)',
+      radarKicker: 'เรดาร์ฝน · 1 ชั่วโมงข้างหน้า',
+      radarLoading: 'กำลังโหลดเรดาร์ฝน…',
+      radarFailed: 'โหลดข้อมูลเรดาร์ฝนไม่สำเร็จ ลองกดตรวจสอบอีกครั้งภายหลัง',
+      radarComingHead: 'ฝนกำลังเคลื่อนเข้าหาแปลง คาดว่าเริ่มตกในอีกประมาณ {m} นาที',
+      radarRainingHead: 'ขณะนี้มีฝนตกที่แปลง ({cls})',
+      radarRainingContinue: 'คาดว่าจะตกต่อเนื่องตลอด 1 ชั่วโมงข้างหน้า',
+      radarRainingStop: 'คาดว่าฝนจะหยุดภายในประมาณ {m} นาที',
+      radarClearHead: 'ไม่พบกลุ่มฝนเคลื่อนเข้าหาแปลงใน 1 ชั่วโมงข้างหน้า',
+      radarNoRainHead: 'ไม่พบฝนบนเรดาร์ในรัศมี {km} กม. รอบแปลง',
+      radarNoMotionHead: 'มีกลุ่มฝนใกล้แปลง แต่ยังประเมินทิศทางการเคลื่อนที่ไม่ได้',
+      radarNoMotionDetail: 'ดูภาพเรดาร์ย้อนหลังบนแผนที่เพื่อติดตามด้วยตนเอง',
+      radarNearest: 'กลุ่มฝนที่ใกล้ที่สุดอยู่ห่าง {km} กม. ทางทิศ{dir}',
+      radarMotion: 'เคลื่อนไปทางทิศ{dir} ราว {spd} กม./ชม.',
+      radarNearestMoving: '{near} {motion}',
+      radarApproach: 'กลุ่มฝนที่กำลังเข้ามาอยู่ห่างราว {km} กม. ทางทิศ{dir} เคลื่อนที่ราว {spd} กม./ชม.',
+      radarPeak: 'ตกหนักที่สุด ({cls}) ราว +{m} นาที',
+      radarIntensity: 'ความแรงคาดการณ์: {cls}',
+      radarActComing: 'ควรทำ: เลื่อนการให้น้ำรอบถัดไป และงดใส่ปุ๋ยหรือพ่นสารทางใบจนกว่าฝนจะผ่านไป',
+      radarActRaining: 'ควรทำ: งดให้น้ำ และงดใส่ปุ๋ยหรือพ่นสารทางใบระหว่างที่ฝนตก',
+      radarActClear: 'ให้น้ำและทำงานในแปลงตามแผนได้ตามปกติ',
+      radarNote: 'ภาพเรดาร์ล่าสุดเวลา {time} น. จาก RainViewer (เรดาร์กรมอุตุนิยมวิทยา) · ช่วงคาดการณ์คำนวณโดยเลื่อนกลุ่มฝนตามทิศทางล่าสุด (ทดลอง) ไม่รวมฝนที่อาจก่อตัวขึ้นใหม่',
+      radarClassLight: 'ฝนเล็กน้อย–ปานกลาง',
+      radarClassHeavy: 'ฝนหนัก',
+      radarClassVeryHeavy: 'ฝนหนักมาก',
+      radarClassHail: 'ฝนหนักมาก อาจมีลูกเห็บ',
+      radarLegendTitle: 'เรดาร์ฝน (ย้อนหลัง 2 ชม. + คาดการณ์ 1 ชม.)',
+      radarLegendNote: 'ภาพคาดการณ์มีกรอบเส้นประสีม่วง · ความแรงฝนประมาณจากค่าสะท้อนเรดาร์',
+      radarNow: 'ตอนนี้',
+      radarForecastTag: 'คาดการณ์',
+      radarMinutesAgo: '{m} นาทีที่แล้ว',
+      radarMinutesAhead: '+{m} นาที',
+      radarTimeSuffix: ' น.',
+      radarFarmStrip: 'ฝนที่แปลงของคุณ (รัศมี 2 กม.)',
+      radarNoRain: 'ไม่มีฝน',
+      radarPlay: 'เล่นภาพเคลื่อนไหวเรดาร์ฝน',
+      radarPause: 'หยุดภาพเคลื่อนไหว',
+      radarSlider: 'เลือกเวลาของภาพเรดาร์',
+      radarTickMinus2: '−2 ชม.',
+      radarTickMinus1: '−1 ชม.',
+      radarTickPlus1: '+1 ชม.',
+      radarDirs: ['เหนือ','ตะวันออกเฉียงเหนือ','ตะวันออก','ตะวันออกเฉียงใต้','ใต้','ตะวันตกเฉียงใต้','ตะวันตก','ตะวันตกเฉียงเหนือ'],
       waterStatusLegendDamLow: 'น้ำน้อย (<30%)',
       waterStatusLegendDamNormal: 'ปกติ (30–80%)',
       waterStatusLegendDamHigh: 'น้ำมาก (80–100%)',
@@ -1493,6 +1604,47 @@
       waterStatusDamTypeMajor: 'Dam',
       waterStatusDamTypeReservoir: 'Reservoir',
       waterStatusCriticalNote: 'Blinking point = critical situation (river overflow / dam over capacity)',
+      radarKicker: 'Rain radar · next hour',
+      radarLoading: 'Loading rain radar…',
+      radarFailed: 'Could not load rain radar data. Please check again later.',
+      radarComingHead: 'Rain is moving toward your orchard and should start in about {m} minutes',
+      radarRainingHead: 'It is raining at your orchard now ({cls})',
+      radarRainingContinue: 'Rain is expected to continue through the next hour',
+      radarRainingStop: 'Rain is expected to stop within about {m} minutes',
+      radarClearHead: 'No rain is moving toward your orchard in the next hour',
+      radarNoRainHead: 'No rain on radar within {km} km of your orchard',
+      radarNoMotionHead: 'There is rain near your orchard, but its movement could not be estimated',
+      radarNoMotionDetail: 'Use the past radar frames on the map to follow it yourself',
+      radarNearest: 'The nearest rain is {km} km to the {dir}',
+      radarMotion: 'moving {dir} at about {spd} km/h',
+      radarNearestMoving: '{near}, {motion}',
+      radarApproach: 'The approaching rain is about {km} km to the {dir}, moving at about {spd} km/h',
+      radarPeak: 'Heaviest ({cls}) at about +{m} min',
+      radarIntensity: 'Expected intensity: {cls}',
+      radarActComing: 'Suggested: postpone the next irrigation and hold off on fertilizer or foliar sprays until the rain passes',
+      radarActRaining: 'Suggested: skip irrigation and hold off on fertilizer or foliar sprays while it rains',
+      radarActClear: 'Irrigation and field work can go ahead as planned',
+      radarNote: 'Latest radar frame {time} from RainViewer (Thai Meteorological Department radars) · The forecast moves current rain along its recent direction (experimental) and does not include new rain that may form',
+      radarClassLight: 'Light–moderate rain',
+      radarClassHeavy: 'Heavy rain',
+      radarClassVeryHeavy: 'Very heavy rain',
+      radarClassHail: 'Very heavy rain, possible hail',
+      radarLegendTitle: 'Rain radar (past 2 h + 1 h forecast)',
+      radarLegendNote: 'Forecast frames have a purple dashed frame · Intensity estimated from radar reflectivity',
+      radarNow: 'Now',
+      radarForecastTag: 'Forecast',
+      radarMinutesAgo: '{m} min ago',
+      radarMinutesAhead: '+{m} min',
+      radarTimeSuffix: '',
+      radarFarmStrip: 'Rain at your orchard (2 km radius)',
+      radarNoRain: 'No rain',
+      radarPlay: 'Play rain radar animation',
+      radarPause: 'Pause animation',
+      radarSlider: 'Choose radar frame time',
+      radarTickMinus2: '−2 h',
+      radarTickMinus1: '−1 h',
+      radarTickPlus1: '+1 h',
+      radarDirs: ['north','northeast','east','southeast','south','southwest','west','northwest'],
       waterStatusLegendDamLow: 'Low (<30%)',
       waterStatusLegendDamNormal: 'Normal (30–80%)',
       waterStatusLegendDamHigh: 'High (80–100%)',
@@ -1766,6 +1918,7 @@
     renderVisitCounter();
     updateDroughtWarning();
     updateWaterStatusMapPlaceholder();
+    if(typeof renderRadarUI === 'function') renderRadarUI();
 
     try{ localStorage.setItem('avocado_app_lang', lang); }catch(e){}
   }
@@ -3985,6 +4138,7 @@
 
     const legend = document.getElementById('waterStatusLegend');
     if(legend) legend.style.display = 'flex';
+    radarOnNewMap();
     setTimeout(function(){ if(wsMap) wsMap.invalidateSize(); }, 50);
   }
 
@@ -4024,6 +4178,521 @@
     });
   }
 
+  // =====================================================================
+  // Rain radar (RainViewer) + 1-hour nowcast
+  // ---------------------------------------------------------------------
+  // RainViewer's free Weather Maps API gives the past 2 hours of radar
+  // (Thai Meteorological Department radars) in 10-minute frames. Its own
+  // nowcast was discontinued on 1 Jan 2026, so the next hour is computed
+  // here the same way Windy does it: estimate how the rain field moved over
+  // the last 20 minutes and carry the latest frame forward along that
+  // motion for 6 more 10-minute steps. It cannot predict rain that forms
+  // from nothing, which the UI says plainly.
+  //
+  // Requests stay well under RainViewer's 100 requests/min/IP limit: the
+  // analysis reads ≤4 tiles for 3 frames plus the one farm tile for the
+  // other frames; the map loads the other past frames only when the farmer
+  // presses play; forecast frames reuse the latest frame's tiles, shifted.
+  // =====================================================================
+  const RADAR_MAPS_URL = 'https://api.rainviewer.com/public/weather-maps.json';
+  const RADAR_Z = 7, RADAR_TS = 256;           // analysis zoom (RainViewer's max)
+  const RADAR_STEPS = 6, RADAR_STEP_MIN = 10;  // 6 × 10 min = 1 hour ahead
+  const RADAR_ROI_KM = 100;                    // area searched around the farm
+  const RADAR_FARM_RADIUS_KM = 2;              // "rain at the farm" radius
+  const RADAR_MAX_SPEED_KMH = 90;              // motion search limit
+  const RADAR_MIN_SCORE = 0.35;                // below this the motion estimate is not trusted
+  const RADAR_DISPLAY_OPACITY = 0.72;
+  // RainViewer "Universal Blue" (color scheme 2) rain colours, 15–65 dBZ.
+  // Translucent colours below 15 dBZ are mostly cloud/drizzle aloft and are ignored.
+  const RADAR_PALETTE = [[15,0x88ddee],[16,0x6cd1eb],[17,0x51c5e8],[18,0x36bae5],[19,0x1baee2],[20,0x00a3e0],[21,0x009ad5],[22,0x0091ca],[23,0x0088bf],[24,0x007fb4],[25,0x0077aa],[26,0x0070a3],[27,0x00699c],[28,0x006295],[29,0x005b8e],[30,0x005588],[31,0x005180],[32,0x004e78],[33,0x004a70],[34,0x004768],[35,0xffee00],[36,0xffe000],[37,0xffd200],[38,0xffc500],[39,0xffb700],[40,0xffaa00],[41,0xff9f00],[42,0xff9500],[43,0xff8b00],[44,0xff8100],[45,0xff4400],[46,0xf23600],[47,0xe62800],[48,0xd91b00],[49,0xcd0d00],[50,0xc10000],[51,0xa80000],[52,0x8f0000],[53,0x760000],[54,0x5d0000],[55,0xffaaff],[56,0xff9fff],[57,0xff95ff],[58,0xff8bff],[59,0xff81ff],[60,0xff77ff],[61,0xff6cff],[62,0xff62ff],[63,0xff58ff],[64,0xff4eff],[65,0xffffff]];
+  const RADAR_COLOR_TO_DBZ = (function(){ const m = {}; RADAR_PALETTE.forEach(function(p){ m[p[1]] = p[0]; }); return m; })();
+  // Intensity classes. mm/h equivalents (Marshall–Palmer, Z = 200R^1.6) are
+  // approximate: ~0.6 mm/h at 15 dBZ, ~12 at 35, ~50 at 45.
+  const RADAR_CLASSES = [
+    { min:55, color:'#FF77FF', key:'radarClassHail' },
+    { min:45, color:'#D91B00', key:'radarClassVeryHeavy' },
+    { min:35, color:'#FFB700', key:'radarClassHeavy' },
+    { min:15, color:'#0077AA', key:'radarClassLight' }
+  ];
+  function radarClass(dbz){
+    if(dbz === null || dbz === undefined || dbz < 15) return null;
+    for(let i = 0; i < RADAR_CLASSES.length; i++){ if(dbz >= RADAR_CLASSES[i].min) return RADAR_CLASSES[i]; }
+    return null;
+  }
+  function fmt(str, vals){ return String(str).replace(/\{(\w+)\}/g, function(_, k){ return vals[k] !== undefined ? vals[k] : ''; }); }
+  function radarDir(deg){ const dirs = t('radarDirs'); return dirs[Math.round((((deg % 360) + 360) % 360) / 45) % 8]; }
+  function radarClock(sec){ const d = new Date(sec * 1000); return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); }
+
+  // Web Mercator helpers in world pixels at zoom z.
+  function rmX(lon, z){ return (lon + 180) / 360 * Math.pow(2, z) * RADAR_TS; }
+  function rmY(lat, z){ const r = lat * Math.PI / 180; return (1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * Math.pow(2, z) * RADAR_TS; }
+  function rmLon(x, z){ return x / (Math.pow(2, z) * RADAR_TS) * 360 - 180; }
+  function rmLat(y, z){ const n = Math.PI - 2 * Math.PI * y / (Math.pow(2, z) * RADAR_TS); return 180 / Math.PI * Math.atan(Math.sinh(n)); }
+
+  var wsRadar = null;        // analysis result + frame list for the current farm
+  var wsRadarView = null;    // Leaflet layers/state for the current wsMap
+  var wsRadarTimer = null;
+
+  function radarTileUrl(host, path, x, y, smooth){
+    return host + path + '/' + RADAR_TS + '/' + RADAR_Z + '/' + x + '/' + y + '/2/' + (smooth ? '1' : '0') + '_0.png';
+  }
+
+  // Loads one radar tile and returns its pixels converted to dBZ (Int8,
+  // -1 = no rain). Missing tiles (e.g. outside radar coverage) read as empty.
+  function radarTileDbz(url){
+    return new Promise(function(resolve){
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = function(){
+        try{
+          const c = document.createElement('canvas'); c.width = RADAR_TS; c.height = RADAR_TS;
+          const g = c.getContext('2d'); g.drawImage(img, 0, 0, RADAR_TS, RADAR_TS);
+          const px = g.getImageData(0, 0, RADAR_TS, RADAR_TS).data;
+          const out = new Int8Array(RADAR_TS * RADAR_TS).fill(-1);
+          for(let i = 0, j = 0; i < px.length; i += 4, j++){
+            if(px[i + 3] < 250) continue;
+            const key = (px[i] << 16) | (px[i + 1] << 8) | px[i + 2];
+            let dbz = RADAR_COLOR_TO_DBZ[key];
+            if(dbz === undefined){ // tolerate slight colour drift: nearest palette colour
+              let best = 1e9;
+              for(let k = 0; k < RADAR_PALETTE.length; k++){
+                const c2 = RADAR_PALETTE[k][1];
+                const d = Math.pow(px[i] - (c2 >> 16), 2) + Math.pow(px[i + 1] - ((c2 >> 8) & 255), 2) + Math.pow(px[i + 2] - (c2 & 255), 2);
+                if(d < best){ best = d; dbz = RADAR_PALETTE[k][0]; }
+              }
+            }
+            out[j] = dbz;
+          }
+          resolve(out);
+        } catch(e){ resolve(null); }
+      };
+      img.onerror = function(){ resolve(null); };
+      img.src = url;
+    });
+  }
+
+  // Assembles a dBZ grid for world-pixel box [x0,x0+w) × [y0,y0+h) at RADAR_Z.
+  async function radarGrid(host, path, x0, y0, w, h){
+    const grid = new Int8Array(w * h).fill(-1);
+    const tx0 = Math.floor(x0 / RADAR_TS), tx1 = Math.floor((x0 + w - 1) / RADAR_TS);
+    const ty0 = Math.floor(y0 / RADAR_TS), ty1 = Math.floor((y0 + h - 1) / RADAR_TS);
+    const jobs = [];
+    for(let tx = tx0; tx <= tx1; tx++){
+      for(let ty = ty0; ty <= ty1; ty++){
+        jobs.push(radarTileDbz(radarTileUrl(host, path, tx, ty, false)).then(function(tile){
+          if(!tile) return 0;
+          for(let yy = Math.max(y0, ty * RADAR_TS); yy < Math.min(y0 + h, (ty + 1) * RADAR_TS); yy++){
+            for(let xx = Math.max(x0, tx * RADAR_TS); xx < Math.min(x0 + w, (tx + 1) * RADAR_TS); xx++){
+              grid[(yy - y0) * w + (xx - x0)] = tile[(yy - ty * RADAR_TS) * RADAR_TS + (xx - tx * RADAR_TS)];
+            }
+          }
+          return 1;
+        }));
+      }
+    }
+    const loaded = (await Promise.all(jobs)).reduce(function(a, b){ return a + b; }, 0);
+    return loaded ? grid : null;
+  }
+
+  // Max dBZ within radius r (grid px) of (cx, cy); null if no rain / outside the grid.
+  function radarMaxAround(grid, w, h, cx, cy, r){
+    let best = -1;
+    const r2 = r * r;
+    for(let y = Math.floor(cy - r); y <= Math.ceil(cy + r); y++){
+      if(y < 0 || y >= h) continue;
+      for(let x = Math.floor(cx - r); x <= Math.ceil(cx + r); x++){
+        if(x < 0 || x >= w) continue;
+        if((x - cx) * (x - cx) + (y - cy) * (y - cy) > r2) continue;
+        const v = grid[y * w + x];
+        if(v > best) best = v;
+      }
+    }
+    return best >= 15 ? best : null;
+  }
+
+  // Single motion vector (pure translation) that best maps the older rain
+  // field onto the newer one: normalised cross-correlation of the rain
+  // masks, coarse search on a 2× downsampled grid, then refined at full res.
+  function radarEstimateMotion(older, newer, w, h, maxShift){
+    function mask(grid, f){
+      const W = Math.floor(w / f), H = Math.floor(h / f), m = new Float32Array(W * H);
+      for(let y = 0; y < H * f; y++) for(let x = 0; x < W * f; x++){
+        if(grid[y * w + x] >= 15) m[Math.floor(y / f) * W + Math.floor(x / f)] = 1;
+      }
+      // 3×3 box blur so near-misses still count
+      const b = new Float32Array(W * H);
+      for(let y = 0; y < H; y++) for(let x = 0; x < W; x++){
+        let s = 0, n = 0;
+        for(let dy = -1; dy <= 1; dy++) for(let dx = -1; dx <= 1; dx++){
+          const xx = x + dx, yy = y + dy;
+          if(xx >= 0 && yy >= 0 && xx < W && yy < H){ s += m[yy * W + xx]; n++; }
+        }
+        b[y * W + x] = s / n;
+      }
+      return { m: b, W: W, H: H };
+    }
+    function score(a, b, W, H, dx, dy){
+      // older pixel (x,y) should appear at (x+dx, y+dy) in the newer frame
+      let sab = 0, saa = 0, sbb = 0;
+      for(let y = Math.max(0, -dy); y < Math.min(H, H - dy); y++){
+        const ro = y * W, rn = (y + dy) * W;
+        for(let x = Math.max(0, -dx); x < Math.min(W, W - dx); x++){
+          const va = a[ro + x], vb = b[rn + x + dx];
+          sab += va * vb; saa += va * va; sbb += vb * vb;
+        }
+      }
+      return (saa > 0 && sbb > 0) ? sab / Math.sqrt(saa * sbb) : 0;
+    }
+    const c1 = mask(older, 2), c2 = mask(newer, 2);
+    const R = Math.ceil(maxShift / 2);
+    let best = { s: -1, dx: 0, dy: 0 };
+    for(let dy = -R; dy <= R; dy++) for(let dx = -R; dx <= R; dx++){
+      const s = score(c1.m, c2.m, c1.W, c1.H, dx, dy);
+      if(s > best.s) best = { s: s, dx: dx, dy: dy };
+    }
+    const f1 = mask(older, 1), f2 = mask(newer, 1);
+    let fine = { s: -1, dx: best.dx * 2, dy: best.dy * 2 };
+    for(let dy = best.dy * 2 - 2; dy <= best.dy * 2 + 2; dy++) for(let dx = best.dx * 2 - 2; dx <= best.dx * 2 + 2; dx++){
+      const s = score(f1.m, f2.m, f1.W, f1.H, dx, dy);
+      if(s > fine.s) fine = { s: s, dx: dx, dy: dy };
+    }
+    return fine;
+  }
+
+  async function analyzeRainRadar(lat, lon){
+    const res = await fetch(RADAR_MAPS_URL, { cache: 'no-cache' });
+    if(!res.ok) throw new Error('RainViewer maps HTTP ' + res.status);
+    const maps = await res.json();
+    const frames = (maps && maps.radar && Array.isArray(maps.radar.past)) ? maps.radar.past : [];
+    if(frames.length < 3) throw new Error('RainViewer: not enough radar frames');
+    const host = maps.host;
+    const L0 = frames.length - 1;
+
+    const kmPx = 40075.016686 * Math.cos(lat * Math.PI / 180) / (Math.pow(2, RADAR_Z) * RADAR_TS);
+    const fxW = rmX(lon, RADAR_Z), fyW = rmY(lat, RADAR_Z);
+    const half = Math.ceil(RADAR_ROI_KM / kmPx);
+    const x0 = Math.floor(fxW) - half, y0 = Math.floor(fyW) - half, w = half * 2 + 1, h = half * 2 + 1;
+    const fx = fxW - x0, fy = fyW - y0;
+    const rFarm = Math.max(1.5, RADAR_FARM_RADIUS_KM / kmPx);
+
+    // Latest and 20-minutes-earlier frames over the whole search area.
+    const latest = await radarGrid(host, frames[L0].path, x0, y0, w, h);
+    if(!latest) throw new Error('RainViewer: latest frame unavailable');
+    const older = await radarGrid(host, frames[L0 - 2].path, x0, y0, w, h);
+
+    // Past rain at the farm: a small box around the farm for each earlier frame.
+    const sb = Math.ceil(rFarm) + 1;
+    const pastAtFarm = await Promise.all(frames.map(function(f, i){
+      if(i === L0) return radarMaxAround(latest, w, h, fx, fy, rFarm);
+      if(i === L0 - 2 && older) return radarMaxAround(older, w, h, fx, fy, rFarm);
+      const bx = Math.floor(fxW) - sb, by = Math.floor(fyW) - sb, bw = sb * 2 + 1;
+      return radarGrid(host, f.path, bx, by, bw, bw).then(function(g){
+        return g ? radarMaxAround(g, bw, bw, fxW - bx, fyW - by, rFarm) : null;
+      });
+    }));
+
+    // Nearest rain right now.
+    let nearest = null;
+    for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){
+      if(latest[y * w + x] < 15) continue;
+      const d = Math.hypot(x - fx, y - fy) * kmPx;
+      if(!nearest || d < nearest.km){
+        nearest = { km: d, bearing: (Math.atan2(x - fx, -(y - fy)) * 180 / Math.PI + 360) % 360 };
+      }
+    }
+
+    // Motion over the last 20 minutes → per 10-minute step.
+    let motion = null;
+    const rainPx = function(g){ let n = 0; for(let i = 0; i < g.length; i++) if(g[i] >= 15) n++; return n; };
+    if(older && nearest && rainPx(latest) >= 30 && rainPx(older) >= 30){
+      const maxShift = Math.ceil(RADAR_MAX_SPEED_KMH * (2 * RADAR_STEP_MIN / 60) / kmPx);
+      const m = radarEstimateMotion(older, latest, w, h, maxShift);
+      if(m.s >= RADAR_MIN_SCORE){
+        const vx = m.dx / 2, vy = m.dy / 2; // grid px per 10 min
+        motion = {
+          vx: vx, vy: vy, score: m.s,
+          speedKmh: Math.hypot(vx, vy) * kmPx * (60 / RADAR_STEP_MIN),
+          heading: (Math.atan2(vx, -vy) * 180 / Math.PI + 360) % 360,
+          dLon: rmLon(fxW + vx, RADAR_Z) - lon,
+          dLat: rmLat(fyW + vy, RADAR_Z) - lat
+        };
+      }
+    }
+
+    // Forecast at the farm: what is now upstream along the motion arrives later.
+    const forecastAtFarm = [];
+    for(let k = 1; k <= RADAR_STEPS; k++){
+      forecastAtFarm.push(motion ? radarMaxAround(latest, w, h, fx - k * motion.vx, fy - k * motion.vy, rFarm) : null);
+    }
+
+    // Where the rain that reaches the farm is now: walk upstream from the
+    // farm (against the motion) until the farm-sized circle hits rain.
+    let approach = null;
+    const firstWetK = forecastAtFarm.findIndex(function(v){ return v !== null; });
+    if(motion && firstWetK >= 0){
+      const len = Math.hypot(motion.vx, motion.vy) * (firstWetK + 1);
+      for(let s = 0; s <= len + 0.01; s += 0.5){
+        const ux = motion.vx / Math.hypot(motion.vx, motion.vy), uy = motion.vy / Math.hypot(motion.vx, motion.vy);
+        if(radarMaxAround(latest, w, h, fx - ux * s, fy - uy * s, rFarm) !== null){
+          approach = { km: Math.max(0, s * kmPx), bearing: (motion.heading + 180) % 360 };
+          break;
+        }
+      }
+    }
+
+    return {
+      lat: lat, lon: lon, host: host, frames: frames, latestIndex: L0, approach: approach,
+      times: frames.map(function(f){ return f.time; }).concat(
+        Array.from({ length: RADAR_STEPS }, function(_, k){ return frames[L0].time + (k + 1) * RADAR_STEP_MIN * 60; })),
+      timeline: pastAtFarm.concat(forecastAtFarm),
+      nearest: nearest, motion: motion
+    };
+  }
+
+  function renderRadarCard(){
+    const card = document.getElementById('wsRadarCard');
+    if(!card || !wsRadar) return;
+    card.classList.remove('hidden', 'is-coming', 'is-raining');
+    if(wsRadar.state === 'loading'){
+      card.innerHTML = '<div class="ws-radar-kicker">' + esc(t('radarKicker')) + '</div><div class="ws-radar-detail">' + esc(t('radarLoading')) + '</div>';
+      return;
+    }
+    if(wsRadar.state === 'error'){
+      card.innerHTML = '<div class="ws-radar-kicker">' + esc(t('radarKicker')) + '</div><div class="ws-radar-detail">' + esc(t('radarFailed')) + '</div>';
+      return;
+    }
+    const r = wsRadar.result;
+    const L0 = r.latestIndex;
+    const now = r.timeline[L0];
+    const fut = r.timeline.slice(L0 + 1);
+    const firstWet = fut.findIndex(function(v){ return v !== null; });
+    const firstDry = fut.findIndex(function(v){ return v === null; });
+    let peak = null, peakK = -1;
+    fut.forEach(function(v, k){ if(v !== null && (peak === null || v > peak)){ peak = v; peakK = k; } });
+    const parts = [];
+    const nearestTxt = r.nearest ? fmt(t('radarNearest'), { km: r.nearest.km.toFixed(1), dir: radarDir(r.nearest.bearing) }) : '';
+    const motionTxt = r.motion ? fmt(t('radarMotion'), { dir: radarDir(r.motion.heading), spd: Math.round(r.motion.speedKmh) }) : '';
+    let head, act = '', cls = '';
+    if(now !== null){
+      cls = 'is-raining';
+      head = fmt(t('radarRainingHead'), { cls: t(radarClass(now).key) });
+      if(r.motion){
+        parts.push(firstDry === -1 ? t('radarRainingContinue') : fmt(t('radarRainingStop'), { m: (firstDry + 1) * RADAR_STEP_MIN }));
+        if(motionTxt) parts.push(motionTxt.charAt(0).toUpperCase() + motionTxt.slice(1));
+      }
+      act = t('radarActRaining');
+    } else if(!r.nearest){
+      head = fmt(t('radarNoRainHead'), { km: RADAR_ROI_KM });
+      act = t('radarActClear');
+    } else if(!r.motion){
+      head = t('radarNoMotionHead');
+      parts.push(nearestTxt, t('radarNoMotionDetail'));
+    } else if(firstWet >= 0){
+      cls = 'is-coming';
+      head = fmt(t('radarComingHead'), { m: (firstWet + 1) * RADAR_STEP_MIN });
+      parts.push(r.approach
+        ? fmt(t('radarApproach'), { km: r.approach.km.toFixed(1), dir: radarDir(r.approach.bearing), spd: Math.round(r.motion.speedKmh) })
+        : fmt(t('radarNearestMoving'), { near: nearestTxt, motion: motionTxt }));
+      if(peak !== null){
+        parts.push(peak >= 35
+          ? fmt(t('radarPeak'), { cls: t(radarClass(peak).key), m: (peakK + 1) * RADAR_STEP_MIN })
+          : fmt(t('radarIntensity'), { cls: t(radarClass(peak).key) }));
+      }
+      act = t('radarActComing');
+    } else {
+      head = t('radarClearHead');
+      parts.push(fmt(t('radarNearestMoving'), { near: nearestTxt, motion: motionTxt }));
+      act = t('radarActClear');
+    }
+    if(cls) card.classList.add(cls);
+    let html = '<div class="ws-radar-kicker">' + esc(t('radarKicker')) + '</div>'
+      + '<div class="ws-radar-head">' + esc(head) + '</div>';
+    parts.filter(Boolean).forEach(function(p){ html += '<div class="ws-radar-detail">' + esc(p) + '</div>'; });
+    if(act) html += '<div class="ws-radar-act">' + esc(act) + '</div>';
+    html += '<div class="ws-radar-note">' + esc(fmt(t('radarNote'), { time: radarClock(r.times[L0]) })) + '</div>';
+    card.innerHTML = html;
+  }
+
+  // ---- Map display ----------------------------------------------------
+  function radarOnNewMap(){
+    // Called right after renderWaterStatusMap() builds a fresh wsMap.
+    radarStop();
+    wsRadarView = null;
+    if(!wsMap) return;
+    wsMap.createPane('wsRadarPane').style.zIndex = 350;
+    wsMap.createPane('wsRadarFcPane').style.zIndex = 351;
+    wsMap.getPane('wsRadarPane').style.pointerEvents = 'none';
+    wsMap.getPane('wsRadarFcPane').style.pointerEvents = 'none';
+    const Stamp = L.Control.extend({
+      options: { position: 'topright' },
+      onAdd: function(){ const d = L.DomUtil.create('div', 'ws-radar-stamp'); d.style.display = 'none'; return d; }
+    });
+    const stamp = new Stamp();
+    stamp.addTo(wsMap);
+    wsRadarView = { map: wsMap, past: [], fc: null, stamp: stamp.getContainer(), index: null };
+    wsMap.on('zoomend', function(){ if(wsRadarView && wsRadarView.index !== null) radarShow(wsRadarView.index); });
+    if(wsRadar && wsRadar.state === 'ready') radarSetupView();
+  }
+
+  function radarLayer(i){
+    const v = wsRadarView, r = wsRadar.result;
+    const isFc = i > r.latestIndex;
+    if(isFc){
+      if(!v.fc){
+        v.fc = L.tileLayer(r.host + r.frames[r.latestIndex].path + '/256/{z}/{x}/{y}/2/1_0.png', {
+          tileSize: 256, maxNativeZoom: RADAR_Z, maxZoom: 19, opacity: 0, pane: 'wsRadarFcPane'
+        }).addTo(v.map);
+      }
+      return v.fc;
+    }
+    if(!v.past[i]){
+      v.past[i] = L.tileLayer(r.host + r.frames[i].path + '/256/{z}/{x}/{y}/2/1_0.png', {
+        tileSize: 256, maxNativeZoom: RADAR_Z, maxZoom: 19, opacity: 0, pane: 'wsRadarPane',
+        attribution: i === r.latestIndex ? 'Radar &copy; <a href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer</a>' : ''
+      }).addTo(v.map);
+    }
+    return v.past[i];
+  }
+
+  function radarEnabled(){
+    const el = document.getElementById('wsLayerRadarToggle');
+    return !el || el.checked;
+  }
+
+  function radarShow(i){
+    const v = wsRadarView;
+    if(!v || !wsRadar || wsRadar.state !== 'ready') return;
+    const r = wsRadar.result, L0 = r.latestIndex;
+    v.index = i;
+    const on = radarEnabled();
+    const target = on ? radarLayer(i) : null;
+    v.past.forEach(function(l){ if(l && l !== target) l.setOpacity(0); });
+    if(v.fc && v.fc !== target) v.fc.setOpacity(0);
+    const fcPane = v.map.getPane('wsRadarFcPane');
+    const isFc = i > L0;
+    if(isFc && r.motion){
+      const k = i - L0;
+      const p0 = v.map.latLngToLayerPoint([r.lat, r.lon]);
+      const p1 = v.map.latLngToLayerPoint([r.lat + r.motion.dLat * k, r.lon + r.motion.dLon * k]);
+      fcPane.style.transform = 'translate(' + (p1.x - p0.x) + 'px,' + (p1.y - p0.y) + 'px)';
+    } else {
+      fcPane.style.transform = '';
+    }
+    if(target) target.setOpacity(RADAR_DISPLAY_OPACITY);
+    v.map.getContainer().classList.toggle('is-radar-fc', on && isFc);
+    v.stamp.style.display = on ? '' : 'none';
+    v.stamp.classList.toggle('is-fc', isFc);
+    const rel = i === L0 ? t('radarNow')
+      : (isFc ? t('radarForecastTag') + ' ' + fmt(t('radarMinutesAhead'), { m: (i - L0) * RADAR_STEP_MIN })
+              : fmt(t('radarMinutesAgo'), { m: (L0 - i) * RADAR_STEP_MIN }));
+    v.stamp.innerHTML = esc(radarClock(r.times[i]) + t('radarTimeSuffix')) + '<small>' + esc(rel) + '</small>';
+
+    const slider = document.getElementById('wsRadarSlider');
+    if(slider) slider.value = i;
+    const cells = document.getElementById('wsRadarCells');
+    if(cells) Array.prototype.forEach.call(cells.children, function(c, k){ c.classList.toggle('cur', k === i); });
+    const lab = document.getElementById('wsRadarCellLabel');
+    if(lab){
+      const c = radarClass(r.timeline[i]);
+      lab.textContent = radarClock(r.times[i]) + t('radarTimeSuffix') + ' · ' + (c ? t(c.key) : t('radarNoRain'));
+    }
+  }
+
+  function radarSetPlayIcon(playing){
+    const b = document.getElementById('wsRadarPlayBtn');
+    if(!b) return;
+    b.innerHTML = playing
+      ? '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg>';
+    b.setAttribute('aria-label', t(playing ? 'radarPause' : 'radarPlay'));
+  }
+  function radarStop(){
+    if(wsRadarTimer){ clearInterval(wsRadarTimer); wsRadarTimer = null; }
+    radarSetPlayIcon(false);
+  }
+  function radarPlay(){
+    if(!wsRadar || wsRadar.state !== 'ready' || !wsRadarView) return;
+    const n = wsRadar.result.times.length;
+    // Create every frame's layer up front so tiles load before they are shown.
+    for(let i = 0; i < n; i++) radarLayer(i);
+    let i = (wsRadarView.index === null || wsRadarView.index >= n - 1) ? 0 : wsRadarView.index;
+    radarSetPlayIcon(true);
+    radarShow(i);
+    wsRadarTimer = setInterval(function(){ i = (i + 1) % n; radarShow(i); }, 600);
+  }
+
+  function radarSetupView(){
+    const r = wsRadar.result, n = r.times.length, L0 = r.latestIndex;
+    const player = document.getElementById('wsRadarPlayer');
+    const slider = document.getElementById('wsRadarSlider');
+    const cells = document.getElementById('wsRadarCells');
+    const bar = document.getElementById('wsRadarBar');
+    if(slider){ slider.max = n - 1; slider.setAttribute('aria-label', t('radarSlider')); }
+    if(bar) bar.style.setProperty('--split', (L0 / (n - 1) * 100) + '%');
+    if(cells){
+      cells.style.gridTemplateColumns = 'repeat(' + n + ', minmax(0,1fr))';
+      cells.innerHTML = '';
+      r.timeline.forEach(function(v, i){
+        const el = document.createElement('i');
+        const c = radarClass(v);
+        if(c) el.style.background = c.color;
+        if(i > L0) el.classList.add('fc');
+        if(i === L0) el.classList.add('now');
+        el.title = radarClock(r.times[i]) + ' · ' + (c ? t(c.key) : t('radarNoRain'));
+        el.addEventListener('click', function(){ radarStop(); radarShow(i); });
+        cells.appendChild(el);
+      });
+    }
+    if(player) player.classList.toggle('hidden', !radarEnabled() || !wsRadarView);
+    radarSetPlayIcon(false);
+    if(wsRadarView) radarShow(L0);
+  }
+
+  // Re-render text after a language switch.
+  function renderRadarUI(){
+    if(!wsRadar) return;
+    renderRadarCard();
+    if(wsRadar.state === 'ready' && wsRadarView){
+      radarSetupView();
+    }
+  }
+
+  (function wireRadarControls(){
+    const playBtn = document.getElementById('wsRadarPlayBtn');
+    if(playBtn) playBtn.addEventListener('click', function(){ if(wsRadarTimer) radarStop(); else radarPlay(); });
+    const slider = document.getElementById('wsRadarSlider');
+    if(slider) slider.addEventListener('input', function(){ radarStop(); radarShow(+slider.value); });
+    const toggle = document.getElementById('wsLayerRadarToggle');
+    if(toggle) toggle.addEventListener('change', function(){
+      if(!toggle.checked) radarStop();
+      const player = document.getElementById('wsRadarPlayer');
+      if(player) player.classList.toggle('hidden', !toggle.checked || !(wsRadar && wsRadar.state === 'ready'));
+      if(wsRadarView && wsRadarView.index !== null) radarShow(wsRadarView.index);
+    });
+    radarSetPlayIcon(false);
+  })();
+
+  var radarRequestId = 0;
+  async function loadRainRadar(lat, lon){
+    const myId = ++radarRequestId;
+    radarStop();
+    wsRadar = { state: 'loading' };
+    renderRadarCard();
+    const player = document.getElementById('wsRadarPlayer');
+    if(player) player.classList.add('hidden');
+    try{
+      const result = await analyzeRainRadar(lat, lon);
+      if(myId !== radarRequestId) return; // a newer check started meanwhile
+      wsRadar = { state: 'ready', result: result };
+    } catch(e){
+      console.warn('Rain radar failed:', e);
+      if(myId !== radarRequestId) return;
+      wsRadar = { state: 'error' };
+    }
+    renderRadarCard();
+    if(wsRadar.state === 'ready' && wsRadarView) radarSetupView();
+  }
+
   function fetchWaterStatusForGps(){
     setWaterStatusLoading(true);
     setWaterStatusGpsStatus(t('gpsAsking'));
@@ -4044,6 +4713,9 @@
         const lon = pos.coords.longitude;
         setWaterStatusGpsStatus(t('gpsCoord') + ' ' + lat.toFixed(3) + ', ' + lon.toFixed(3) + ' — ' + t('waterStatusCalling'));
         let rateLimitHit = false;
+        // Rain radar runs alongside (not awaited): it has its own source and
+        // its own card, so it never delays or breaks the ThaiWater results.
+        loadRainRadar(lat, lon);
 
         try{
           // One fetch to our own pre-cached JSON (refreshed every hour
