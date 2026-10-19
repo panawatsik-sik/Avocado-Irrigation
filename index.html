@@ -1050,7 +1050,7 @@
 
   <div class="footer-ru-note" data-i18n="headerCreditProject">ภายใต้ทุนด้านการนำผลงานวิจัยและนวัตกรรมไปใช้ประโยชน์<br>(RU: Research Utilization)<br>ซึ่งสนับสนุนงบประมาณโดย สำนักงานพัฒนาการวิจัยการเกษตร (องค์การมหาชน)</div>
 
-  <div class="update-date" data-i18n="lastUpdated">อัปเดตล่าสุด: 16 สิงหาคม 2569</div>
+  <div class="update-date" data-i18n="lastUpdated">อัปเดตล่าสุด: 19 ตุลาคม 2569</div>
   <div class="visit-counter hidden" id="visitCounter"></div>
 </div>
 
@@ -1244,18 +1244,21 @@
       radarRainingContinue: 'คาดว่าจะตกต่อเนื่องตลอด 1 ชั่วโมงข้างหน้า',
       radarRainingStop: 'คาดว่าฝนจะหยุดภายในประมาณ {m} นาที',
       radarClearHead: 'ไม่พบกลุ่มฝนเคลื่อนเข้าหาแปลงใน 1 ชั่วโมงข้างหน้า',
+      radarNearHead: 'มีกลุ่มฝนเคลื่อนเข้าใกล้แปลง อาจผ่านในระยะ {km} กม. จากแปลงภายในประมาณ {m} นาที',
       radarNoRainHead: 'ไม่พบฝนบนเรดาร์ในรัศมี {km} กม. รอบแปลง',
       radarNoMotionHead: 'มีกลุ่มฝนใกล้แปลง แต่ยังประเมินทิศทางการเคลื่อนที่ไม่ได้',
       radarNoMotionDetail: 'ดูภาพเรดาร์ย้อนหลังบนแผนที่เพื่อติดตามด้วยตนเอง',
       radarNearest: 'กลุ่มฝนที่ใกล้ที่สุดอยู่ห่าง {km} กม. ทางทิศ{dir}',
       radarMotion: 'เคลื่อนไปทางทิศ{dir} ราว {spd} กม./ชม.',
+      radarStationary: 'แทบไม่เคลื่อนที่',
+      radarNearStillHead: 'มีกลุ่มฝนอยู่ใกล้แปลงในระยะ {km} กม. และแทบไม่เคลื่อนที่',
       radarNearestMoving: '{near} {motion}',
       radarApproach: 'กลุ่มฝนที่กำลังเข้ามาอยู่ห่างราว {km} กม. ทางทิศ{dir} เคลื่อนที่ราว {spd} กม./ชม.',
       radarPeak: 'ตกหนักที่สุด ({cls}) ราว +{m} นาที',
       radarIntensity: 'ความแรงคาดการณ์: {cls}',
-      radarActComing: 'ควรทำ: เลื่อนการให้น้ำรอบถัดไป และงดใส่ปุ๋ยหรือพ่นสารทางใบจนกว่าฝนจะผ่านไป',
-      radarActRaining: 'ควรทำ: งดให้น้ำ และงดใส่ปุ๋ยหรือพ่นสารทางใบระหว่างที่ฝนตก',
-      radarActClear: 'ให้น้ำและทำงานในแปลงตามแผนได้ตามปกติ',
+      radarActComing: 'คำแนะนำ: เลื่อนการให้น้ำรอบถัดไป และงดใส่ปุ๋ยหรือพ่นสารทางใบจนกว่าฝนจะผ่านไป',
+      radarActRaining: 'คำแนะนำ: งดให้น้ำ และงดใส่ปุ๋ยหรือพ่นสารทางใบระหว่างที่ฝนตก',
+      radarActClear: 'คำแนะนำ: ให้น้ำและทำงานในแปลงตามแผนได้ตามปกติ',
       radarNote: 'ภาพเรดาร์ล่าสุดเวลา {time} น. จาก RainViewer (เรดาร์กรมอุตุนิยมวิทยา) · ช่วงคาดการณ์คำนวณโดยเลื่อนกลุ่มฝนตามทิศทางล่าสุด (ทดลอง) ไม่รวมฝนที่อาจก่อตัวขึ้นใหม่',
       radarClassLight: 'ฝนเล็กน้อย–ปานกลาง',
       radarClassHeavy: 'ฝนหนัก',
@@ -1426,7 +1429,7 @@
       fertMethodNote: 'หว่านปุ๋ยรอบโคนต้นบริเวณทรงพุ่ม พรวนดินกลบ แล้วรดน้ำตาม',
       alertCanopyDiam: 'กรุณากรอกเส้นผ่านศูนย์กลางทรงพุ่ม (ต้องมากกว่า 0)',
       footerText: 'เครื่องมือช่วยประมาณการให้น้ำและปุ๋ย · สำหรับใช้เป็นแนวทางเบื้องต้นเท่านั้น',
-      lastUpdated: 'อัปเดตล่าสุด: 16 สิงหาคม 2569',
+      lastUpdated: 'อัปเดตล่าสุด: 19 ตุลาคม 2569',
 
       alertHeadsFlow: 'กรุณากรอกจำนวนหัวสปริงเกอร์และอัตราการไหลให้ครบถ้วน (ต้องมากกว่า 0)',
       alertEto: 'กรุณากรอกค่า ETo ให้ครบถ้วน (ต้องมากกว่า 0)',
@@ -1612,18 +1615,21 @@
       radarRainingContinue: 'Rain is expected to continue through the next hour',
       radarRainingStop: 'Rain is expected to stop within about {m} minutes',
       radarClearHead: 'No rain is moving toward your orchard in the next hour',
+      radarNearHead: 'Rain is moving close to your orchard and may pass within {km} km of it in about {m} minutes',
       radarNoRainHead: 'No rain on radar within {km} km of your orchard',
       radarNoMotionHead: 'There is rain near your orchard, but its movement could not be estimated',
       radarNoMotionDetail: 'Use the past radar frames on the map to follow it yourself',
       radarNearest: 'The nearest rain is {km} km to the {dir}',
       radarMotion: 'moving {dir} at about {spd} km/h',
+      radarStationary: 'almost stationary',
+      radarNearStillHead: 'Rain is sitting {km} km from your orchard and barely moving',
       radarNearestMoving: '{near}, {motion}',
       radarApproach: 'The approaching rain is about {km} km to the {dir}, moving at about {spd} km/h',
       radarPeak: 'Heaviest ({cls}) at about +{m} min',
       radarIntensity: 'Expected intensity: {cls}',
-      radarActComing: 'Suggested: postpone the next irrigation and hold off on fertilizer or foliar sprays until the rain passes',
-      radarActRaining: 'Suggested: skip irrigation and hold off on fertilizer or foliar sprays while it rains',
-      radarActClear: 'Irrigation and field work can go ahead as planned',
+      radarActComing: 'Recommendation: postpone the next irrigation and hold off on fertilizer or foliar sprays until the rain passes',
+      radarActRaining: 'Recommendation: skip irrigation and hold off on fertilizer or foliar sprays while it rains',
+      radarActClear: 'Recommendation: irrigation and field work can go ahead as planned',
       radarNote: 'Latest radar frame {time} from RainViewer (Thai Meteorological Department radars) · The forecast moves current rain along its recent direction (experimental) and does not include new rain that may form',
       radarClassLight: 'Light–moderate rain',
       radarClassHeavy: 'Heavy rain',
@@ -1794,7 +1800,7 @@
       fertMethodNote: 'Broadcast around the trunk within the canopy zone, work lightly into the soil, then water in',
       alertCanopyDiam: 'Please enter the canopy diameter (must be greater than 0)',
       footerText: 'A tool for estimating irrigation and fertilizer needs · For general guidance only',
-      lastUpdated: 'Last updated: 16 August 2026',
+      lastUpdated: 'Last updated: 19 October 2026',
 
       alertHeadsFlow: 'Please enter the number of sprinkler heads and flow rate (must be greater than 0)',
       alertEto: 'Please enter the ETo value (must be greater than 0)',
@@ -3400,7 +3406,7 @@
     try{
       const d = new Date(iso);
       if(isNaN(d.getTime())) return '';
-      return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: 'short', timeStyle: 'short' });
+return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: 'short', timeStyle: 'short' });
     } catch(e){ return ''; }
   }
 
@@ -4199,6 +4205,7 @@
   const RADAR_STEPS = 6, RADAR_STEP_MIN = 10;  // 6 × 10 min = 1 hour ahead
   const RADAR_ROI_KM = 100;                    // area searched around the farm
   const RADAR_FARM_RADIUS_KM = 2;              // "rain at the farm" radius
+  const RADAR_NEAR_KM = 5;                     // "rain passing close to the farm" radius
   const RADAR_MAX_SPEED_KMH = 90;              // motion search limit
   const RADAR_MIN_SCORE = 0.35;                // below this the motion estimate is not trusted
   const RADAR_DISPLAY_OPACITY = 0.72;
@@ -4420,9 +4427,11 @@
     }
 
     // Forecast at the farm: what is now upstream along the motion arrives later.
-    const forecastAtFarm = [];
+    const forecastAtFarm = [], forecastNear = [];
+    const rNear = RADAR_NEAR_KM / kmPx;
     for(let k = 1; k <= RADAR_STEPS; k++){
       forecastAtFarm.push(motion ? radarMaxAround(latest, w, h, fx - k * motion.vx, fy - k * motion.vy, rFarm) : null);
+      forecastNear.push(motion ? radarMaxAround(latest, w, h, fx - k * motion.vx, fy - k * motion.vy, rNear) : null);
     }
 
     // Where the rain that reaches the farm is now: walk upstream from the
@@ -4441,7 +4450,7 @@
     }
 
     return {
-      lat: lat, lon: lon, host: host, frames: frames, latestIndex: L0, approach: approach,
+      lat: lat, lon: lon, host: host, frames: frames, latestIndex: L0, approach: approach, forecastNear: forecastNear,
       times: frames.map(function(f){ return f.time; }).concat(
         Array.from({ length: RADAR_STEPS }, function(_, k){ return frames[L0].time + (k + 1) * RADAR_STEP_MIN * 60; })),
       timeline: pastAtFarm.concat(forecastAtFarm),
@@ -4471,7 +4480,9 @@
     fut.forEach(function(v, k){ if(v !== null && (peak === null || v > peak)){ peak = v; peakK = k; } });
     const parts = [];
     const nearestTxt = r.nearest ? fmt(t('radarNearest'), { km: r.nearest.km.toFixed(1), dir: radarDir(r.nearest.bearing) }) : '';
-    const motionTxt = r.motion ? fmt(t('radarMotion'), { dir: radarDir(r.motion.heading), spd: Math.round(r.motion.speedKmh) }) : '';
+    const still = r.motion && r.motion.speedKmh < 5;
+    const motionTxt = !r.motion ? '' : (still ? t('radarStationary')
+      : fmt(t('radarMotion'), { dir: radarDir(r.motion.heading), spd: Math.round(r.motion.speedKmh) }));
     let head, act = '', cls = '';
     if(now !== null){
       cls = 'is-raining';
@@ -4497,6 +4508,19 @@
         parts.push(peak >= 35
           ? fmt(t('radarPeak'), { cls: t(radarClass(peak).key), m: (peakK + 1) * RADAR_STEP_MIN })
           : fmt(t('radarIntensity'), { cls: t(radarClass(peak).key) }));
+      }
+      act = t('radarActComing');
+    } else if(r.forecastNear && r.forecastNear.some(function(v){ return v !== null; })){
+      // Not forecast to hit the farm itself, but heading close enough
+      // (within RADAR_NEAR_KM) in the next hour that a small change in its
+      // track would bring it over the orchard — give the advice anyway.
+      cls = 'is-coming';
+      const kNear = r.forecastNear.findIndex(function(v){ return v !== null; });
+      head = (still && r.nearest && r.nearest.km <= RADAR_NEAR_KM)
+        ? fmt(t('radarNearStillHead'), { km: r.nearest.km.toFixed(1) })
+        : fmt(t('radarNearHead'), { m: (kNear + 1) * RADAR_STEP_MIN, km: RADAR_NEAR_KM });
+      if(!(still && r.nearest && r.nearest.km <= RADAR_NEAR_KM)){
+        parts.push(fmt(t('radarNearestMoving'), { near: nearestTxt, motion: motionTxt }));
       }
       act = t('radarActComing');
     } else {
