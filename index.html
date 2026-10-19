@@ -997,7 +997,7 @@
         <div class="ws-legend-group">
           <label class="ws-legend-toggle"><input type="checkbox" id="wsLayerRadarToggle" checked><span class="ws-legend-title" data-i18n="radarLegendTitle">เรดาร์ฝน (ย้อนหลัง 2 ชม. + คาดการณ์ 1 ชม.)</span></label>
           <span class="ws-legend-item"><span class="ws-legend-swatch" style="background:#0077AA;"></span><span data-i18n="radarClassLight">ฝนเล็กน้อย–ปานกลาง</span></span>
-          <span class="ws-legend-item"><span class="ws-legend-swatch" style="background:#FFB700;"></span><span data-i18n="radarClassHeavy">ฝนหนัก</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-swatch" style="background:#FFB700;"></span><span data-i18n="radarClassHeavy">ฝนปานกลาง–หนัก</span></span>
           <span class="ws-legend-item"><span class="ws-legend-swatch" style="background:#D91B00;"></span><span data-i18n="radarClassVeryHeavy">ฝนหนักมาก</span></span>
           <span class="ws-legend-item"><span class="ws-legend-swatch" style="background:#FF77FF;"></span><span data-i18n="radarClassHail">ฝนหนักมาก อาจมีลูกเห็บ</span></span>
           <span class="ws-legend-note" data-i18n="radarLegendNote">ภาพคาดการณ์มีกรอบเส้นประสีม่วง · ความแรงฝนประมาณจากค่าสะท้อนเรดาร์</span>
@@ -1240,7 +1240,10 @@
       radarLoading: 'กำลังโหลดเรดาร์ฝน…',
       radarFailed: 'โหลดข้อมูลเรดาร์ฝนไม่สำเร็จ ลองกดตรวจสอบอีกครั้งภายหลัง',
       radarComingHead: 'ฝนกำลังเคลื่อนเข้าหาแปลง คาดว่าเริ่มตกในอีกประมาณ {m} นาที',
-      radarRainingHead: 'ขณะนี้มีฝนตกที่แปลง ({cls})',
+      radarRainingHead: 'เรดาร์ตรวจพบฝนเหนือแปลงขณะนี้ ({cls})',
+      radarWeakeningHead: 'เรดาร์ยังพบฝนเหนือแปลง ({cls}) แต่ฝนกำลังอ่อนกำลังลง',
+      radarWeakeningDetail: 'ช่วงที่ตกหนักที่สุดคือเวลา {time} ({cls}) ตอนนี้เบาลงแล้ว',
+      radarActWeakening: 'คำแนะนำ: ดูสภาพจริงที่แปลงก่อน ถ้าฝนหยุดแล้วและดินยังชื้น ให้เลื่อนการให้น้ำรอบนี้ออกไป',
       radarRainingContinue: 'คาดว่าจะตกต่อเนื่องตลอด 1 ชั่วโมงข้างหน้า',
       radarRainingStop: 'คาดว่าฝนจะหยุดภายในประมาณ {m} นาที',
       radarClearHead: 'ไม่พบกลุ่มฝนเคลื่อนเข้าหาแปลงใน 1 ชั่วโมงข้างหน้า',
@@ -1259,9 +1262,9 @@
       radarActComing: 'คำแนะนำ: เลื่อนการให้น้ำรอบถัดไป และงดใส่ปุ๋ยหรือพ่นสารทางใบจนกว่าฝนจะผ่านไป',
       radarActRaining: 'คำแนะนำ: งดให้น้ำ และงดใส่ปุ๋ยหรือพ่นสารทางใบระหว่างที่ฝนตก',
       radarActClear: 'คำแนะนำ: ให้น้ำและทำงานในแปลงตามแผนได้ตามปกติ',
-      radarNote: 'ภาพเรดาร์ล่าสุดเวลา {time} น. จาก RainViewer (เรดาร์กรมอุตุนิยมวิทยา) · ช่วงคาดการณ์คำนวณโดยเลื่อนกลุ่มฝนตามทิศทางล่าสุด (ทดลอง) ไม่รวมฝนที่อาจก่อตัวขึ้นใหม่',
+      radarNote: 'ภาพเรดาร์ล่าสุดเวลา {time} น. จาก RainViewer (เรดาร์กรมอุตุนิยมวิทยา) · เรดาร์วัดเม็ดฝนในอากาศ หลังพายุผ่านไปอาจยังแสดงฝนอยู่ทั้งที่ที่พื้นฝนหยุดแล้ว · ช่วงคาดการณ์คำนวณโดยเลื่อนกลุ่มฝนตามทิศทางล่าสุด (ทดลอง) ไม่รวมฝนที่อาจก่อตัวขึ้นใหม่',
       radarClassLight: 'ฝนเล็กน้อย–ปานกลาง',
-      radarClassHeavy: 'ฝนหนัก',
+      radarClassHeavy: 'ฝนปานกลาง–หนัก',
       radarClassVeryHeavy: 'ฝนหนักมาก',
       radarClassHail: 'ฝนหนักมาก อาจมีลูกเห็บ',
       radarLegendTitle: 'เรดาร์ฝน (ย้อนหลัง 2 ชม. + คาดการณ์ 1 ชม.)',
@@ -1611,7 +1614,10 @@
       radarLoading: 'Loading rain radar…',
       radarFailed: 'Could not load rain radar data. Please check again later.',
       radarComingHead: 'Rain is moving toward your orchard and should start in about {m} minutes',
-      radarRainingHead: 'It is raining at your orchard now ({cls})',
+      radarRainingHead: 'Radar shows rain over your orchard now ({cls})',
+      radarWeakeningHead: 'Radar still shows rain over your orchard ({cls}), but it is weakening',
+      radarWeakeningDetail: 'It was heaviest at {time} ({cls}) and has eased since',
+      radarActWeakening: 'Recommendation: check the orchard first. If the rain has stopped and the soil is still moist, postpone this irrigation',
       radarRainingContinue: 'Rain is expected to continue through the next hour',
       radarRainingStop: 'Rain is expected to stop within about {m} minutes',
       radarClearHead: 'No rain is moving toward your orchard in the next hour',
@@ -1630,9 +1636,9 @@
       radarActComing: 'Recommendation: postpone the next irrigation and hold off on fertilizer or foliar sprays until the rain passes',
       radarActRaining: 'Recommendation: skip irrigation and hold off on fertilizer or foliar sprays while it rains',
       radarActClear: 'Recommendation: irrigation and field work can go ahead as planned',
-      radarNote: 'Latest radar frame {time} from RainViewer (Thai Meteorological Department radars) · The forecast moves current rain along its recent direction (experimental) and does not include new rain that may form',
+      radarNote: 'Latest radar frame {time} from RainViewer (Thai Meteorological Department radars) · Radar measures raindrops in the air, so after a storm passes it can still show rain where it has stopped at the ground · The forecast moves current rain along its recent direction (experimental) and does not include new rain that may form',
       radarClassLight: 'Light–moderate rain',
-      radarClassHeavy: 'Heavy rain',
+      radarClassHeavy: 'Moderate to heavy rain',
       radarClassVeryHeavy: 'Very heavy rain',
       radarClassHail: 'Very heavy rain, possible hail',
       radarLegendTitle: 'Rain radar (past 2 h + 1 h forecast)',
@@ -4213,8 +4219,11 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
   // Translucent colours below 15 dBZ are mostly cloud/drizzle aloft and are ignored.
   const RADAR_PALETTE = [[15,0x88ddee],[16,0x6cd1eb],[17,0x51c5e8],[18,0x36bae5],[19,0x1baee2],[20,0x00a3e0],[21,0x009ad5],[22,0x0091ca],[23,0x0088bf],[24,0x007fb4],[25,0x0077aa],[26,0x0070a3],[27,0x00699c],[28,0x006295],[29,0x005b8e],[30,0x005588],[31,0x005180],[32,0x004e78],[33,0x004a70],[34,0x004768],[35,0xffee00],[36,0xffe000],[37,0xffd200],[38,0xffc500],[39,0xffb700],[40,0xffaa00],[41,0xff9f00],[42,0xff9500],[43,0xff8b00],[44,0xff8100],[45,0xff4400],[46,0xf23600],[47,0xe62800],[48,0xd91b00],[49,0xcd0d00],[50,0xc10000],[51,0xa80000],[52,0x8f0000],[53,0x760000],[54,0x5d0000],[55,0xffaaff],[56,0xff9fff],[57,0xff95ff],[58,0xff8bff],[59,0xff81ff],[60,0xff77ff],[61,0xff6cff],[62,0xff62ff],[63,0xff58ff],[64,0xff4eff],[65,0xffffff]];
   const RADAR_COLOR_TO_DBZ = (function(){ const m = {}; RADAR_PALETTE.forEach(function(p){ m[p[1]] = p[0]; }); return m; })();
-  // Intensity classes. mm/h equivalents (Marshall–Palmer, Z = 200R^1.6) are
-  // approximate: ~0.6 mm/h at 15 dBZ, ~12 at 35, ~50 at 45.
+  // Intensity classes follow RainViewer's colour bands so the legend matches
+  // the map. Approximate rain rates (Marshall–Palmer, Z = 200R^1.6):
+  // 15 dBZ ≈ 0.3 mm/h, 35 dBZ ≈ 5.6 mm/h, 45 dBZ ≈ 24 mm/h, 55 dBZ ≈ 100 mm/h.
+  // Against the WMO hourly scale (light < 2.5, moderate 2.5–7.6, heavy > 7.6
+  // mm/h) the yellow band (35–44) spans moderate to heavy, hence its label.
   const RADAR_CLASSES = [
     { min:55, color:'#FF77FF', key:'radarClassHail' },
     { min:45, color:'#D91B00', key:'radarClassVeryHeavy' },
@@ -4486,12 +4495,27 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
     let head, act = '', cls = '';
     if(now !== null){
       cls = 'is-raining';
-      head = fmt(t('radarRainingHead'), { cls: t(radarClass(now).key) });
+      // Weakening: the reading at the farm has dropped ≥ 6 dBZ (about half
+      // the rain rate or less) from its peak within the past hour. Radar
+      // keeps showing echo aloft after a storm core passes, so this is the
+      // case where "radar says rain" and "rain at the ground" disagree most.
+      let peakPast = null, peakPastI = -1;
+      for(let i = Math.max(0, L0 - 6); i < L0; i++){
+        const v = r.timeline[i];
+        if(v !== null && (peakPast === null || v > peakPast)){ peakPast = v; peakPastI = i; }
+      }
+      const weakening = peakPast !== null && peakPast - now >= 6;
+      head = fmt(t(weakening ? 'radarWeakeningHead' : 'radarRainingHead'), { cls: t(radarClass(now).key) });
+      if(weakening){
+        parts.push(fmt(t('radarWeakeningDetail'), { time: radarClock(r.times[peakPastI]) + t('radarTimeSuffix'), cls: t(radarClass(peakPast).key) }));
+      }
       if(r.motion){
-        parts.push(firstDry === -1 ? t('radarRainingContinue') : fmt(t('radarRainingStop'), { m: (firstDry + 1) * RADAR_STEP_MIN }));
+        // While weakening, radar echo often lingers after rain at the ground
+        // has stopped, so a "will keep raining" line would mislead.
+        if(!weakening) parts.push(firstDry === -1 ? t('radarRainingContinue') : fmt(t('radarRainingStop'), { m: (firstDry + 1) * RADAR_STEP_MIN }));
         if(motionTxt) parts.push(motionTxt.charAt(0).toUpperCase() + motionTxt.slice(1));
       }
-      act = t('radarActRaining');
+      act = t(weakening ? 'radarActWeakening' : 'radarActRaining');
     } else if(!r.nearest){
       head = fmt(t('radarNoRainHead'), { km: RADAR_ROI_KM });
       act = t('radarActClear');
