@@ -522,6 +522,8 @@
   .ws-radar-stamp small{ display:block; font-size:10.5px; font-weight:600; color:var(--muted); }
   .ws-radar-stamp.is-fc, .ws-radar-stamp.is-fc small{ color:#7A4FB5; }
   .ws-map.is-radar-fc{ outline:3px dashed #7A4FB5; outline-offset:-3px; }
+  .ws-radar-maplink{ margin-top:8px; padding:0; border:0; background:none; color:var(--river); font:inherit; font-size:12.5px; font-weight:700; cursor:pointer; text-decoration:underline; }
+  .ws-radar-maplink:focus-visible{ outline:3px solid var(--gold); outline-offset:2px; }
   .ws-legend-swatch{ width:18px; height:9px; border-radius:2px; display:inline-block; flex-shrink:0; }
 
   .water-status-panel{
@@ -670,6 +672,12 @@
         </div>
         <p class="hint hidden" id="rainMetaNote" style="margin-top:6px; font-size:11.5px;"></p>
       </div>
+
+      <!-- Same rain-radar card as the water-status tab, filled by the same
+           loadRainRadar() call when ETo is fetched from GPS, so the farmer
+           sees rain arriving in the next hour right where they decide on
+           irrigation. -->
+      <div class="ws-radar-card hidden" id="etoRadarCard" aria-live="polite"></div>
     </div>
 
     <div class="card hidden" id="canopyCard">
@@ -1042,7 +1050,7 @@
         <div id="waterStatusContent"></div>
       </div>
 
-      <p class="hint" style="margin-top:14px; font-size:11px;" data-i18n="waterStatusFoot">ข้อมูลจากคลังข้อมูลน้ำแห่งชาติ (ThaiWater) — สำหรับใช้ประกอบการติดตามสถานการณ์เท่านั้น ไม่ใช่การแจ้งเตือนภัยอย่างเป็นทางการ</p>
+      <p class="hint" style="margin-top:14px; font-size:11px;" data-i18n="waterStatusFoot">ข้อมูลจากคลังข้อมูลน้ำแห่งชาติ (ThaiWater) และเรดาร์ฝนจากกรมอุตุนิยมวิทยา — สำหรับใช้ประกอบการติดตามสถานการณ์เท่านั้น ไม่ใช่การแจ้งเตือนภัยอย่างเป็นทางการ</p>
     </div>
   </div>
 
@@ -1190,7 +1198,7 @@
       waterStatusGpsBtnLabel: 'ตรวจสอบจากพิกัด GPS',
       waterStatusMapPlaceholder: 'กดปุ่มด้านบนเพื่อแสดงแผนที่สถานการณ์น้ำใกล้แปลง',
       waterStatusMapLoadFail: 'โหลดแผนที่ไม่สำเร็จ (ไม่สามารถเชื่อมต่อ CDN ของ Leaflet ได้) — ยังคงแสดงข้อมูลสรุปด้านล่างได้ตามปกติ',
-      waterStatusFoot: 'ข้อมูลจากคลังข้อมูลน้ำแห่งชาติ (ThaiWater) — สำหรับใช้ประกอบการติดตามสถานการณ์เท่านั้น ไม่ใช่การแจ้งเตือนภัยอย่างเป็นทางการ',
+      waterStatusFoot: 'ข้อมูลจากคลังข้อมูลน้ำแห่งชาติ (ThaiWater) และเรดาร์ฝนจากกรมอุตุนิยมวิทยา — สำหรับใช้ประกอบการติดตามสถานการณ์เท่านั้น ไม่ใช่การแจ้งเตือนภัยอย่างเป็นทางการ',
       waterStatusCalling: 'กำลังดึงข้อมูลจากคลังข้อมูลน้ำแห่งชาติ (เขื่อน/ระดับน้ำ/ฝนสะสม)...',
       waterStatusCallingDam: 'กำลังดึงข้อมูลเขื่อน/อ่างเก็บน้ำ...',
       waterStatusCallingRiver: 'กำลังดึงข้อมูลระดับน้ำ...',
@@ -1262,7 +1270,9 @@
       radarActComing: 'คำแนะนำ: เลื่อนการให้น้ำรอบถัดไป และงดใส่ปุ๋ยหรือพ่นสารทางใบจนกว่าฝนจะผ่านไป',
       radarActRaining: 'คำแนะนำ: งดให้น้ำ และงดใส่ปุ๋ยหรือพ่นสารทางใบระหว่างที่ฝนตก',
       radarActClear: 'คำแนะนำ: ให้น้ำและทำงานในแปลงตามแผนได้ตามปกติ',
-      radarNote: 'ภาพเรดาร์ล่าสุดเวลา {time} น. จากกรมอุตุนิยมวิทยา (เรดาร์ผสมทั่วประเทศที่ระดับสูง 2 กม. ออกทุก 15 นาที ช้ากว่าเวลาจริงราว 15–20 นาที) · ช่วงคาดการณ์คำนวณโดยเลื่อนกลุ่มฝนตามทิศทางล่าสุด (ทดลอง) ไม่รวมฝนที่อาจก่อตัวขึ้นใหม่',
+      radarCredit: 'ข้อมูลเรดาร์: กรมอุตุนิยมวิทยา',
+      radarOutside: 'ตำแหน่งนี้อยู่นอกพื้นที่เรดาร์ของกรมอุตุนิยมวิทยา',
+      radarOpenMap: 'ดูภาพเรดาร์บนแผนที่ →',
       radarClassLight: 'ฝนเล็กน้อย',
       radarClassModerate: 'ฝนปานกลาง',
       radarLegendLight: 'ฝนเล็กน้อย (0.5–3 มม./ชม.)',
@@ -1569,7 +1579,7 @@
       waterStatusGpsBtnLabel: 'Check from GPS location',
       waterStatusMapPlaceholder: 'Tap the button above to show the water-status map near your field',
       waterStatusMapLoadFail: 'The map failed to load (could not reach the Leaflet CDN) — the summary below still works normally.',
-      waterStatusFoot: 'Data from Thailand\'s National Water Information Center (ThaiWater) — for situational awareness only, not an official warning.',
+      waterStatusFoot: 'Data from Thailand\'s National Water Information Center (ThaiWater) and rain radar from the Thai Meteorological Department — for situational awareness only, not an official warning.',
       waterStatusCalling: 'Fetching data from the National Water Information Center (dams / water levels / rainfall)...',
       waterStatusCallingDam: 'Fetching dam/reservoir data...',
       waterStatusCallingRiver: 'Fetching water-level data...',
@@ -1641,7 +1651,9 @@
       radarActComing: 'Recommendation: postpone the next irrigation and hold off on fertilizer or foliar sprays until the rain passes',
       radarActRaining: 'Recommendation: skip irrigation and hold off on fertilizer or foliar sprays while it rains',
       radarActClear: 'Recommendation: irrigation and field work can go ahead as planned',
-      radarNote: 'Latest radar frame {time} from the Thai Meteorological Department (national composite at 2 km altitude, every 15 minutes, about 15–20 minutes behind real time) · The forecast moves current rain along its recent direction (experimental) and does not include new rain that may form',
+      radarCredit: 'Radar data: Thai Meteorological Department',
+      radarOutside: 'This location is outside the Thai Meteorological Department radar area',
+      radarOpenMap: 'View radar on the map →',
       radarClassLight: 'Light rain',
       radarClassModerate: 'Moderate rain',
       radarLegendLight: 'Light rain (0.5–3 mm/h)',
@@ -3209,6 +3221,11 @@
         const lat = pos.coords.latitude;
         const lon = pos.coords.longitude;
         setGpsStatus(t('gpsCoord') + ' ' + lat.toFixed(3) + ', ' + lon.toFixed(3) + ' — ' + t('gpsCallingTmd'));
+        // Rain radar for the next hour, shown under the rainfall field. Runs
+        // alongside the ETo request (not awaited) and never blocks it.
+        const etoRadarCard = document.getElementById('etoRadarCard');
+        if(etoRadarCard) etoRadarCard.dataset.active = '1';
+        loadRainRadar(lat, lon);
 
         // ---- Primary source: Thai Meteorological Department (TMD) ETo forecast API ----
         // This is the same 10-day ETo bulletin the app's hint text already points farmers to.
@@ -4397,14 +4414,15 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
 
     // Rain at the farm in every earlier frame (small box around the farm).
     const sb = Math.ceil(rFarm) + 1, bx = Math.floor(fp.x) - sb, by = Math.floor(fp.y) - sb, bw = sb * 2 + 1;
-    const pastAtFarm = await Promise.all(frames.map(function(f, i){
-      if(i === L0) return radarMaxAround(latest, w, h, fx, fy, rFarm);
-      if(i === olderIdx && older) return radarMaxAround(older, w, h, fx, fy, rFarm);
-      return radarLoadImage(f.url).then(function(img){
-        const g = radarReadBox(img, bx, by, bw, bw);
-        return g ? radarMaxAround(g, bw, bw, fp.x - bx, fp.y - by, rFarm) : null;
-      });
-    }));
+    // One image at a time: each full composite decodes to ~19 MB, so
+    // loading all nine at once could exhaust memory on low-end phones.
+    const pastAtFarm = [];
+    for(let i = 0; i < frames.length; i++){
+      if(i === L0){ pastAtFarm.push(radarMaxAround(latest, w, h, fx, fy, rFarm)); continue; }
+      if(i === olderIdx && older){ pastAtFarm.push(radarMaxAround(older, w, h, fx, fy, rFarm)); continue; }
+      const g = radarReadBox(await radarLoadImage(frames[i].url), bx, by, bw, bw);
+      pastAtFarm.push(g ? radarMaxAround(g, bw, bw, fp.x - bx, fp.y - by, rFarm) : null);
+    }
 
     // Nearest rain in the latest frame.
     let nearest = null;
@@ -4469,16 +4487,24 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
   // the clock, not from the frame).
   function radarMinutesFromNow(r, i){ return Math.round((r.times[i] - Date.now() / 1000) / 60); }
 
+  // The card is shown in two places: the water-status tab and the ETo step
+  // of the irrigation calculator. Both show the same analysis.
   function renderRadarCard(){
-    const card = document.getElementById('wsRadarCard');
-    if(!card || !wsRadar) return;
+    ['wsRadarCard', 'etoRadarCard'].forEach(function(id){
+      const el = document.getElementById(id);
+      if(el && el.dataset.active === '1') renderRadarCardInto(el);
+    });
+  }
+
+  function renderRadarCardInto(card){
+    if(!wsRadar) return;
     card.classList.remove('hidden', 'is-coming', 'is-raining');
     if(wsRadar.state === 'loading'){
       card.innerHTML = '<div class="ws-radar-kicker">' + esc(t('radarKicker')) + '</div><div class="ws-radar-detail">' + esc(t('radarLoading')) + '</div>';
       return;
     }
     if(wsRadar.state === 'error'){
-      card.innerHTML = '<div class="ws-radar-kicker">' + esc(t('radarKicker')) + '</div><div class="ws-radar-detail">' + esc(t('radarFailed')) + '</div>';
+      card.innerHTML = '<div class="ws-radar-kicker">' + esc(t('radarKicker')) + '</div><div class="ws-radar-detail">' + esc(t(wsRadar.outside ? 'radarOutside' : 'radarFailed')) + '</div>';
       return;
     }
     const r = wsRadar.result;
@@ -4554,7 +4580,10 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
       + '<div class="ws-radar-head">' + esc(head) + '</div>';
     parts.filter(Boolean).forEach(function(p){ html += '<div class="ws-radar-detail">' + esc(p) + '</div>'; });
     if(act) html += '<div class="ws-radar-act">' + esc(act) + '</div>';
-    html += '<div class="ws-radar-note">' + esc(fmt(t('radarNote'), { time: radarClock(r.times[L0]) })) + '</div>';
+    html += '<div class="ws-radar-note">' + esc(t('radarCredit')) + '</div>';
+    if(card.id === 'etoRadarCard'){
+      html += '<button type="button" class="ws-radar-maplink" onclick="openRadarMapTab()">' + esc(t('radarOpenMap')) + '</button>';
+    }
     card.innerHTML = html;
   }
 
@@ -4612,7 +4641,17 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
     v.index = i;
     const on = radarEnabled();
     const target = on ? radarLayer(i) : null;
-    v.past.forEach(function(l){ if(l && l !== target) l.setOpacity(0); });
+    // Keep at most the shown frame, the next one (preloading during play)
+    // and the latest frame on the map; drop the rest. Each overlay is a
+    // full-country image (~19 MB decoded); the browser cache makes re-adding
+    // a dropped frame quick.
+    const keepNext = wsRadarTimer ? i + 1 : -1;
+    v.past.forEach(function(l, j){
+      if(!l || l === target) return;
+      if(j === keepNext || j === L0){ l.setOpacity(0); return; }
+      v.map.removeLayer(l); v.past[j] = null;
+    });
+    if(keepNext > 0 && keepNext <= L0 && on) radarLayer(keepNext);
     if(v.fc && v.fc !== target) v.fc.setOpacity(0);
     const fcPane = v.map.getPane('wsRadarFcPane');
     const isFc = i > L0;
@@ -4658,7 +4697,6 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
   function radarPlay(){
     if(!wsRadar || wsRadar.state !== 'ready' || !wsRadarView) return;
     const n = wsRadar.result.times.length;
-    for(let i = 0; i < n; i++) radarLayer(i); // create every overlay up front so images load before they show
     let i = (wsRadarView.index === null || wsRadarView.index >= n - 1) ? 0 : wsRadarView.index;
     radarSetPlayIcon(true);
     radarShow(i);
@@ -4714,6 +4752,16 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
     radarSetPlayIcon(false);
   })();
 
+  // From the ETo step: jump to the water-status tab and load its map
+  // (dams, rivers, rain and the radar layer) for the same GPS location.
+  function openRadarMapTab(){
+    const btn = document.getElementById('tabWaterStatusBtn');
+    if(btn) btn.click();
+    if(!wsMap) fetchWaterStatusForGps();
+    const mapEl = document.getElementById('waterStatusMap');
+    if(mapEl) setTimeout(function(){ mapEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 150);
+  }
+
   var radarRequestId = 0;
   async function loadRainRadar(lat, lon){
     const myId = ++radarRequestId;
@@ -4729,7 +4777,7 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
     } catch(e){
       console.warn('Rain radar failed:', e);
       if(myId !== radarRequestId) return;
-      wsRadar = { state: 'error' };
+      wsRadar = { state: 'error', outside: /outside the composite/.test(String(e && e.message)) };
     }
     renderRadarCard();
     if(wsRadar.state === 'ready' && wsRadarView) radarSetupView();
@@ -4757,6 +4805,8 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
         let rateLimitHit = false;
         // Rain radar runs alongside (not awaited): it has its own source and
         // its own card, so it never delays or breaks the ThaiWater results.
+        const wsRadarCardEl = document.getElementById('wsRadarCard');
+        if(wsRadarCardEl) wsRadarCardEl.dataset.active = '1';
         loadRainRadar(lat, lon);
 
         try{
