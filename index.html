@@ -1505,6 +1505,41 @@ body.hv-report-open{overflow:hidden}
 #harvestDueCount:not(:empty){font-family:'Kanit',sans-serif;font-weight:600}
 @media (max-width:380px){#harvestTab .hv-subnav button{font-size:11.5px}}
 
+/* ---- cultivars & harvest age: simple list + editor ---- */
+#harvestTab .hv-btn.hv-small{min-height:38px;padding:8px 14px;font-size:13.5px;white-space:nowrap}
+#harvestTab .hv-cv-list{display:grid;gap:8px;margin-top:4px}
+#harvestTab .hv-cv-item{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:12px 14px;border:1px solid var(--line);border-left:5px solid var(--c);border-radius:12px;background:white;transition:background .3s,box-shadow .3s}
+#harvestTab .hv-cv-item.editing{background:#f6faef;box-shadow:0 0 0 2px #b9d29a}
+#harvestTab .hv-cv-item.saved{animation:hvSaved 1.6s ease}
+@keyframes hvSaved{0%{background:#dfedcb}100%{background:white}}
+#harvestTab .hv-cv-main{min-width:0;display:grid;gap:2px}
+#harvestTab .hv-cv-main>b{font-family:'Kanit',sans-serif;font-weight:600;font-size:15px;display:inline}
+#harvestTab .hv-cv-age{font-size:13.5px;color:var(--ink);line-height:1.6}
+#harvestTab .hv-cv-age.missing{color:#9a6418}
+#harvestTab .hv-cv-meta{font-size:12px;color:var(--muted)}
+#harvestTab .hv-badge{display:inline-block;margin-left:4px;font-size:11px;font-weight:600;padding:1px 8px;border-radius:999px;vertical-align:2px}
+#harvestTab .hv-badge.std{background:#eef2e8;color:#5d6b50}
+#harvestTab .hv-badge.adj{background:#fff0d3;color:#8a6425}
+#harvestTab .hv-badge.mine{background:#f3ecff;color:#56388a}
+#harvestTab .hv-cv-editor{margin:4px 0 6px;padding:16px;border:2px solid #b9d29a;border-radius:14px;background:#fbfdf7}
+#harvestTab .hv-cv-editor h4{margin:0 0 4px;font-family:'Kanit',sans-serif;font-weight:600;font-size:16px;color:var(--leaf)}
+#harvestTab .hv-age-field{display:grid;gap:6px;font-size:13.5px;font-weight:600;margin:12px 0}
+#harvestTab .hv-range{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;font-weight:400}
+#harvestTab .hv-range input{width:auto;flex:1 1 0;min-width:0;text-align:center;font-weight:600}
+#harvestTab .hv-range span{flex:none;font-size:14px;color:var(--muted)}
+#harvestTab .hv-cv-preview{padding:12px 14px;border-radius:12px;background:var(--hv-soft);color:var(--leaf);font-size:13.5px;line-height:1.7}
+#harvestTab .hv-cv-preview strong{color:#2f4a1f}
+#harvestTab .hv-cv-preview small{display:block;font-size:12px;opacity:.8}
+#harvestTab .hv-cv-preview .bad{color:#a13d28}
+#harvestTab .hv-cv-more{margin-top:14px;border-top:1px dashed var(--line);padding-top:10px}
+#harvestTab .hv-cv-more>summary{font-family:'Sarabun','Noto Sans Thai',sans-serif;font-size:13.5px;font-weight:600;color:var(--muted)}
+#harvestTab .hv-cv-more[open]>summary{margin-bottom:4px}
+#harvestTab .hv-cv-title{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+#harvestTab .hv-cv-title .hv-badge{margin-left:0}
+#harvestTab .hv-cv-item{padding:10px 12px}
+#harvestTab .hv-cv-item>.hv-btn{flex:none}
+@media (max-width:420px){#harvestTab .hv-cv-age{font-size:13px}#harvestTab .hv-cv-item>.hv-btn{padding:8px 12px}}
+
 </style>
 </head>
 <body>
@@ -6183,12 +6218,12 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
   let draftSamples = [blankSample()], dmView = "record";
   let calMonth = today().slice(0, 7), calDay = today();
   let guideChosen = false, guideTarget = "", guideTemp = [false, false, false, false, false, false];
-  let openReportId = "", sampleMemoVariety = "";
+  let openReportId = "", sampleMemoVariety = "", cvEdit = "";
 
   const rows = () => (demo ? demoRows : state.records);
   const pf = (id) => state.profiles.find((p) => p.id === id);
   const name = (p) => (p ? tr(p.th, p.en || p.th) : tr("ไม่ทราบพันธุ์", "Unknown cultivar"));
-  const ext = (p) => (p && (p.extTh || p.extEn) ? tr(p.extTh || p.extEn, p.extEn || p.extTh) : tr("ยังไม่มีคำอธิบายลักษณะภายนอกสำหรับพันธุ์นี้ เพิ่มได้ในหน้า รุ่นดอก → ข้อมูลพันธุ์", "No external-sign description yet. Add one under Cohorts → Cultivar settings."));
+  const ext = (p) => (p && (p.extTh || p.extEn) ? tr(p.extTh || p.extEn, p.extEn || p.extTh) : tr("ยังไม่มีคำอธิบายลักษณะภายนอกสำหรับพันธุ์นี้ เพิ่มได้ในหน้า รุ่นดอก → พันธุ์และอายุเก็บเกี่ยว", "No external-sign description yet. Add one under Cohorts → Cultivars & harvest age."));
   const color = (p) => {
     const i = state.profiles.findIndex((x) => x.id === p?.id);
     return PALETTE[(i < 0 ? 0 : i) % PALETTE.length];
@@ -6317,21 +6352,30 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
 <div id="hv-new-variety-box" class="hv-newvar" hidden><b>✎ ${tr("เพิ่มพันธุ์ใหม่", "Add a new cultivar")}</b>
 ${field(tr("ชื่อพันธุ์", "Cultivar name"), "new-variety-name", "text", `maxlength="70" placeholder="${tr("เช่น แจสเปอร์, พันธุ์พื้นเมือง", "e.g. Jasper, local selection")}" list="hv-variety-names"`)}
 <div class="hv-grid">${field(tr("อายุเก็บเกี่ยวเริ่ม (วัน) · ไม่บังคับ", "Harvest from (days) · optional"), "new-variety-min", "number", 'min="1" max="1000" step="1" inputmode="numeric"')}${field(tr("ถึง (วัน) · ไม่บังคับ", "To (days) · optional"), "new-variety-max", "number", 'min="1" max="1000" step="1" inputmode="numeric"')}</div>
-<p class="hv-hint">${tr("นับจากวันดอกบาน 50% ถ้ายังไม่ทราบ เว้นว่างได้ ระบบจะนับอายุผลให้ และเพิ่มอายุภายหลังได้ที่ “ข้อมูลพันธุ์”", "Days after 50% bloom. Leave blank if unknown: fruit age is still tracked and you can add ages later in Cultivar settings.")}</p></div>
+<p class="hv-hint">${tr("นับจากวันดอกบาน 50% ถ้ายังไม่ทราบ เว้นว่างได้ ระบบจะนับอายุผลให้ และเพิ่มอายุภายหลังได้ที่ “พันธุ์และอายุเก็บเกี่ยว” ด้านล่าง", "Days after 50% bloom. Leave blank if unknown: fruit age is still tracked and you can add ages later under “Cultivars & harvest age”.")}</p></div>
 <datalist id="hv-variety-names">${state.profiles.map((p) => `<option value="${esc(p.th)}">`).join("")}</datalist>
 <div class="hv-grid">${field(tr("แปลง / รหัสต้น", "Block / tree ID"), "plot", "text", 'maxlength="80" placeholder="A01"')}${field(tr("รุ่นดอก", "Bloom cohort"), "cohort", "text", `maxlength="60" placeholder="${tr("รุ่นที่ 1", "Cohort 1")}"`)}</div>
 <div id="hv-record-error" class="hv-error" role="alert"></div>
 <div class="hv-actions"><button type="submit" class="hv-btn" id="hv-record-submit">＋ ${tr("บันทึกรุ่นดอก", "Save cohort")}</button><button type="button" class="hv-btn text" id="hv-cancel-edit" hidden>${tr("ยกเลิกแก้ไข", "Cancel edit")}</button><button type="button" class="hv-btn text" id="hv-demo-toggle">${demo ? tr("กลับข้อมูลสวนของฉัน", "Back to my orchard") : tr("ดูข้อมูลสาธิต", "Try demo data")}</button></div></form></div>
 <div class="hv-card"><div class="hv-row"><h3>${tr("รุ่นดอกที่ติดตาม", "Tracked cohorts")}</h3><label class="hv-field hv-inline" for="hv-filter"><select id="hv-filter" aria-label="${tr("กรองสถานะ", "Filter status")}"><option value="all">${tr("ทุกสถานะ", "All statuses")}</option><option value="ready">${tr("ถึงช่วงตรวจ", "Check due")}</option><option value="grow">${tr("กำลังพัฒนา", "Developing")}</option><option value="late">${tr("พ้นช่วงประมาณ", "Past estimate")}</option><option value="unknown">${tr("ยังไม่ระบุอายุ", "Age not set")}</option></select></label></div><div id="hv-records"></div></div>
-<details class="hv-card" id="hv-profile-details"><summary>⚙ ${tr("ข้อมูลพันธุ์และปรับช่วงเก็บเกี่ยว", "Cultivar settings & harvest windows")}</summary>
-<p class="hv-muted">${tr("อายุผลอ้างอิงจาก สวพส. ช่วงเผื่อ ±14 วันเป็นค่าช่วยวางแผน ไม่ใช่ช่วงความเชื่อมั่น เกณฑ์ DM ตั้งต้นจาก มกษ. 31-2567 ตาราง จ.2 ใช้กับรุ่นผล ไม่ใช่ผลเดี่ยว พันธุ์ที่เพิ่มเอง (✎) เว้นอายุและเกณฑ์ไว้ได้", "Ages are from HRDI; ±14 days is a planning buffer. Default DM references are from TAS 31-2024 Table E.2 and apply to lots. Your own cultivars (✎) may leave ages and thresholds blank.")}</p>
-<label class="hv-field" for="hv-profile-select">${tr("เลือกพันธุ์ที่จะแก้ไข", "Cultivar to edit")}<select id="hv-profile-select">${cultivarOptions(false)}<option value="new">＋ ${tr("เพิ่มพันธุ์ใหม่", "Add cultivar")}</option></select></label>
-<form id="hv-profile-form" novalidate><div class="hv-grid">${field(tr("ชื่อภาษาไทย", "Thai name"), "profile-th", "text", 'maxlength="70"')}${field(tr("ชื่อภาษาอังกฤษ · ไม่บังคับ", "English name · optional"), "profile-en", "text", 'maxlength="70"')}</div>
-<div class="hv-grid">${field(tr("อายุเริ่ม (วันหลังดอกบาน 50%)", "Start age (days after 50% bloom)"), "profile-min", "number", 'min="1" max="1000" step="1" inputmode="numeric"')}${field(tr("อายุสิ้นสุด (วัน)", "End age (days)"), "profile-max", "number", 'min="1" max="1000" step="1" inputmode="numeric"')}${field(tr("เผื่อก่อน–หลัง (±วัน)", "Planning buffer (± days)"), "profile-margin", "number", 'min="0" max="90" step="1" inputmode="numeric"')}${field(tr("เกณฑ์ DM ของรุ่น (%) · ไม่บังคับ", "Lot DM threshold (%) · optional"), "profile-dm", "number", 'min="0.1" max="99.9" step="any" inputmode="decimal"')}</div>
-${field(tr("ที่มาของอายุเก็บเกี่ยว", "Source for harvest age"), "profile-source", "text", 'maxlength="200"')}${field(tr("ที่มาของเกณฑ์ DM (ต้องระบุเมื่อใส่เกณฑ์)", "DM threshold source (required with a threshold)"), "profile-dmsource", "text", 'maxlength="200"')}
-<div class="hv-grid">${field(tr("ลักษณะภายนอกเมื่อแก่ (ไทย)", "External maturity signs (Thai)"), "profile-extth", "text", 'maxlength="350"')}${field(tr("ลักษณะภายนอกเมื่อแก่ (อังกฤษ)", "External maturity signs (English)"), "profile-exten", "text", 'maxlength="350"')}</div>
+<div class="hv-card" id="hv-cultivars"><div class="hv-row"><h3>🥑 ${tr("พันธุ์และอายุเก็บเกี่ยว", "Cultivars & harvest age")}</h3><button type="button" class="hv-btn secondary hv-small" id="hv-cv-add">＋ ${tr("เพิ่มพันธุ์", "Add cultivar")}</button></div>
+<p class="hv-muted">${tr("ระบบใช้อายุเหล่านี้บอกว่าแต่ละรุ่นดอกควรเริ่มตรวจความแก่เมื่อไร ถ้าสวนของคุณผลแก่เร็วหรือช้ากว่านี้ แตะ “แก้ไข” เพื่อปรับ", "These ages tell the app when each cohort should be checked. If fruit in your orchard matures earlier or later, tap “Edit”.")}</p>
+<div id="hv-cv-list" class="hv-cv-list"></div>
+<form id="hv-profile-form" class="hv-cv-editor" novalidate hidden>
+<h4 id="hv-cv-title"></h4>
+${field(tr("ชื่อพันธุ์", "Cultivar name"), "profile-th", "text", `maxlength="70" placeholder="${tr("เช่น แจสเปอร์", "e.g. Jasper")}"`)}
+<div class="hv-field hv-age-field"><span>${tr("ผลแก่ประมาณกี่วันหลังดอกบาน 50%", "Days from 50% bloom to maturity")}</span><div class="hv-range"><span>${tr("ตั้งแต่", "From")}</span><input id="hv-profile-min" type="number" min="1" max="1000" step="1" inputmode="numeric" aria-label="${tr("อายุเริ่ม (วัน)", "From (days)")}"><span>${tr("ถึง", "to")}</span><input id="hv-profile-max" type="number" min="1" max="1000" step="1" inputmode="numeric" aria-label="${tr("อายุสิ้นสุด (วัน)", "To (days)")}"><span>${tr("วัน", "days")}</span></div><small id="hv-cv-agehint" class="hv-hint"></small></div>
+<div id="hv-cv-preview" class="hv-cv-preview" aria-live="polite"></div>
+<details class="hv-cv-more" id="hv-cv-more"><summary>${tr("ตัวเลือกเพิ่มเติม (ไม่จำเป็นต้องแก้)", "More options (usually leave as is)")}</summary>
+${field(tr("เผื่อก่อนและหลัง (วัน)", "Buffer before and after (days)"), "profile-margin", "number", 'min="0" max="90" step="1" inputmode="numeric"')}<p class="hv-hint">${tr("ระบบเริ่มเตือนก่อนอายุเริ่ม และเตือนต่อหลังอายุสิ้นสุดตามจำนวนวันนี้ ค่าปกติ 14 วัน", "Checks start this many days before the first age and continue this many days after the last. Default 14.")}</p>
+<div class="hv-grid">${field(tr("เกณฑ์ DM ของรุ่น (%)", "Lot DM threshold (%)"), "profile-dm", "number", 'min="0.1" max="99.9" step="any" inputmode="decimal"')}${field(tr("ที่มาของเกณฑ์ DM", "DM threshold source"), "profile-dmsource", "text", 'maxlength="200"')}</div><p class="hv-hint">${tr("เว้นว่างได้ ถ้าใส่เกณฑ์ ต้องบอกที่มา เช่น มกษ. หรือผลทดลองของหน่วยงาน", "Optional. A threshold needs a source, e.g. a standard or trial results.")}</p>
+${field(tr("ลักษณะผลเมื่อแก่ (สำหรับหน้าตรวจความแก่)", "Mature fruit appearance (for the maturity guide)"), "profile-extth", "text", 'maxlength="350"')}
+${field(tr("ที่มาของอายุเก็บเกี่ยว", "Source of harvest ages"), "profile-source", "text", 'maxlength="200"')}
+<div class="hv-grid">${field(tr("ชื่อภาษาอังกฤษ", "English name"), "profile-en", "text", 'maxlength="70"')}${field(tr("ลักษณะผลเมื่อแก่ (อังกฤษ)", "Appearance (English)"), "profile-exten", "text", 'maxlength="350"')}</div>
+</details>
 <div id="hv-profile-error" class="hv-error" role="alert"></div>
-<div class="hv-actions"><button class="hv-btn secondary" type="submit">${tr("บันทึกค่าพันธุ์", "Save cultivar settings")}</button><button class="hv-btn text danger" type="button" id="hv-profile-delete" hidden>${tr("ลบพันธุ์นี้", "Delete this cultivar")}</button></div></form><div class="hv-source">${source}</div></details>
+<div class="hv-actions"><button class="hv-btn" type="submit">✓ ${tr("บันทึก", "Save")}</button><button class="hv-btn secondary" type="button" id="hv-cv-cancel">${tr("ยกเลิก", "Cancel")}</button><button class="hv-btn text" type="button" id="hv-cv-reset" hidden>↺ ${tr("คืนค่ามาตรฐาน", "Restore defaults")}</button><button class="hv-btn text danger" type="button" id="hv-profile-delete" hidden>${tr("ลบพันธุ์นี้", "Delete")}</button></div>
+</form><div class="hv-source">${tr("อายุตั้งต้น", "Default ages")}: ${source} · ${tr("เกณฑ์ DM ตั้งต้น", "Default DM")}: ${tas}</div></div>
 </div>`;
   }
 
@@ -6395,7 +6439,8 @@ ${loadIssue ? `<div class="hv-storage">${esc(loadIssue)}</div>` : ""}
 ${homeMarkup()}${trackMarkup()}${guideMarkup()}${dmMarkup()}${dataMarkup()}
 <div id="hv-toast" class="hv-toast" role="status" hidden></div>`;
     bind();
-    loadProfile();
+    renderCultivarList();
+    if (cvEdit) openCultivarEditor(cvEdit, false);
     protocol();
     refresh();
     updateDM();
@@ -6622,6 +6667,10 @@ ${homeMarkup()}${trackMarkup()}${guideMarkup()}${dmMarkup()}${dataMarkup()}
       switchSub("guide");
     }));
     scope.querySelectorAll("[data-hv-test]").forEach((b) => (b.onclick = () => goMeasure(b.dataset.hvTest)));
+    scope.querySelectorAll("[data-hv-edit-cv]").forEach((b) => (b.onclick = () => {
+      if (sub !== "track") switchSub("track");
+      openCultivarEditor(b.dataset.hvEditCv);
+    }));
     scope.querySelectorAll("[data-hv-demo-on]").forEach((b) => (b.onclick = () => setDemo(true)));
   }
   function goMeasure(recordId) {
@@ -6665,7 +6714,7 @@ ${homeMarkup()}${trackMarkup()}${guideMarkup()}${dmMarkup()}${dataMarkup()}
           return `<article class="hv-record" style="--c:${c}"><div class="hv-row"><div><h3><i class="hv-swatch" style="background:${c}"></i>${esc(name(d.p))}</h3><span class="hv-muted-inline">${esc(r.plot)} · ${esc(r.cohort)}</span></div><span class="hv-pill ${d.status}">${statusText(d.status)}</span></div>
 <div class="hv-dates"><div><small>${tr("ดอกบาน 50%", "50% bloom")}</small>${date(r.bloom)}</div><div><small>${tr("ช่วงตรวจความแก่โดยประมาณ", "Estimated check window")}</small>${d.start ? `${date(d.start)} – ${date(d.end)}` : tr("ยังไม่ระบุ", "Not set")}</div></div>
 ${d.hi ? `<div class="hv-bar" role="img" aria-label="${tr("อายุผล", "Fruit age")} ${d.age}/${d.hi} ${tr("วัน", "days")}"><em style="left:${winL}%"></em><span style="width:${prog}%"></span></div>` : ""}
-<p class="hv-muted">${tr("อายุผล", "Fruit age")}: <b>${d.age}</b> ${tr("วัน", "days")}${d.status === "grow" ? " · " + tr(`อีก ${d.left} วันเริ่มตรวจ`, `checks start in ${d.left} days`) : d.status === "unknown" ? " · " + tr("เพิ่มอายุเก็บเกี่ยวได้ที่ “ข้อมูลพันธุ์” ด้านล่าง", "add harvest ages in Cultivar settings below") : ""}<br>${hasAges(d.p) ? `${tr("อายุอ้างอิง", "Reference age")}: ${d.p.min}–${d.p.max} ${tr("วัน", "days")} ±${d.p.margin} · ${esc(d.p.source)}` : ""}</p>
+<p class="hv-muted">${tr("อายุผล", "Fruit age")}: <b>${d.age}</b> ${tr("วัน", "days")}${d.status === "grow" ? " · " + tr(`อีก ${d.left} วันเริ่มตรวจ`, `checks start in ${d.left} days`) : d.status === "unknown" ? ` · <button type="button" class="hv-btn text" data-hv-edit-cv="${r.variety}">${tr("ใส่อายุเก็บเกี่ยว", "Set harvest age")}</button>` : ""}<br>${hasAges(d.p) ? `${tr("อายุอ้างอิง", "Reference age")}: ${d.p.min}–${d.p.max} ${tr("วัน", "days")} ±${d.p.margin} · ${esc(d.p.source)}` : ""}</p>
 ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong>🥑 ${tr("ความคืบหน้าการตรวจความแก่", "Maturity check progress")}: ${signCount(r)}/6</strong><p style="margin:6px 0">${esc(ext(d.p))}</p><div class="hv-actions"><button type="button" class="hv-btn secondary" data-hv-guide="${r.id}">🔍 ${tr("ตรวจความแก่", "Check maturity")}</button><button type="button" class="hv-btn text" data-hv-test="${r.id}">⚖️ ${tr("วัด DM", "Measure DM")}</button></div></div>` : ""}
 <div class="hv-actions"><button type="button" class="hv-btn text" data-hv-edit="${r.id}">${tr("แก้ไข", "Edit")}</button><button type="button" class="hv-btn text danger" data-hv-remove="${r.id}">${tr("ลบรุ่นดอก", "Delete cohort")}</button></div></article>`;
         }).join("")
@@ -6849,38 +6898,126 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
       `<div class="hv-note">${tr("ระยะเวลาเริ่มต้นไม่ใช่ข้อยืนยันว่าแห้ง ไมโครเวฟอาจทำให้ตัวอย่างไหม้หรือติดไฟได้ หากไหม้ให้ทิ้งและเตรียมใหม่", "Initial time does not establish dryness. Microwaved samples can scorch or ignite; discard burnt samples.")}</div><div class="hv-source">${tas} · ${micro ? "ซ.2 / H.2" : "ซ.1 / H.1"}</div>`;
   }
 
-  /* ---------- cultivar settings ---------- */
-  function loadProfile() {
-    const p = pf($("profile-select").value);
-    for (const [id, key] of [["th", "th"], ["en", "en"], ["min", "min"], ["max", "max"], ["margin", "margin"], ["dm", "dm"], ["source", "source"], ["dmsource", "dmSource"], ["extth", "extTh"], ["exten", "extEn"]])
-      $("profile-" + id).value = p?.[key] ?? (id === "margin" ? 14 : "");
+  /* ---------- cultivars & harvest age (simple list + one editor) ---------- */
+  const months = (d) => (Math.round((d / 30.44) * 2) / 2).toLocaleString(tr("th-TH", "en-GB"));
+  const defaultOf = (p) => defaults.find((d) => d.id === p?.id);
+  function isAdjusted(p) {
+    const d = defaultOf(p);
+    return !!d && (p.min !== d.min || p.max !== d.max || p.margin !== d.margin || p.dm !== d.dm);
+  }
+  function ageText(p) {
+    if (!hasAges(p)) return tr("ยังไม่ระบุอายุเก็บเกี่ยว", "Harvest age not set");
+    const span = p.min === p.max ? `${p.min}` : `${p.min}–${p.max}`;
+    const mo = months(p.min) === months(p.max) ? months(p.min) : `${months(p.min)}–${months(p.max)}`;
+    return tr(`ผลแก่ราว ${span} วันหลังดอกบาน (ประมาณ ${mo} เดือน)`, `Matures about ${span} days after bloom (~${mo} months)`);
+  }
+  function placeEditor() {
+    const f = $("profile-form"), list = $("cv-list");
+    if (!f || !list) return;
+    const item = cvEdit && cvEdit !== "new" ? list.querySelector(`[data-hv-edit-cv="${cvEdit}"]`)?.closest(".hv-cv-item") : null;
+    if (item) item.after(f);
+    else if (cvEdit === "new") list.before(f);
+    else list.after(f);
+  }
+  function renderCultivarList() {
+    if (!$("cv-list")) return;
+    if ($("cv-list").contains($("profile-form"))) $("cv-list").after($("profile-form"));
+    $("cv-list").innerHTML = state.profiles.map((p) => {
+      const used = state.records.filter((r) => r.variety === p.id).length;
+      const badge = p.custom ? `<span class="hv-badge mine">✎ ${tr("เพิ่มเอง", "Mine")}</span>` : isAdjusted(p) ? `<span class="hv-badge adj">${tr("ปรับแล้ว", "Adjusted")}</span>` : `<span class="hv-badge std">${tr("ค่ามาตรฐาน", "Default")}</span>`;
+      return `<div class="hv-cv-item ${cvEdit === p.id ? "editing" : ""}" style="--c:${color(p)}"><div class="hv-cv-main"><div class="hv-cv-title"><b><i class="hv-swatch" style="background:${color(p)}"></i>${esc(name(p))}</b>${badge}</div><span class="hv-cv-age ${hasAges(p) ? "" : "missing"}">${ageText(p)}</span><span class="hv-cv-meta">${p.dm != null ? tr("DM ของรุ่น ≥ ", "Lot DM ≥ ") + p.dm + "%" : tr("ไม่มีเกณฑ์ DM", "No DM threshold")}${used ? " · " + tr(`ใช้อยู่ ${used} รุ่นดอก`, `${used} cohort(s)`) : ""}</span></div><button type="button" class="hv-btn secondary hv-small" data-hv-edit-cv="${p.id}">${hasAges(p) ? tr("แก้ไข", "Edit") : tr("ใส่อายุ", "Set age")}</button></div>`;
+    }).join("");
+    bindDynamic($("cv-list"));
+    placeEditor();
+  }
+  function openCultivarEditor(id, scroll = true) {
+    const p = id === "new" ? null : pf(id);
+    if (id !== "new" && !p) return closeCultivarEditor();
+    cvEdit = id;
+    const f = { th: "", en: "", min: "", max: "", margin: 14, dm: "", source: "", dmSource: "", extTh: "", extEn: "", ...(p ? Object.fromEntries(Object.entries(p).map(([k, v]) => [k, v ?? ""])) : {}) };
+    for (const [elId, key] of [["th", "th"], ["en", "en"], ["min", "min"], ["max", "max"], ["margin", "margin"], ["dm", "dm"], ["source", "source"], ["dmsource", "dmSource"], ["extth", "extTh"], ["exten", "extEn"]]) $("profile-" + elId).value = f[key];
+    $("cv-title").textContent = p ? tr("แก้ไขพันธุ์ ", "Edit ") + name(p) : tr("เพิ่มพันธุ์ใหม่", "Add a cultivar");
+    $("cv-agehint").textContent = !p || p.custom
+      ? tr("ถ้ายังไม่ทราบ เว้นว่างได้ ระบบจะนับอายุผลให้ แต่ยังไม่บอกช่วงตรวจ ถ้าแก่ในวันเดียว ใส่เลขเดียวกันทั้งสองช่อง", "Leave blank if unknown: fruit age is still counted, but no window is shown. Use the same number twice for a single age.")
+      : tr(`ค่ามาตรฐานจาก สวพส.: ${defaultOf(p).min}${defaultOf(p).max !== defaultOf(p).min ? "–" + defaultOf(p).max : ""} วัน`, `HRDI default: ${defaultOf(p).min}${defaultOf(p).max !== defaultOf(p).min ? "–" + defaultOf(p).max : ""} days`);
     $("profile-error").textContent = "";
     $("profile-delete").hidden = !p?.custom;
+    $("cv-reset").hidden = !(p && isAdjusted(p));
+    $("cv-more").open = false;
+    $("profile-form").hidden = false;
+    $("cv-add").hidden = true;
+    renderCultivarList();
+    cvPreview();
+    if (scroll) {
+      $("profile-form").scrollIntoView({ behavior: "smooth", block: "center" });
+      setTimeout(() => (p ? $("profile-min") : $("profile-th")).focus({ preventScroll: true }), 300);
+    }
+  }
+  function closeCultivarEditor() {
+    cvEdit = "";
+    if (!$("profile-form")) return;
+    $("profile-form").hidden = true;
+    $("cv-add").hidden = false;
+    renderCultivarList();
+  }
+  function cvPreview() {
+    const el = $("cv-preview");
+    if (!el) return;
+    const ages = parseAges($("profile-min").value, $("profile-max").value);
+    const mS = $("profile-margin").value.trim(), margin = mS === "" ? 14 : Number(mS);
+    if (!ages.ok || !Number.isInteger(margin) || margin < 0 || margin > 90) return (el.innerHTML = `<span class="bad">${tr("ตรวจตัวเลขอีกครั้ง: เป็นจำนวนเต็ม 1–1000 วัน และตัวหลังต้องไม่น้อยกว่าตัวแรก", "Check the numbers: whole days 1–1000, second ≥ first.")}</span>`);
+    if (ages.min == null) return (el.innerHTML = tr("ยังไม่ใส่อายุ ระบบจะนับอายุผลให้อย่างเดียว", "No ages yet: the app will only count fruit age."));
+    const t = today(), s = add(t, Math.max(1, ages.min - margin)), e = add(t, ages.max + margin);
+    el.innerHTML = `<b>${tr("ตัวอย่าง", "Example")}</b> ${tr(`ถ้าดอกบานวันนี้ (${date(t)}) ระบบจะเตือนให้ตรวจความแก่ช่วง <strong>${date(s)} – ${date(e)}</strong>`, `If flowers open today (${date(t)}), maturity checks are due <strong>${date(s)} – ${date(e)}</strong>`)}<small>${tr(`รวมเผื่อก่อนและหลังอย่างละ ${margin} วัน`, `includes ${margin} days before and after`)}</small>`;
+  }
+  function resetCultivar() {
+    const d = defaultOf(pf(cvEdit));
+    if (!d) return;
+    $("profile-min").value = d.min;
+    $("profile-max").value = d.max;
+    $("profile-margin").value = d.margin;
+    $("profile-dm").value = d.dm ?? "";
+    $("profile-dmsource").value = d.dmSource;
+    $("profile-source").value = d.source;
+    $("profile-extth").value = d.extTh;
+    $("profile-exten").value = d.extEn;
+    cvPreview();
+    notify(tr("ใส่ค่ามาตรฐานในฟอร์มแล้ว กด “บันทึก” เพื่อใช้ค่านี้", "Defaults filled in. Tap “Save” to apply."));
   }
   function profileSubmit(e) {
     e.preventDefault();
     const val = (id) => $("profile-" + id).value.trim();
     const err = (s) => ($("profile-error").textContent = s);
-    const old = pf($("profile-select").value);
+    const old = cvEdit && cvEdit !== "new" ? pf(cvEdit) : null;
     const th = val("th");
-    if (!th) return err(tr("กรอกชื่อพันธุ์ภาษาไทย", "Enter the Thai name."));
+    if (!th) return err(tr("กรอกชื่อพันธุ์", "Enter the cultivar name."));
     const dup = findCultivarByName(th);
     if (dup && dup !== old) return err(tr("มีพันธุ์ชื่อนี้อยู่แล้ว", "A cultivar with this name already exists."));
     const ages = parseAges(val("min"), val("max"));
-    if (!ages.ok) return err(tr("อายุต้องเป็นจำนวนเต็ม 1–1000 วัน และอายุสิ้นสุดต้องไม่น้อยกว่าเริ่มต้น", "Ages must be whole days 1–1000 with end ≥ start."));
+    if (!ages.ok) return err(tr("อายุต้องเป็นจำนวนเต็ม 1–1000 วัน และตัวหลังต้องไม่น้อยกว่าตัวแรก", "Ages must be whole days 1–1000, second ≥ first."));
     const isCustom = old ? !!old.custom : true;
-    if (!isCustom && ages.min == null) return err(tr("พันธุ์มาตรฐานต้องมีอายุเก็บเกี่ยว", "Built-in cultivars need harvest ages."));
+    if (!isCustom && ages.min == null) return err(tr("พันธุ์มาตรฐานต้องมีอายุเก็บเกี่ยว กด “คืนค่ามาตรฐาน” ได้ถ้าต้องการค่าเดิม", "Built-in cultivars need harvest ages."));
     const margin = val("margin") === "" ? 14 : Number(val("margin"));
-    if (!Number.isInteger(margin) || margin < 0 || margin > 90) return err(tr("ช่วงเผื่อต้องเป็นจำนวนเต็ม 0–90 วัน", "Buffer must be 0–90 whole days."));
+    if (!Number.isInteger(margin) || margin < 0 || margin > 90) {
+      $("cv-more").open = true;
+      return err(tr("ช่วงเผื่อต้องเป็นจำนวนเต็ม 0–90 วัน", "Buffer must be 0–90 whole days."));
+    }
     const dm = val("dm") === "" ? null : Number(val("dm"));
-    if (dm !== null && (!Number.isFinite(dm) || dm <= 0 || dm >= 100)) return err(tr("เกณฑ์ DM ต้องอยู่ระหว่าง 0–100%", "DM threshold must be between 0 and 100%."));
-    if (dm !== null && !val("dmsource")) return err(tr("ระบุที่มาของเกณฑ์ DM", "Provide a source for the DM threshold."));
+    if (dm !== null && (!Number.isFinite(dm) || dm <= 0 || dm >= 100)) {
+      $("cv-more").open = true;
+      return err(tr("เกณฑ์ DM ต้องอยู่ระหว่าง 0–100%", "DM threshold must be between 0 and 100%."));
+    }
+    if (dm !== null && !val("dmsource")) {
+      $("cv-more").open = true;
+      return err(tr("ใส่ที่มาของเกณฑ์ DM ด้วย", "Add a source for the DM threshold."));
+    }
     const p = {
       id: old?.id || "c" + uid().slice(0, 16), th, en: val("en") || th, min: ages.min, max: ages.max, margin, dm,
       source: val("source") || (isCustom ? tr("ผู้ใช้กำหนด", "User-defined") : ""), dmSource: dm === null ? "" : val("dmsource"),
       extTh: val("extth"), extEn: val("exten"),
       standard: !!old?.standard && dm === old.dm && val("dmsource") === old.dmSource, custom: isCustom,
     };
+    if (defaultOf(p) && dm === defaultOf(p).dm && p.dmSource === defaultOf(p).dmSource) p.standard = true;
     const before = old ? clone(old) : null;
     if (old) Object.assign(old, p);
     else state.profiles.push(p);
@@ -6889,14 +7026,17 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
       else state.profiles.pop();
       return;
     }
+    cvEdit = "";
     rerender();
-    $("profile-details").open = true;
-    $("profile-select").value = p.id;
-    loadProfile();
-    notify(tr("บันทึกค่าพันธุ์แล้ว ช่วงเก็บเกี่ยวคำนวณใหม่แล้ว", "Cultivar saved; harvest windows recalculated."));
+    const row = $("cv-list").querySelector(`[data-hv-edit-cv="${p.id}"]`)?.closest(".hv-cv-item");
+    if (row) {
+      row.classList.add("saved");
+      row.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+    notify(tr(`บันทึก “${p.th}” แล้ว ช่วงตรวจของรุ่นดอกพันธุ์นี้คำนวณใหม่แล้ว`, `Saved “${p.th}”; cohort windows updated.`));
   }
   function deleteProfile() {
-    const p = pf($("profile-select").value);
+    const p = pf(cvEdit);
     if (!p?.custom) return;
     const used = state.records.filter((r) => r.variety === p.id).length;
     if (used) return ($("profile-error").textContent = tr(`ยังมี ${used} รุ่นดอกที่ใช้พันธุ์นี้ ลบหรือเปลี่ยนพันธุ์ของรุ่นดอกก่อน`, `${used} cohort(s) still use this cultivar. Delete or change them first.`));
@@ -6907,8 +7047,8 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
       state.profiles = before;
       return;
     }
+    cvEdit = "";
     rerender();
-    $("profile-details").open = true;
     notify(tr("ลบพันธุ์แล้ว", "Cultivar deleted."));
   }
 
@@ -7293,7 +7433,10 @@ ${s.notes ? `<p><b>${tr("หมายเหตุ", "Notes")}:</b> ${esc(s.notes
     $("sample-date").onchange = updateDM;
     $("constant").onchange = () => updateDM();
     $("dm-form").onsubmit = sampleSubmit;
-    $("profile-select").onchange = loadProfile;
+    $("cv-add").onclick = () => openCultivarEditor("new");
+    $("cv-cancel").onclick = closeCultivarEditor;
+    $("cv-reset").onclick = resetCultivar;
+    ["profile-min", "profile-max", "profile-margin"].forEach((id) => ($(id).oninput = cvPreview));
     $("profile-form").onsubmit = profileSubmit;
     $("profile-delete").onclick = deleteProfile;
     $("dm-record-tab").onclick = () => setDMView("record");
