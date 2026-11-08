@@ -2020,8 +2020,9 @@ body.hv-report-open{overflow:hidden}
           <label class="ws-legend-toggle"><input type="checkbox" id="wsLayerDamToggle" checked><span class="ws-legend-title" data-i18n="waterStatusLegendDam">เขื่อน/อ่างเก็บน้ำ (% ความจุ)</span></label>
           <span class="ws-legend-item"><span class="ws-legend-dot dam-shape" style="background:#9AA593;"></span><span data-i18n="waterStatusLegendDamShape">เขื่อนขนาดใหญ่ (◆)</span></span>
           <span class="ws-legend-item"><span class="ws-legend-dot reservoir-shape" style="background:#9AA593;"></span><span data-i18n="waterStatusLegendReservoirShape">อ่างเก็บน้ำ (■)</span></span>
-          <span class="ws-legend-item"><span class="ws-legend-dot dam-shape" style="background:#C0392B;"></span><span data-i18n="waterStatusLegendDamLow">น้ำน้อย (&lt;30%)</span></span>
-          <span class="ws-legend-item"><span class="ws-legend-dot dam-shape" style="background:#3E5B2C;"></span><span data-i18n="waterStatusLegendDamNormal">ปกติ (30–80%)</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-dot dam-shape" style="background:#C0392B;"></span><span data-i18n="waterStatusLegendDamCritical">น้ำน้อยวิกฤต (≤30%)</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-dot dam-shape" style="background:#D9822B;"></span><span data-i18n="waterStatusLegendDamLow">น้ำน้อย (30–50%)</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-dot dam-shape" style="background:#3E5B2C;"></span><span data-i18n="waterStatusLegendDamNormal">น้ำปานกลาง (50–80%)</span></span>
           <span class="ws-legend-item"><span class="ws-legend-dot dam-shape" style="background:#1F6FA8;"></span><span data-i18n="waterStatusLegendDamHigh">น้ำมาก (80–100%)</span></span>
           <span class="ws-legend-item"><span class="ws-legend-dot dam-shape" style="background:#6B2FA8;"></span><span data-i18n="waterStatusLegendDamOver">เกินความจุ (&gt;100%)</span></span>
         </div>
@@ -2307,8 +2308,9 @@ body.hv-report-open{overflow:hidden}
       radarTickMinus1: '−1 ชม.',
       radarTickPlus1: '+1 ชม.',
       radarDirs: ['เหนือ','ตะวันออกเฉียงเหนือ','ตะวันออก','ตะวันออกเฉียงใต้','ใต้','ตะวันตกเฉียงใต้','ตะวันตก','ตะวันตกเฉียงเหนือ'],
-      waterStatusLegendDamLow: 'น้ำน้อย (<30%)',
-      waterStatusLegendDamNormal: 'ปกติ (30–80%)',
+      waterStatusLegendDamCritical: 'น้ำน้อยวิกฤต (≤30%)',
+      waterStatusLegendDamLow: 'น้ำน้อย (30–50%)',
+      waterStatusLegendDamNormal: 'น้ำปานกลาง (50–80%)',
       waterStatusLegendDamHigh: 'น้ำมาก (80–100%)',
       waterStatusLegendDamOver: 'เกินความจุ (>100%)',
       waterStatusLegendRiver: 'จุดวัดระดับน้ำ',
@@ -2688,8 +2690,9 @@ body.hv-report-open{overflow:hidden}
       radarTickMinus1: '−1 h',
       radarTickPlus1: '+1 h',
       radarDirs: ['north','northeast','east','southeast','south','southwest','west','northwest'],
-      waterStatusLegendDamLow: 'Low (<30%)',
-      waterStatusLegendDamNormal: 'Normal (30–80%)',
+      waterStatusLegendDamCritical: 'Critically low (≤30%)',
+      waterStatusLegendDamLow: 'Low (30–50%)',
+      waterStatusLegendDamNormal: 'Moderate (50–80%)',
       waterStatusLegendDamHigh: 'High (80–100%)',
       waterStatusLegendDamOver: 'Over capacity (>100%)',
       waterStatusLegendRiver: 'Water-level station',
@@ -4646,9 +4649,13 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
     return candidates[0].geocode;
   }
 
+  // Royal Irrigation Department storage criteria, as published by ThaiWater:
+  // ≤30% น้ำน้อยวิกฤต, >30–50% น้ำน้อย, >50–80% น้ำปานกลาง, >80–100% น้ำมาก,
+  // >100% เกินความจุเก็บกัก.
   function damLevelMeta(pct){
     if(typeof pct !== 'number') return { key:null, color:'#9AA593' };
-    if(pct < 30) return { key:'waterStatusLegendDamLow', color:'#C0392B' };
+    if(pct <= 30) return { key:'waterStatusLegendDamCritical', color:'#C0392B' };
+    if(pct <= 50) return { key:'waterStatusLegendDamLow', color:'#D9822B' };
     if(pct <= 80) return { key:'waterStatusLegendDamNormal', color:'#3E5B2C' };
     if(pct <= 100) return { key:'waterStatusLegendDamHigh', color:'#1F6FA8' };
     return { key:'waterStatusLegendDamOver', color:'#6B2FA8' };
