@@ -541,6 +541,8 @@
   .ws-row .ws-label{ font-size:11.5px; color:var(--muted); font-weight:600; margin-bottom:3px; }
   .ws-row .ws-name{ font-size:13.5px; font-weight:600; color:var(--ink); }
   .ws-row .ws-detail{ font-size:12.5px; color:var(--ink); margin-top:3px; line-height:1.6; }
+  .ws-summary-coverage{ margin-top:6px; font-size:12px; color:#6B7A63; line-height:1.6; }
+  .ws-summary-coverage.ws-missing{ color:#9a6418; margin-top:2px; }
   .ws-trend{ margin-top:6px; padding:8px 10px; border-radius:10px; background:#f6f8f2; font-size:12.5px; line-height:1.6; }
   .ws-trend.rising{ background:#fdf1ec; }
   .ws-trend b{ font-weight:600; }
@@ -2256,8 +2258,14 @@ body.hv-report-open{overflow:hidden}
       waterStatusSummaryCriticalTitle: 'วิกฤต — มีจุดล้นตลิ่ง/เขื่อนเกินความจุใกล้แปลง',
       waterStatusSummaryWarningTitle: 'เฝ้าระวังสูง — สถานการณ์ตึงตัวใกล้แปลง',
       waterStatusSummaryWatchTitle: 'เฝ้าระวัง — ฝนตกหนัก/ระดับน้ำเริ่มสูงใกล้แปลง',
-      waterStatusSummaryNormalTitle: 'ปกติ — ไม่พบจุดเสี่ยงในรัศมี 10 กม. รอบแปลง',
-      waterStatusSummaryNormalDetail: 'เขื่อน แม่น้ำ และฝนในรัศมี 10 กม. รอบแปลงอยู่ในเกณฑ์ปกติ จุดที่ไกลกว่านี้แสดงบนแผนที่ไว้ดูประกอบ',
+      waterStatusSummaryNormalTitle: 'ปกติ — จุดวัดในรัศมี 10 กม. ไม่พบความเสี่ยง',
+      waterStatusSummaryNoDataTitle: 'ไม่มีจุดวัดในรัศมี 10 กม. รอบแปลง',
+      waterStatusSummaryNoDataDetail: 'จึงยังบอกไม่ได้ว่าสถานการณ์น้ำที่แปลงปกติหรือไม่ ให้ดูแผนที่ประกอบ และติดตามประกาศของหน่วยงานในพื้นที่',
+      waterStatusNearestPoint: 'จุดวัดที่ใกล้ที่สุด: {name} ห่าง {km} กม.',
+      waterStatusCoverage: 'จุดวัดในรัศมี 10 กม.: ฝน {rain} จุด · แม่น้ำ {river} จุด · เขื่อน/อ่างเก็บน้ำ {dam} แห่ง',
+      waterStatusMissingRain: 'ไม่มีจุดวัดฝนใกล้แปลง จึงประเมินเรื่องฝนไม่ได้',
+      waterStatusMissingRiver: 'ไม่มีจุดวัดระดับน้ำแม่น้ำใกล้แปลง จึงประเมินเรื่องน้ำในแม่น้ำไม่ได้',
+      waterStatusSummaryNormalDetail: 'จุดวัดที่อยู่ในรัศมี 10 กม. อยู่ในเกณฑ์ปกติ จุดที่ไกลกว่านี้แสดงบนแผนที่ไว้ดูประกอบ',
       waterStatusNoDam: 'ไม่พบข้อมูลเขื่อนในระยะที่แสดงบนแผนที่',
       waterStatusNoRiver: 'ไม่พบข้อมูลจุดวัดระดับน้ำในระยะที่แสดงบนแผนที่',
       waterStatusNoRain: 'ไม่พบข้อมูลจุดวัดฝนในระยะที่แสดงบนแผนที่',
@@ -2648,8 +2656,14 @@ body.hv-report-open{overflow:hidden}
       waterStatusSummaryCriticalTitle: 'Critical — overflow or a dam over capacity near your plot',
       waterStatusSummaryWarningTitle: 'High alert — conditions are tight near your plot',
       waterStatusSummaryWatchTitle: 'Watch — heavy rain or rising water level nearby',
-      waterStatusSummaryNormalTitle: 'Normal — nothing of concern within 10 km of your plot',
-      waterStatusSummaryNormalDetail: 'Dams, rivers and rainfall within 10 km are in the normal range. Points farther away are shown on the map for reference.',
+      waterStatusSummaryNormalTitle: 'Normal — stations within 10 km show no risk',
+      waterStatusSummaryNoDataTitle: 'No measuring stations within 10 km of your plot',
+      waterStatusSummaryNoDataDetail: 'So we cannot tell whether conditions at your plot are normal. Check the map and follow local official announcements.',
+      waterStatusNearestPoint: 'Nearest station: {name}, {km} km away',
+      waterStatusCoverage: 'Within 10 km: {rain} rain gauge(s) · {river} river station(s) · {dam} dam(s)/reservoir(s)',
+      waterStatusMissingRain: 'No rain gauge near your plot, so rainfall cannot be assessed',
+      waterStatusMissingRiver: 'No river station near your plot, so river levels cannot be assessed',
+      waterStatusSummaryNormalDetail: 'Stations within 10 km are in the normal range. Points farther away are shown on the map for reference.',
       waterStatusNoDam: 'No dam data found within the mapped range',
       waterStatusNoRiver: 'No water-level station data found within the mapped range',
       waterStatusNoRain: 'No rain gauge data found within the mapped range',
@@ -5095,7 +5109,8 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
     critical: { color:'#8E1B1B', icon:'🔴', titleKey:'waterStatusSummaryCriticalTitle' },
     warning:  { color:'#C0392B', icon:'🟠', titleKey:'waterStatusSummaryWarningTitle' },
     watch:    { color:'#C08A1E', icon:'🟡', titleKey:'waterStatusSummaryWatchTitle' },
-    normal:   { color:'#3E5B2C', icon:'🟢', titleKey:'waterStatusSummaryNormalTitle' }
+    normal:   { color:'#3E5B2C', icon:'🟢', titleKey:'waterStatusSummaryNormalTitle' },
+    nodata:   { color:'#6B7A63', icon:'⚪', titleKey:'waterStatusSummaryNoDataTitle' }
   };
 
   function buildSituationSummary(damNearby, stationNearby, rainNearby, rainForecastRows, riverTrends){
@@ -5168,7 +5183,20 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
       if(fMeta) reasons.push({ type:'rainForecast', item: forecastMatch });
     }
 
-    return { tier: tier, reasons: reasons.slice(0, 3) };
+    // What could actually be checked within the alert radius. If nothing at
+    // all was measured nearby, say so plainly instead of calling it "normal".
+    const coverage = {
+      rain: rains.filter(function(r){ return near(r) && typeof r.rain24 === 'number'; }).length,
+      river: stations.filter(function(st){ return near(st) && SITUATION_META[st.situationLevel]; }).length,
+      dam: dams.filter(function(d){ return near(d) && typeof d.storagePercent === 'number'; }).length
+    };
+    const nearestAll = [].concat(
+      rains.map(function(x){ return { name: x.name, km: x.distanceKm }; }),
+      stations.map(function(x){ return { name: x.name, km: x.distanceKm }; }),
+      dams.map(function(x){ return { name: x.name, km: x.distanceKm }; })
+    ).sort(function(a, b){ return a.km - b.km; })[0] || null;
+    if(tier === 'normal' && !coverage.rain && !coverage.river && !coverage.dam) tier = 'nodata';
+    return { tier: tier, reasons: reasons.slice(0, 3), coverage: coverage, nearest: nearestAll };
   }
 
   function formatSummaryReason(r){
@@ -5199,12 +5227,23 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
   function renderWaterStatusSummary(summary){
     const meta = WS_SUMMARY_META[summary.tier];
     let html = '<div class="ws-summary-title" style="color:' + meta.color + ';">' + meta.icon + ' ' + esc(t(meta.titleKey)) + '</div>';
-    if(summary.reasons.length){
+    const cov = summary.coverage || { rain:0, river:0, dam:0 };
+    if(summary.tier === 'nodata'){
+      html += '<div class="ws-summary-reason">' + esc(t('waterStatusSummaryNoDataDetail')) + '</div>';
+      if(summary.nearest) html += '<div class="ws-summary-reason">' + esc(t('waterStatusNearestPoint').replace('{name}', summary.nearest.name).replace('{km}', summary.nearest.km.toFixed(1))) + '</div>';
+    } else if(summary.reasons.length){
       summary.reasons.forEach(function(r){
         html += '<div class="ws-summary-reason">' + esc(formatSummaryReason(r)) + '</div>';
       });
     } else {
       html += '<div class="ws-summary-reason">' + esc(t('waterStatusSummaryNormalDetail')) + '</div>';
+    }
+    if(summary.tier !== 'nodata'){
+      html += '<div class="ws-summary-coverage">' + esc(t('waterStatusCoverage').replace('{rain}', cov.rain).replace('{river}', cov.river).replace('{dam}', cov.dam)) + '</div>';
+      const missing = [];
+      if(!cov.rain) missing.push(t('waterStatusMissingRain'));
+      if(!cov.river) missing.push(t('waterStatusMissingRiver'));
+      if(missing.length) html += '<div class="ws-summary-coverage ws-missing">⚠ ' + esc(missing.join(' · ')) + '</div>';
     }
     return { html: html, color: meta.color };
   }
