@@ -1769,7 +1769,7 @@ body.hv-report-open{overflow:hidden}
           <label class="field-label" for="flow" data-i18n="flowLabel">อัตราการไหล/หัว</label>
           <div class="unit-input">
             <input type="number" id="flow" placeholder="เช่น 40" min="0" step="1">
-            <span class="unit-tag" data-i18n="flowUnit">ล./ชม.</span>
+            <span class="unit-tag" data-i18n="flowUnit">ล./ชั่วโมง</span>
           </div>
         </div>
       </div>
@@ -1977,7 +1977,7 @@ body.hv-report-open{overflow:hidden}
   <div id="waterStatusTab" class="hidden">
     <div class="card">
       <h2><span class="num river">🌊</span><span data-i18n="waterStatusCardH2">สถานการณ์น้ำใกล้แปลง</span></h2>
-      <p class="hint" data-i18n="waterStatusCardHint">แสดงเขื่อน/อ่างเก็บน้ำ ระดับน้ำแม่น้ำ/คลอง และฝนสะสม 24 ชม. บนแผนที่ใกล้แปลงของคุณ สำหรับติดตามสถานการณ์เท่านั้น ไม่ได้ใช้ในการคำนวณน้ำหรือปุ๋ยของแอป</p>
+      <p class="hint" data-i18n="waterStatusCardHint">แสดงเขื่อน/อ่างเก็บน้ำ ระดับน้ำแม่น้ำ/คลอง และฝนสะสม 24 ชั่วโมง บนแผนที่ใกล้แปลงของคุณ สำหรับติดตามสถานการณ์เท่านั้น ไม่ได้ใช้ในการคำนวณน้ำหรือปุ๋ยของแอป</p>
 
       <button type="button" class="gps-btn water-status-btn" id="waterStatusGpsBtn" onclick="fetchWaterStatusForGps()">
         <span class="spinner-sm" id="waterStatusSpinner"></span>
@@ -2006,7 +2006,7 @@ body.hv-report-open{overflow:hidden}
         <div class="ws-radar-track">
           <input type="range" id="wsRadarSlider" min="0" max="18" step="1" value="12">
           <div class="ws-radar-bar" id="wsRadarBar"></div>
-          <div class="ws-radar-ticks"><span data-i18n="radarTickMinus2">−2 ชม.</span><span data-i18n="radarTickMinus1">−1 ชม.</span><span class="now" data-i18n="radarNow">ล่าสุด</span><span class="fc" data-i18n="radarTickPlus1">+1 ชม.</span></div>
+          <div class="ws-radar-ticks"><span data-i18n="radarTickMinus2">−2 ชั่วโมง</span><span data-i18n="radarTickMinus1">−1 ชั่วโมง</span><span class="now" data-i18n="radarNow">ล่าสุด</span><span class="fc" data-i18n="radarTickPlus1">+1 ชั่วโมง</span></div>
         </div>
         <div class="ws-radar-strip-label"><span data-i18n="radarFarmStrip">ฝนที่แปลงของคุณ (รัศมี 2 กม.)</span><b id="wsRadarCellLabel"></b></div>
         <div class="ws-radar-cells" id="wsRadarCells"></div>
@@ -2014,11 +2014,11 @@ body.hv-report-open{overflow:hidden}
 
       <div class="ws-legend" id="waterStatusLegend" style="display:none;">
         <div class="ws-legend-group">
-          <label class="ws-legend-toggle"><input type="checkbox" id="wsLayerRadarToggle" checked><span class="ws-legend-title" data-i18n="radarLegendTitle">เรดาร์ฝน (ย้อนหลัง 2 ชม. + คาดการณ์ 1 ชม.)</span></label>
-          <span class="ws-legend-item"><span class="ws-legend-swatch" style="background:#73DE45;"></span><span data-i18n="radarLegendLight">ฝนเล็กน้อย (0.5–3 มม./ชม.)</span></span>
-          <span class="ws-legend-item"><span class="ws-legend-swatch" style="background:#DEDF4B;"></span><span data-i18n="radarLegendModerate">ฝนปานกลาง (3–9 มม./ชม.)</span></span>
-          <span class="ws-legend-item"><span class="ws-legend-swatch" style="background:#E3622A;"></span><span data-i18n="radarLegendHeavy">ฝนหนัก (9–50 มม./ชม.)</span></span>
-          <span class="ws-legend-item"><span class="ws-legend-swatch" style="background:#B72D54;"></span><span data-i18n="radarLegendVeryHeavy">ฝนหนักมาก (มากกว่า 50 มม./ชม.)</span></span>
+          <label class="ws-legend-toggle"><input type="checkbox" id="wsLayerRadarToggle" checked><span class="ws-legend-title" data-i18n="radarLegendTitle">เรดาร์ฝน (ย้อนหลัง 2 ชั่วโมง + คาดการณ์ 1 ชั่วโมง)</span></label>
+          <span class="ws-legend-item"><span class="ws-legend-swatch" style="background:#73DE45;"></span><span data-i18n="radarLegendLight">ฝนเล็กน้อย (0.5–3 มม./ชั่วโมง)</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-swatch" style="background:#DEDF4B;"></span><span data-i18n="radarLegendModerate">ฝนปานกลาง (3–9 มม./ชั่วโมง)</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-swatch" style="background:#E3622A;"></span><span data-i18n="radarLegendHeavy">ฝนหนัก (9–50 มม./ชั่วโมง)</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-swatch" style="background:#B72D54;"></span><span data-i18n="radarLegendVeryHeavy">ฝนหนักมาก (มากกว่า 50 มม./ชั่วโมง)</span></span>
           <span class="ws-legend-note" data-i18n="radarLegendNote">ภาพคาดการณ์มีกรอบเส้นประสีม่วง · ปริมาณฝนประมาณจากเรดาร์ของกรมอุตุนิยมวิทยา</span>
         </div>
         <div class="ws-legend-group">
@@ -2040,7 +2040,7 @@ body.hv-report-open{overflow:hidden}
           <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#6B2FA8;"></span><span data-i18n="situationOverbank">ล้นตลิ่ง (&gt;100%)</span></span>
         </div>
         <div class="ws-legend-group">
-          <label class="ws-legend-toggle"><input type="checkbox" id="wsLayerRainToggle" checked><span class="ws-legend-title" data-i18n="waterStatusLegendRain">ฝนสะสม 24 ชม. (มม.)</span></label>
+          <label class="ws-legend-toggle"><input type="checkbox" id="wsLayerRainToggle" checked><span class="ws-legend-title" data-i18n="waterStatusLegendRain">ฝนสะสม 24 ชั่วโมง (มม.)</span></label>
           <span class="ws-legend-item"><span class="ws-legend-dot rain-shape" style="background:#4C9A4C;"></span><span data-i18n="waterStatusLegendRainLight">น้อย (0.1–10)</span></span>
           <span class="ws-legend-item"><span class="ws-legend-dot rain-shape" style="background:#2E86C1;"></span><span data-i18n="waterStatusLegendRainModerate">ปานกลาง (10–35)</span></span>
           <span class="ws-legend-item"><span class="ws-legend-dot rain-shape" style="background:#E08A2B;"></span><span data-i18n="waterStatusLegendRainHeavy">หนัก (35–90)</span></span>
@@ -2209,7 +2209,7 @@ body.hv-report-open{overflow:hidden}
       rainMetaTo: 'ถึง',
       rainMetaSource: 'แหล่งข้อมูล: Open-Meteo',
       waterStatusCardH2: 'สถานการณ์น้ำใกล้แปลง',
-      waterStatusCardHint: 'แสดงเขื่อน/อ่างเก็บน้ำ ระดับน้ำแม่น้ำ/คลอง และฝนสะสม 24 ชม. บนแผนที่ใกล้แปลงของคุณ สำหรับติดตามสถานการณ์เท่านั้น ไม่ได้ใช้ในการคำนวณน้ำหรือปุ๋ยของแอป',
+      waterStatusCardHint: 'แสดงเขื่อน/อ่างเก็บน้ำ ระดับน้ำแม่น้ำ/คลอง และฝนสะสม 24 ชั่วโมง บนแผนที่ใกล้แปลงของคุณ สำหรับติดตามสถานการณ์เท่านั้น ไม่ได้ใช้ในการคำนวณน้ำหรือปุ๋ยของแอป',
       waterStatusGpsBtnLabel: 'ตรวจสอบจากพิกัด GPS',
       waterStatusMapPlaceholder: 'กดปุ่มด้านบนเพื่อแสดงแผนที่สถานการณ์น้ำใกล้แปลง',
       waterStatusMapLoadFail: 'โหลดแผนที่ไม่สำเร็จ (ไม่สามารถเชื่อมต่อ CDN ของ Leaflet ได้) — ยังคงแสดงข้อมูลสรุปด้านล่างได้ตามปกติ',
@@ -2229,16 +2229,16 @@ body.hv-report-open{overflow:hidden}
       waterStatusRainLabel: 'จุดวัดฝนใกล้ที่สุด',
       waterStatusStorageLabel: 'ระดับน้ำเก็บกัก',
       waterStatusLevelLabel: 'สถานการณ์',
-      waterStatusRain24Label: 'ฝนสะสม 24 ชม.',
+      waterStatusRain24Label: 'ฝนสะสม 24 ชั่วโมง',
       waterStatusBankPercentLabel: 'ระดับน้ำเทียบตลิ่ง',
       waterStatusTrendUp: 'เพิ่มขึ้น',
-      waterStatusTrend3h: 'แนวโน้ม 3 ชม.',
+      waterStatusTrend3h: 'แนวโน้ม 3 ชั่วโมง',
       waterStatusTrendRiseBy: 'ขึ้น',
       waterStatusTrendFallBy: 'ลดลง',
       waterStatusTrendFlat: 'ค่อนข้างคงที่',
       waterStatusTrendContinuous: 'ขึ้นต่อเนื่อง',
-      waterStatusTrendHoursToBank: 'ถ้าขึ้นต่อแบบนี้ อีกราว {h} ชม. จะถึงตลิ่ง',
-      waterStatusTrendSpark: 'ระดับน้ำ 24 ชม. ที่ผ่านมา (เส้นประ = ตลิ่ง)',
+      waterStatusTrendHoursToBank: 'ถ้าขึ้นต่อแบบนี้ อีกราว {h} ชั่วโมง จะถึงตลิ่ง',
+      waterStatusTrendSpark: 'ระดับน้ำ 24 ชั่วโมง ที่ผ่านมา (เส้นประ = ตลิ่ง)',
       waterStatusTrendReason: 'น้ำขึ้นต่อเนื่อง',
       waterStatusTrendDown: 'ลดลง',
       waterStatusTrendSteady: 'คงที่',
@@ -2283,11 +2283,11 @@ body.hv-report-open{overflow:hidden}
       radarNoMotionHead: 'มีกลุ่มฝนใกล้แปลง แต่ยังประเมินทิศทางการเคลื่อนที่ไม่ได้',
       radarNoMotionDetail: 'ดูภาพเรดาร์ย้อนหลังบนแผนที่เพื่อติดตามด้วยตนเอง',
       radarNearest: 'กลุ่มฝนที่ใกล้ที่สุดอยู่ห่าง {km} กม. ทางทิศ{dir}',
-      radarMotion: 'เคลื่อนไปทางทิศ{dir} ราว {spd} กม./ชม.',
+      radarMotion: 'เคลื่อนไปทางทิศ{dir} ราว {spd} กม./ชั่วโมง',
       radarStationary: 'แทบไม่เคลื่อนที่',
       radarNearStillHead: 'มีกลุ่มฝนอยู่ใกล้แปลงในระยะ {km} กม. และแทบไม่เคลื่อนที่',
       radarNearestMoving: '{near} {motion}',
-      radarApproach: 'กลุ่มฝนที่กำลังเข้ามาอยู่ห่างราว {km} กม. ทางทิศ{dir} เคลื่อนที่ราว {spd} กม./ชม.',
+      radarApproach: 'กลุ่มฝนที่กำลังเข้ามาอยู่ห่างราว {km} กม. ทางทิศ{dir} เคลื่อนที่ราว {spd} กม./ชั่วโมง',
       radarPeak: 'ตกหนักที่สุด ({cls}) ราวเวลา {time}',
       radarIntensity: 'ความแรงคาดการณ์: {cls}',
       radarActComing: 'คำแนะนำ: เลื่อนการให้น้ำรอบถัดไป และงดใส่ปุ๋ยหรือพ่นสารทางใบจนกว่าฝนจะผ่านไป',
@@ -2298,14 +2298,14 @@ body.hv-report-open{overflow:hidden}
       radarOpenMap: 'ดูภาพเรดาร์บนแผนที่ →',
       radarClassLight: 'ฝนเล็กน้อย',
       radarClassModerate: 'ฝนปานกลาง',
-      radarLegendLight: 'ฝนเล็กน้อย (0.5–3 มม./ชม.)',
-      radarLegendModerate: 'ฝนปานกลาง (3–9 มม./ชม.)',
-      radarLegendHeavy: 'ฝนหนัก (9–50 มม./ชม.)',
-      radarLegendVeryHeavy: 'ฝนหนักมาก (มากกว่า 50 มม./ชม.)',
+      radarLegendLight: 'ฝนเล็กน้อย (0.5–3 มม./ชั่วโมง)',
+      radarLegendModerate: 'ฝนปานกลาง (3–9 มม./ชั่วโมง)',
+      radarLegendHeavy: 'ฝนหนัก (9–50 มม./ชั่วโมง)',
+      radarLegendVeryHeavy: 'ฝนหนักมาก (มากกว่า 50 มม./ชั่วโมง)',
       radarClassHeavy: 'ฝนหนัก',
       radarClassVeryHeavy: 'ฝนหนักมาก',
       radarClassHail: 'ฝนหนักมาก อาจมีลูกเห็บ',
-      radarLegendTitle: 'เรดาร์ฝน (ย้อนหลัง 2 ชม. + คาดการณ์ 1 ชม.)',
+      radarLegendTitle: 'เรดาร์ฝน (ย้อนหลัง 2 ชั่วโมง + คาดการณ์ 1 ชั่วโมง)',
       radarLegendNote: 'ภาพคาดการณ์มีกรอบเส้นประสีม่วง · ปริมาณฝนประมาณจากเรดาร์ของกรมอุตุนิยมวิทยา',
       radarNow: 'ล่าสุด',
       radarForecastTag: 'คาดการณ์',
@@ -2317,9 +2317,9 @@ body.hv-report-open{overflow:hidden}
       radarPlay: 'เล่นภาพเคลื่อนไหวเรดาร์ฝน',
       radarPause: 'หยุดภาพเคลื่อนไหว',
       radarSlider: 'เลือกเวลาของภาพเรดาร์',
-      radarTickMinus2: '−2 ชม.',
-      radarTickMinus1: '−1 ชม.',
-      radarTickPlus1: '+1 ชม.',
+      radarTickMinus2: '−2 ชั่วโมง',
+      radarTickMinus1: '−1 ชั่วโมง',
+      radarTickPlus1: '+1 ชั่วโมง',
       radarDirs: ['เหนือ','ตะวันออกเฉียงเหนือ','ตะวันออก','ตะวันออกเฉียงใต้','ใต้','ตะวันตกเฉียงใต้','ตะวันตก','ตะวันตกเฉียงเหนือ'],
       waterStatusLegendDamCritical: 'น้ำน้อยวิกฤต (≤30%)',
       waterStatusLegendDamLow: 'น้ำน้อย (30–50%)',
@@ -2327,7 +2327,7 @@ body.hv-report-open{overflow:hidden}
       waterStatusLegendDamHigh: 'น้ำมาก (80–100%)',
       waterStatusLegendDamOver: 'เกินความจุ (>100%)',
       waterStatusLegendRiver: 'จุดวัดระดับน้ำ',
-      waterStatusLegendRain: 'ฝนสะสม 24 ชม. (มม.)',
+      waterStatusLegendRain: 'ฝนสะสม 24 ชั่วโมง (มม.)',
       waterStatusLegendRainLight: 'น้อย (0.1–10)',
       waterStatusLegendRainModerate: 'ปานกลาง (10–35)',
       waterStatusLegendRainHeavy: 'หนัก (35–90)',
@@ -2357,10 +2357,10 @@ body.hv-report-open{overflow:hidden}
       soilFertRateLabel: 'อัตราปุ๋ย',
       soilClay: 'ดินเหนียว', soilClayLoam: 'ดินเหนียวร่วม', soilLoam: 'ดินร่วน',
       soilSandyLoam: 'ดินร่วนปนทราย', soilSand: 'ดินทราย',
-      soilInfiltrationShort: 'ซึมน้ำ', unitMmPerHr: 'มม./ชม.',
+      soilInfiltrationShort: 'ซึมน้ำ', unitMmPerHr: 'มม./ชั่วโมง',
       runoffWarning: '⚠️ อัตราการให้น้ำของสปริงเกอร์ (' ,
-      runoffWarningMid: ' มม./ชม.) สูงกว่าอัตราการซึมน้ำของดิน (',
-      runoffWarningEnd: ' มม./ชม.) น้ำอาจไหลนองผิวดิน แนะนำแบ่งรดเป็นหลายรอบสั้นๆ คั่นด้วยการพักให้น้ำซึมก่อน',
+      runoffWarningMid: ' มม./ชั่วโมง) สูงกว่าอัตราการซึมน้ำของดิน (',
+      runoffWarningEnd: ' มม./ชั่วโมง) น้ำอาจไหลนองผิวดิน แนะนำแบ่งรดเป็นหลายรอบสั้นๆ คั่นด้วยการพักให้น้ำซึมก่อน',
       sprinklerCardH2: 'ระบบสปริงเกอร์ต่อต้น',
       sprinklerCardHint: 'ข้อมูลจากสเปกหัวสปริงเกอร์ที่ติดตั้งจริงในสวน',
       irrigationTypeLabel: 'ระบบการให้น้ำ',
@@ -2371,7 +2371,7 @@ body.hv-report-open{overflow:hidden}
       irrRotorImpact: 'สปริงเกอร์แบบหัวหมุน (Rotor/Impact)',
       headsLabel: 'จำนวนหัวต่อต้น',
       flowLabel: 'อัตราการไหล/หัว',
-      flowUnit: 'ล./ชม.',
+      flowUnit: 'ล./ชั่วโมง',
       calcWaterBtn: 'คำนวณเวลาให้น้ำ',
       waterResultEyebrow: 'ผลการคำนวณน้ำ',
       addCalendarBtn: '📅 เพิ่มลง Google Calendar',
@@ -2496,7 +2496,7 @@ body.hv-report-open{overflow:hidden}
       rowFullWaterDay: 'ปริมาณน้ำเต็มที่/วัน',
       rowFullWater10d: 'ปริมาณน้ำเต็มที่/10 วัน',
       rowFrequency: 'ความถี่', everyDay: 'ทุกวัน',
-      rowTotalFlow: 'อัตราการไหลรวม', unitLPerHr: 'ล./ชม.',
+      rowTotalFlow: 'อัตราการไหลรวม', unitLPerHr: 'ล./ชั่วโมง',
       rowGrowthStage: 'ระยะการเจริญเติบโต', rowKc: 'Kc (Netafim, อิง ETo)',
       rowEtoEntered: 'ETo ที่กรอก', unitMm10d: 'มม./10 วัน',
       rowEtcAdjusted: 'ETc ที่ปรับแล้ว',
@@ -2543,7 +2543,7 @@ body.hv-report-open{overflow:hidden}
       gpsTmdFailFallback: 'ดึงข้อมูลจาก TMD ไม่สำเร็จ กำลังลองใช้ NASA POWER แทน...',
       unitKm: 'กม.',
       unitM: 'ม.',
-      unitHr: 'ชม.',
+      unitHr: 'ชั่วโมง',
       unitMm: 'มม.',
       gpsNoData: 'ไม่พบข้อมูลที่ใช้งานได้ในช่วง 25 วันล่าสุด',
       gpsSuccess: 'สำเร็จ', gpsAvgFrom: 'เฉลี่ยจาก', gpsDaysRange: 'วันล่าสุด, ช่วง',
