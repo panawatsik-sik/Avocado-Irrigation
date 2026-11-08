@@ -2256,8 +2256,8 @@ body.hv-report-open{overflow:hidden}
       waterStatusSummaryCriticalTitle: 'วิกฤต — มีจุดล้นตลิ่ง/เขื่อนเกินความจุใกล้แปลง',
       waterStatusSummaryWarningTitle: 'เฝ้าระวังสูง — สถานการณ์ตึงตัวใกล้แปลง',
       waterStatusSummaryWatchTitle: 'เฝ้าระวัง — ฝนตกหนัก/ระดับน้ำเริ่มสูงใกล้แปลง',
-      waterStatusSummaryNormalTitle: 'ปกติ — ไม่พบจุดวิกฤตใกล้แปลงในรัศมีที่ตรวจสอบ',
-      waterStatusSummaryNormalDetail: 'เขื่อน จุดวัดระดับน้ำ และฝนสะสมในรัศมีที่ตรวจสอบอยู่ในเกณฑ์ปกติ',
+      waterStatusSummaryNormalTitle: 'ปกติ — ไม่พบจุดเสี่ยงในรัศมี 10 กม. รอบแปลง',
+      waterStatusSummaryNormalDetail: 'เขื่อน แม่น้ำ และฝนในรัศมี 10 กม. รอบแปลงอยู่ในเกณฑ์ปกติ จุดที่ไกลกว่านี้แสดงบนแผนที่ไว้ดูประกอบ',
       waterStatusNoDam: 'ไม่พบข้อมูลเขื่อนในระยะที่แสดงบนแผนที่',
       waterStatusNoRiver: 'ไม่พบข้อมูลจุดวัดระดับน้ำในระยะที่แสดงบนแผนที่',
       waterStatusNoRain: 'ไม่พบข้อมูลจุดวัดฝนในระยะที่แสดงบนแผนที่',
@@ -2648,8 +2648,8 @@ body.hv-report-open{overflow:hidden}
       waterStatusSummaryCriticalTitle: 'Critical — overflow or a dam over capacity near your plot',
       waterStatusSummaryWarningTitle: 'High alert — conditions are tight near your plot',
       waterStatusSummaryWatchTitle: 'Watch — heavy rain or rising water level nearby',
-      waterStatusSummaryNormalTitle: 'Normal — no critical points found near your plot',
-      waterStatusSummaryNormalDetail: 'Dams, water-level stations, and rainfall within the checked radius are within normal range.',
+      waterStatusSummaryNormalTitle: 'Normal — nothing of concern within 10 km of your plot',
+      waterStatusSummaryNormalDetail: 'Dams, rivers and rainfall within 10 km are in the normal range. Points farther away are shown on the map for reference.',
       waterStatusNoDam: 'No dam data found within the mapped range',
       waterStatusNoRiver: 'No water-level station data found within the mapped range',
       waterStatusNoRain: 'No rain gauge data found within the mapped range',
@@ -4687,7 +4687,7 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
   async function fetchRiverTrends(stationNearby){
     const out = {};
     const picks = stationNearby.map(toStationItem)
-      .filter(function(it){ return it.stationId != null && it.distanceKm <= WS_SUMMARY_CLOSE_KM; })
+      .filter(function(it){ return it.stationId != null && it.distanceKm <= WATER_STATUS_FAR_KM; })
       .slice(0, TREND_MAX_STATIONS);
     await Promise.all(picks.map(async function(it){
       const rows = await fetchStationHistory(it.stationId);
@@ -5088,7 +5088,9 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
   // one 5 km away does, so anything within WATER_STATUS_FAR_KM (the same
   // "close enough to matter" threshold already used for the ws-far badge)
   // is weighted higher than the same situation farther out.
-  const WS_SUMMARY_CLOSE_KM = WATER_STATUS_FAR_KM;
+  // Only points within this radius can raise the alert. Farther stations
+  // still appear on the map and in the list, but rarely affect the plot.
+  const WS_SUMMARY_CLOSE_KM = 10;
   const WS_SUMMARY_META = {
     critical: { color:'#8E1B1B', icon:'🔴', titleKey:'waterStatusSummaryCriticalTitle' },
     warning:  { color:'#C0392B', icon:'🟠', titleKey:'waterStatusSummaryWarningTitle' },
@@ -5105,7 +5107,6 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
     // ล้นตลิ่งแล้ว (5) or a major dam over 100% — the two "already happening"
     // situations the user asked to be flagged as critical.
     const overbankClose = stations.find(function(s){ return s.situationLevel === 5 && near(s); });
-    const overbankFar = stations.find(function(s){ return s.situationLevel === 5 && !near(s); });
     const damOverClose = dams.find(function(d){ return d.isMajor && typeof d.storagePercent === 'number' && d.storagePercent > 100 && near(d); });
 
     // A river close to the bank (น้ำมาก band, ≥90% of bank height) or a dam
@@ -5127,11 +5128,10 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
       tier = 'critical';
       if(overbankClose) reasons.push({ type:'river', item: overbankClose });
       if(damOverClose) reasons.push({ type:'dam', item: damOverClose });
-    } else if(overbankFar || criticalClose || damHighClose){
+    } else if(criticalClose || damHighClose){
       tier = 'warning';
       if(criticalClose) reasons.push({ type:'river', item: criticalClose });
       if(damHighClose) reasons.push({ type:'dam', item: damHighClose });
-      if(overbankFar) reasons.push({ type:'river', item: overbankFar });
     } else if(heavyRainClose || warningClose){
       tier = 'watch';
       if(warningClose) reasons.push({ type:'river', item: warningClose });
