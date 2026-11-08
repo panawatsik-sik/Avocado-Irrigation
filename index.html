@@ -2027,11 +2027,11 @@ body.hv-report-open{overflow:hidden}
         </div>
         <div class="ws-legend-group">
           <label class="ws-legend-toggle"><input type="checkbox" id="wsLayerRiverToggle" checked><span class="ws-legend-title" data-i18n="waterStatusLegendRiver">จุดวัดระดับน้ำ</span></label>
-          <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#3E5B2C;"></span><span data-i18n="situationNormal">ปกติ</span></span>
-          <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#C08A1E;"></span><span data-i18n="situationWatch">เฝ้าระวัง</span></span>
-          <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#D9822B;"></span><span data-i18n="situationWarning">เตือนภัย</span></span>
-          <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#C0392B;"></span><span data-i18n="situationCritical">วิกฤต</span></span>
-          <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#8E1B1B;"></span><span data-i18n="situationOverbank">ล้นตลิ่ง</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#C0392B;"></span><span data-i18n="situationLowCritical">น้ำน้อยวิกฤต (≤10%)</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#D9822B;"></span><span data-i18n="situationLow">น้ำน้อย (10–30%)</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#3E5B2C;"></span><span data-i18n="situationNormal">ปกติ (30–70%)</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#1F6FA8;"></span><span data-i18n="situationHigh">น้ำมาก (70–100%)</span></span>
+          <span class="ws-legend-item"><span class="ws-legend-dot" style="background:#6B2FA8;"></span><span data-i18n="situationOverbank">ล้นตลิ่ง (&gt;100%)</span></span>
         </div>
         <div class="ws-legend-group">
           <label class="ws-legend-toggle"><input type="checkbox" id="wsLayerRainToggle" checked><span class="ws-legend-title" data-i18n="waterStatusLegendRain">ฝนสะสม 24 ชม. (มม.)</span></label>
@@ -2318,11 +2318,11 @@ body.hv-report-open{overflow:hidden}
       waterStatusLegendRainHeavy: 'หนัก (35–90)',
       waterStatusLegendRainVeryHeavy: 'หนักมาก (>90)',
       waterStatusYou: 'ตำแหน่งของคุณ',
-      situationNormal: 'ปกติ',
-      situationWatch: 'เฝ้าระวัง',
-      situationWarning: 'เตือนภัย',
-      situationCritical: 'วิกฤต',
-      situationOverbank: 'ล้นตลิ่ง',
+      situationLowCritical: 'น้ำน้อยวิกฤต (≤10%)',
+      situationLow: 'น้ำน้อย (10–30%)',
+      situationNormal: 'ปกติ (30–70%)',
+      situationHigh: 'น้ำมาก (70–100%)',
+      situationOverbank: 'ล้นตลิ่ง (>100%)',
       canopyAreaPreviewPrefix: 'พื้นที่ทรงพุ่มโดยประมาณ',
       measureGuideSummary: 'ดูวิธีวัดรัศมีทรงพุ่ม',
       measureGuideTopView: 'มุมมองจากด้านบน',
@@ -2699,11 +2699,11 @@ body.hv-report-open{overflow:hidden}
       waterStatusLegendRainHeavy: 'Heavy (35–90)',
       waterStatusLegendRainVeryHeavy: 'Very heavy (>90)',
       waterStatusYou: 'Your location',
-      situationNormal: 'Normal',
-      situationWatch: 'Watch',
-      situationWarning: 'Warning',
-      situationCritical: 'Critical',
-      situationOverbank: 'Over-bank',
+      situationLowCritical: 'Critically low (≤10%)',
+      situationLow: 'Low (10–30%)',
+      situationNormal: 'Normal (30–70%)',
+      situationHigh: 'High (70–100%)',
+      situationOverbank: 'Over-bank (>100%)',
       canopyAreaPreviewPrefix: 'Approx. canopy area',
       measureGuideSummary: 'How to measure canopy radius',
       measureGuideTopView: 'Top view',
@@ -4536,12 +4536,18 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
     return result;
   }
 
+  // ThaiWater's water-level situation_level is a band of "% of bank height"
+  // (storage_percent), NOT a 5-step danger scale. Checked against the live
+  // feed (817 stations): 1 = ≤10% น้ำน้อยวิกฤต, 2 = 10–30% น้ำน้อย,
+  // 3 = 30–70% ปกติ, 4 = 70–100% น้ำมาก, 5 = >100% ล้นตลิ่ง.
+  // Colors follow the dam legend (low = red, normal = green, high = blue,
+  // over = purple) so both layers read the same way.
   const SITUATION_META = {
-    1: { key:'situationNormal',   color:'#3E5B2C' },
-    2: { key:'situationWatch',    color:'#C08A1E' },
-    3: { key:'situationWarning',  color:'#D9822B' },
-    4: { key:'situationCritical', color:'#C0392B' },
-    5: { key:'situationOverbank', color:'#8E1B1B' }
+    1: { key:'situationLowCritical', color:'#C0392B' },
+    2: { key:'situationLow',         color:'#D9822B' },
+    3: { key:'situationNormal',      color:'#3E5B2C' },
+    4: { key:'situationHigh',        color:'#1F6FA8' },
+    5: { key:'situationOverbank',    color:'#6B2FA8' }
   };
 
   // ThaiWater sends numeric-looking fields (storage_percent, waterlevel_msl,
@@ -4932,15 +4938,18 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
     const overbankFar = stations.find(function(s){ return s.situationLevel === 5 && !near(s); });
     const damOverClose = dams.find(function(d){ return d.isMajor && typeof d.storagePercent === 'number' && d.storagePercent > 100 && near(d); });
 
-    // วิกฤต (4, one notch below overflow) or a dam approaching full — worth
-    // a strong warning even though nothing has actually overflowed yet.
-    const criticalClose = stations.find(function(s){ return s.situationLevel === 4 && near(s); });
+    // A river close to the bank (น้ำมาก band, ≥90% of bank height) or a dam
+    // approaching full — worth a strong warning even though nothing has
+    // actually overflowed yet. (Same 90% cut-off as the dam rule below.)
+    const criticalClose = stations.find(function(s){ return s.situationLevel === 4 && typeof s.storagePercent === 'number' && s.storagePercent >= 90 && near(s); });
     const damHighClose = dams.find(function(d){ return d.isMajor && typeof d.storagePercent === 'number' && d.storagePercent > 90 && d.storagePercent <= 100 && near(d); });
 
     // Heavy rain (>35mm/24h, same threshold as the "หนัก" rain legend tier)
-    // or เตือนภัย (3) nearby — early signal, nothing urgent yet.
+    // or a river in the น้ำมาก band (4, 70–100% of bank) nearby — early
+    // signal, nothing urgent yet. Level 3 is ThaiWater's ปกติ band and
+    // must not raise an alert.
     const heavyRainClose = rains.find(function(r){ return typeof r.rain24 === 'number' && r.rain24 > 35 && near(r); });
-    const warningClose = stations.find(function(s){ return s.situationLevel === 3 && near(s); });
+    const warningClose = stations.find(function(s){ return s.situationLevel === 4 && !criticalClose && near(s); });
 
     let tier = 'normal';
     const reasons = [];
@@ -5105,8 +5114,8 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
       const color = meta ? meta.color : '#9AA593';
       const levelText = meta ? t(meta.key) : '—';
       // Only ล้นตลิ่ง (5, riverbank overflow) counts as critical enough to
-      // pulse — เตือนภัย (4, warning) is elevated but not yet overflowing,
-      // so it gets its usual color only, no blink.
+      // pulse — น้ำมาก (4) is high but not yet overflowing, so it gets its
+      // usual color only, no blink.
       if(it.situationLevel === 5){
         addCriticalPulse(riverLayer, it.lat, it.lon, color, 20);
       }
