@@ -1540,6 +1540,23 @@ body.hv-report-open{overflow:hidden}
 #harvestTab .hv-cv-item>.hv-btn{flex:none}
 @media (max-width:420px){#harvestTab .hv-cv-age{font-size:13px}#harvestTab .hv-cv-item>.hv-btn{padding:8px 12px}}
 
+/* ---- Drymate-style weighing: microwave rounds + stability ---- */
+#harvestTab .hv-method-note{margin:8px 0 0;padding:10px 12px;border-radius:10px;background:#fff8ea;color:#7a5410;font-size:13px;line-height:1.7}
+#harvestTab .hv-rounds{margin-top:6px}
+#harvestTab .hv-rounds-label{display:block;font-size:13.5px;font-weight:600;margin-bottom:6px}
+#harvestTab .hv-round-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+#harvestTab .hv-round-no{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:#eef2e8;color:var(--leaf);font-family:'Kanit',sans-serif;font-weight:600;font-size:13px}
+#harvestTab .hv-round-row input{flex:1;min-width:0}
+#harvestTab .hv-round-del{flex:none;width:36px;height:36px;border:0;background:none;color:var(--muted);font-size:20px;border-radius:8px}
+#harvestTab .hv-round-del:disabled{opacity:.3}
+#harvestTab .hv-add-round{width:100%;min-height:40px;border:1.5px dashed #b9c9a0;background:transparent;border-radius:10px;color:var(--leaf);font-weight:600;font-size:13.5px}
+#harvestTab .hv-stable{margin:8px 0 0;font-size:13px;font-weight:600;color:var(--muted)}
+#harvestTab .hv-stable.ok{color:#2f7a3a}
+#harvestTab .hv-stable.warn{color:#9a6418}
+#harvestTab .hv-round-big{font-family:'Kanit',sans-serif;font-weight:600;font-size:22px;color:var(--leaf);white-space:nowrap}
+#hv-print-report .hv-avg-row td{background:#f7f7f2;font-weight:600}
+#hv-print-report .hv-avg-row td:first-child{text-align:right}
+
 </style>
 </head>
 <body>
@@ -5962,6 +5979,8 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
     const d = new Date(Date.UTC(y, m - 1 + n, 1));
     return d.toISOString().slice(0, 7);
   };
+  /** Same rounding as Drymate: Math.round to 2 decimals. */
+  const pct2 = (v) => (Math.round(v * 100) / 100).toFixed(2);
   const hasAges = (p) => !!p && Number.isInteger(p.min) && Number.isInteger(p.max);
   const UCANR = "https://ucanr.edu/county/cooperative-extension-ventura-county/harvesting-avocados-0";
   const QLD = "https://www.business.qld.gov.au/industries/farms-fishing-forestry/agriculture/crops/fruit-veg/avocado/harvest";
@@ -5974,15 +5993,18 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
   const au = link("https://afccc.org.au/pdfs/resources%20and%20training/Avocado-Best-Practice-Guide.pdf", "Avocados Australia");
 
   const defaults = [
-    ["peterson", "ปีเตอร์สัน", "Peterson", 160, 160, "ผิวผลและก้านผลเปลี่ยนจากสีเขียวเป็นสีเขียวอ่อนหรือสีเขียวอมเหลือง", "Skin and stalk change from green to light green or yellowish green."],
-    ["booth7", "บูท 7", "Booth 7", 170, 170, "ผิวยังคงสีเขียว มีนวลและจุดประสีน้ำตาล", "Skin remains green; bloom and brown speckles may appear."],
-    ["booth8", "บูท 8", "Booth 8", 177, 177, "ผิวผลสีเขียว มีนวลและจุดประสีน้ำตาล", "Green skin with bloom and possible brown speckles."],
-    ["buccaneer", "บัคคาเนียร์", "Buccaneer", 180, 187, "มีนวล ผิวอาจออกเหลืองเล็กน้อย และมีจุดประ", "Bloom, a slight yellowish tint and speckles may develop."],
-    ["hass", "แฮส", "Hass", 242, 250, "มาตรฐานระบุผิวสีเขียวเข้มมีสีม่วงเกิดขึ้น ใช้ร่วมกับดัชนีอื่น ไม่รอสีม่วงเพียงอย่างเดียว", "The standard describes dark green skin with some purple coloration. Combine this with other maturity indicators; colour alone is insufficient."],
-    ["pinkerton", "พิงค์เคอร์ตัน", "Pinkerton", 309, 309, "ผิวเปลี่ยนเป็นสีเขียวเข้ม ควรตรวจน้ำหนักแห้งและการบ่มร่วมด้วย", "Skin may become dark green; confirm with dry matter and ripening tests."],
+    ["peterson", "ปีเตอร์สัน", "Peterson", 160, 160, "ผิวและขั้วผลเปลี่ยนจากเขียวเป็นเขียวอ่อน หรือเขียวอมเหลือง", "Skin and stalk change from green to light green or yellowish green."],
+    ["booth7", "บูท 7", "Booth 7", 170, 170, "ผิวยังเขียวอยู่ มีนวล และมีจุดสีน้ำตาล", "Skin remains green; bloom and brown speckles may appear."],
+    ["booth8", "บูท 8", "Booth 8", 177, 177, "ผิวเขียว มีนวล และอาจมีจุดสีน้ำตาล", "Green skin with bloom and possible brown speckles."],
+    ["buccaneer", "บัคคาเนียร์", "Buccaneer", 180, 187, "มีนวล ผิวออกเหลืองเล็กน้อย และมีจุด", "Bloom, a slight yellowish tint and speckles may develop."],
+    ["hass", "แฮส", "Hass", 242, 250, "ผิวเขียวเข้ม และเริ่มมีสีม่วง (ไม่ต้องรอให้ม่วงทั้งลูก ให้ดูข้ออื่นประกอบด้วย)", "Dark green skin starting to turn purple. Don't wait for the whole fruit to turn purple; check other signs too."],
+    ["pinkerton", "พิงค์เคอร์ตัน", "Pinkerton", 309, 309, "ผิวเปลี่ยนเป็นเขียวเข้ม ควรวัดน้ำหนักแห้งและลองบ่มประกอบ", "Skin turns dark green; measure dry matter and do a ripening test too."],
   ].map(([id, th, en, min, max, extTh, extEn]) => ({ id, th, en, min, max, margin: 14, extTh, extEn, source: "HRDI / สวพส. (2560)", dm: null, dmSource: "", standard: false, custom: false }));
   const standardDM = { peterson: 19, booth7: 19, booth8: 19, buccaneer: 19, hass: 21, pinkerton: 20 };
-  const STD_DM_SOURCE = "มกษ. 31-2567 / TAS 31-2024 · จ.2 (รุ่น / lot)";
+  const STD_DM_SOURCE = "มกษ. 31-2567";
+  /* Older saved copies of built-in texts are updated to the plain-language versions. */
+  const TEXT_UPDATES = {"ผิวผลและก้านผลเปลี่ยนจากสีเขียวเป็นสีเขียวอ่อนหรือสีเขียวอมเหลือง": "ผิวและขั้วผลเปลี่ยนจากเขียวเป็นเขียวอ่อน หรือเขียวอมเหลือง", "ผิวยังคงสีเขียว มีนวลและจุดประสีน้ำตาล": "ผิวยังเขียวอยู่ มีนวล และมีจุดสีน้ำตาล", "ผิวผลสีเขียว มีนวลและจุดประสีน้ำตาล": "ผิวเขียว มีนวล และอาจมีจุดสีน้ำตาล", "มีนวล ผิวอาจออกเหลืองเล็กน้อย และมีจุดประ": "มีนวล ผิวออกเหลืองเล็กน้อย และมีจุด", "มาตรฐานระบุผิวสีเขียวเข้มมีสีม่วงเกิดขึ้น ใช้ร่วมกับดัชนีอื่น ไม่รอสีม่วงเพียงอย่างเดียว": "ผิวเขียวเข้ม และเริ่มมีสีม่วง (ไม่ต้องรอให้ม่วงทั้งลูก ให้ดูข้ออื่นประกอบด้วย)", "ผิวเปลี่ยนเป็นสีเขียวเข้ม ควรตรวจน้ำหนักแห้งและการบ่มร่วมด้วย": "ผิวเปลี่ยนเป็นเขียวเข้ม ควรวัดน้ำหนักแห้งและลองบ่มประกอบ", "The standard describes dark green skin with some purple coloration. Combine this with other maturity indicators; colour alone is insufficient.": "Dark green skin starting to turn purple. Don't wait for the whole fruit to turn purple; check other signs too.", "Skin may become dark green; confirm with dry matter and ripening tests.": "Skin turns dark green; measure dry matter and do a ripening test too.", "มกษ. 31-2567 / TAS 31-2024 · จ.2 (รุ่น / lot)": "มกษ. 31-2567"};
+  const upd = (t) => TEXT_UPDATES[t] ?? t;
   defaults.forEach((p) => {
     p.dm = standardDM[p.id];
     p.dmSource = STD_DM_SOURCE;
@@ -5993,57 +6015,51 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
   /* Maturity signs. Index 0–3 are stored in record.signs; DM and ripening map to record.checks[1] and [2]. */
   const signDefs = [
     {
-      icon: "🎨",
-      th: "สีผิวผล", en: "Skin colour",
-      lookTh: "พันธุ์ผิวเขียว: ผิวอาจเปลี่ยนเป็นเขียวอ่อนหรือมีสีเหลืองเรื่อ พันธุ์ผิวคล้ำ เช่น แฮส: เริ่มเปลี่ยนจากเขียวเป็นสีเข้ม",
-      lookEn: "Green cultivars: skin may turn lighter green or develop a yellow tint. Dark cultivars such as Hass begin turning from green to dark.",
-      howTh: "เทียบผลด้านรับแดดและในร่ม กับผลรุ่นที่อ่อนกว่าบนต้นเดียวกัน",
-      howEn: "Compare sun-exposed and shaded fruit with younger fruit on the same tree.",
+      icon: "🎨", th: "สีผิว", en: "Skin colour",
+      lookTh: "พันธุ์ผิวเขียว: สีผิวจางลง หรือมีเหลืองเรื่อ ๆ · พันธุ์ผิวดำ เช่น แฮส: เริ่มเปลี่ยนจากเขียวเป็นสีเข้ม",
+      lookEn: "Green-skinned: colour gets lighter or slightly yellow. Dark-skinned such as Hass: starts turning dark.",
+      howTh: "เทียบกับลูกที่อ่อนกว่าบนต้นเดียวกัน ดูทั้งลูกที่โดนแดดและในร่ม",
+      howEn: "Compare with younger fruit on the same tree, in sun and shade.",
       src: () => ucanr + tas,
     },
     {
-      icon: "✋",
-      th: "ผิวสัมผัสและจุดบนผิว", en: "Skin texture and speckles",
-      lookTh: "ผิวเรียบขึ้น อาจมีนวล จุดประหรือจุดคอร์กสีน้ำตาลเพิ่มขึ้น พบบ่อยในพันธุ์ผิวเขียว",
-      lookEn: "Skin becomes smoother; bloom, speckles or brown corky spots may increase, especially in green cultivars.",
-      howTh: "ลูบผิวและดูใกล้ ๆ ในที่แสงพอ เทียบหลายต้น",
-      howEn: "Feel the skin and look closely in good light across several trees.",
+      icon: "✋", th: "ผิวและจุดบนผิว", en: "Skin feel and spots",
+      lookTh: "ผิวเรียบขึ้น อาจมีนวล มีจุดหรือจุดน้ำตาลมากขึ้น (เห็นชัดในพันธุ์ผิวเขียว)",
+      lookEn: "Skin gets smoother; may have bloom and more brown spots (clearer on green varieties).",
+      howTh: "ลูบผิวและดูใกล้ ๆ ดูหลายต้น",
+      howEn: "Feel and look closely on several trees.",
       src: () => ucanr + tas,
     },
     {
-      icon: "🌿",
-      th: "ขั้วและก้านผล", en: "Stalk (pedicel)",
-      lookTh: "ก้านผลเปลี่ยนจากเขียวเป็นเขียวอ่อนหรือเขียวอมเหลือง",
-      lookEn: "The fruit stalk changes from green to light or yellowish green.",
-      howTh: "ดูก้านผลบริเวณที่ต่อกับผล เทียบหลายผลในแปลง",
-      howEn: "Check the stalk where it joins the fruit on several fruit.",
+      icon: "🌿", th: "ขั้วผล", en: "Fruit stalk",
+      lookTh: "ขั้วผลเปลี่ยนจากเขียวเป็นเขียวอ่อนหรือเขียวอมเหลือง",
+      lookEn: "The stalk changes from green to light or yellowish green.",
+      howTh: "ดูตรงขั้วที่ติดกับผล ดูหลาย ๆ ลูก",
+      howEn: "Look where the stalk meets the fruit, on several fruit.",
       src: () => ucanr + tas,
     },
     {
-      icon: "🌰",
-      th: "เยื่อหุ้มเมล็ด (ผ่าผลตัวแทน)", en: "Seed coat (cut sample fruit)",
-      lookTh: "เยื่อหุ้มเมล็ดบางเหมือนกระดาษและเป็นสีน้ำตาลเข้ม ผลที่ยังอ่อนมักมีเยื่อหนาและสีอ่อนกว่า",
-      lookEn: "The seed coat is tissue-thin and dark brown. Immature fruit usually has a thicker, lighter seed coat.",
-      howTh: "ผ่าผลตัวแทน 2–3 ผลตามแนวยาว ใช้ผลชุดเดียวกับที่วัด DM ได้",
-      howEn: "Cut 2–3 representative fruit lengthwise; the DM sample fruit can be used.",
+      icon: "🌰", th: "เยื่อหุ้มเมล็ด (ต้องผ่าลูก)", en: "Seed coat (cut a fruit)",
+      lookTh: "เยื่อรอบเมล็ดบางเหมือนกระดาษ และเป็นสีน้ำตาลเข้ม ถ้ายังอ่อน เยื่อจะหนาและสีอ่อนกว่า",
+      lookEn: "The skin around the seed is paper-thin and dark brown. Young fruit has a thicker, paler one.",
+      howTh: "ผ่าตามยาว 2–3 ลูก ใช้ลูกเดียวกับที่จะวัดน้ำหนักแห้งได้",
+      howEn: "Cut 2–3 fruit lengthwise; you can use the dry matter fruit.",
       src: () => ucanr,
     },
     {
-      icon: "⚖️", key: "dm",
-      th: "น้ำหนักแห้ง (DM)", en: "Dry matter (DM)",
-      lookTh: "ค่าเฉลี่ยของรุ่นถึงค่าอ้างอิงของพันธุ์ (ถ้ามี)",
-      lookEn: "Lot mean reaches the cultivar reference, if one is set.",
-      howTh: "สุ่มอย่างน้อย 10 ผล จากอย่างน้อย 5 ต้น ทั่วแปลง แล้ววัดในหน้า “วัด DM”",
-      howEn: "Sample at least 10 fruit from at least 5 trees across the block, then use “Measure DM”.",
+      icon: "⚖️", key: "dm", th: "น้ำหนักแห้ง", en: "Dry matter",
+      lookTh: "ค่าเฉลี่ยของแปลงถึงเกณฑ์ของพันธุ์ (ถ้ามี)",
+      lookEn: "The block average reaches the variety target (if there is one).",
+      howTh: "สุ่มอย่างน้อย 10 ลูก จาก 5 ต้นขึ้นไป แล้ววัดที่เมนู “น้ำหนักแห้ง”",
+      howEn: "Pick at least 10 fruit from 5+ trees, then measure under “Dry matter”.",
       src: () => tas + au,
     },
     {
-      icon: "🍽️", key: "ripe",
-      th: "ทดลองบ่มผลตัวแทน", en: "Ripening test",
-      lookTh: "นิ่มสม่ำเสมอในประมาณ 7–12 วัน ไม่เหี่ยว เนื้อไม่เป็นน้ำ รสชาติยอมรับได้",
-      lookEn: "Softens evenly in about 7–12 days, without shrivelling or watery flesh, with acceptable flavour.",
-      howTh: "เก็บ 5–10 ผลมาบ่มที่อุณหภูมิห้อง",
-      howEn: "Ripen 5–10 picked fruit at room temperature.",
+      icon: "🍽️", key: "ripe", th: "ลองบ่มให้สุก", en: "Ripening test",
+      lookTh: "นิ่มเท่ากันทั้งลูกในราว 7–12 วัน ไม่เหี่ยว เนื้อไม่เป็นน้ำ รสชาติดี",
+      lookEn: "Softens evenly in about 7–12 days, no shrivelling, flesh not watery, tastes good.",
+      howTh: "เก็บมา 5–10 ลูก วางไว้ที่อุณหภูมิห้อง",
+      howEn: "Pick 5–10 fruit and leave at room temperature.",
       src: () => qld,
     },
   ];
@@ -6090,9 +6106,9 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
         margin,
         source: str(p.source, 200),
         dm,
-        dmSource: migrate ? STD_DM_SOURCE : str(p.dmSource, 200),
-        extTh: str(p.extTh, 350),
-        extEn: str(p.extEn, 350),
+        dmSource: migrate ? STD_DM_SOURCE : upd(str(p.dmSource, 200)),
+        extTh: upd(str(p.extTh, 350)),
+        extEn: upd(str(p.extEn, 350)),
         standard: migrate ? true : !!p.standard,
         custom: !!p.custom,
       };
@@ -6161,6 +6177,7 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
         name: str(s.name, 60),
         fruitKg: num(s.fruitKg) && s.fruitKg > 0 ? s.fruitKg : null,
         method: s.method === "oven" ? "oven" : "micro",
+        rounds: Array.isArray(s.rounds) ? s.rounds.filter(num).slice(0, 30) : null,
         freshMode: s.freshMode === "net" ? "net" : "gross",
         tare: s.tare,
         fresh: s.fresh,
@@ -6201,13 +6218,13 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
         if (n.dropped) {
           try { localStorage.setItem(KEY + "_before_repair", raw); } catch (e) {}
           loadIssue = tr(
-            "พบข้อมูลบางรายการไม่สมบูรณ์ ระบบซ่อมหรือข้ามไว้ " + n.dropped + " รายการ (เก็บสำเนาเดิมไว้ในเบราว์เซอร์แล้ว)",
+            "มีข้อมูลบางรายการไม่ครบ ระบบซ่อมหรือข้ามไป " + n.dropped + " รายการ (เก็บสำเนาเดิมไว้ในเครื่องแล้ว)",
             "Some stored items were incomplete; " + n.dropped + " were repaired or skipped (original copy kept in this browser)."
           );
         }
       } catch (e) {
         try { localStorage.setItem(KEY + "_before_repair", raw); } catch (e2) {}
-        loadIssue = tr("อ่านข้อมูลเดิมไม่ได้ เริ่มใหม่และเก็บสำเนาเดิมไว้แล้ว", "Stored data could not be read; started fresh and kept a copy.");
+        loadIssue = tr("อ่านข้อมูลเดิมไม่ได้ จึงเริ่มใหม่ (เก็บสำเนาเดิมไว้ในเครื่องแล้ว)", "Stored data could not be read; started fresh and kept a copy.");
       }
     }
   } catch (e) {
@@ -6222,8 +6239,8 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
 
   const rows = () => (demo ? demoRows : state.records);
   const pf = (id) => state.profiles.find((p) => p.id === id);
-  const name = (p) => (p ? tr(p.th, p.en || p.th) : tr("ไม่ทราบพันธุ์", "Unknown cultivar"));
-  const ext = (p) => (p && (p.extTh || p.extEn) ? tr(p.extTh || p.extEn, p.extEn || p.extTh) : tr("ยังไม่มีคำอธิบายลักษณะภายนอกสำหรับพันธุ์นี้ เพิ่มได้ในหน้า รุ่นดอก → พันธุ์และอายุเก็บเกี่ยว", "No external-sign description yet. Add one under Cohorts → Cultivars & harvest age."));
+  const name = (p) => (p ? tr(p.th, p.en || p.th) : tr("ไม่ทราบพันธุ์", "Unknown variety"));
+  const ext = (p) => (p && (p.extTh || p.extEn) ? tr(p.extTh || p.extEn, p.extEn || p.extTh) : tr("ยังไม่มีคำอธิบายหน้าตาผลแก่ของพันธุ์นี้ เพิ่มได้ที่เมนู รุ่นดอก → พันธุ์และอายุเก็บเกี่ยว", "No description yet. Add one under Flowering → Varieties & harvest age."));
   const color = (p) => {
     const i = state.profiles.findIndex((x) => x.id === p?.id);
     return PALETTE[(i < 0 ? 0 : i) % PALETTE.length];
@@ -6238,7 +6255,7 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
     } catch (e) {
       storage = false;
       if ($("storage")) $("storage").hidden = false;
-      notify(tr("บันทึกในเบราว์เซอร์ไม่ได้ ข้อมูลล่าสุดยังไม่ถูกเก็บ กรุณาสำรอง JSON", "Could not save in this browser. Download a JSON backup."));
+      notify(tr("บันทึกไม่สำเร็จ ข้อมูลล่าสุดยังไม่ถูกเก็บ กรุณากดดาวน์โหลดไฟล์สำรอง", "Could not save. Please download a backup."));
       return false;
     }
   }
@@ -6259,10 +6276,10 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
   }
   function statusText(s) {
     return {
-      grow: tr("กำลังพัฒนาผล", "Fruit developing"),
-      ready: tr("ถึงช่วงตรวจความแก่", "Maturity check due"),
-      late: tr("พ้นช่วงประมาณ · ตรวจซ้ำ", "Past estimate · recheck"),
-      unknown: tr("ยังไม่ระบุอายุเก็บเกี่ยว", "Harvest age not set"),
+      grow: tr("ผลยังอ่อน", "Still young"),
+      ready: tr("ถึงเวลาตรวจความแก่", "Time to check"),
+      late: tr("เลยช่วงแล้ว ควรตรวจ", "Past window, check now"),
+      unknown: tr("ยังไม่ใส่อายุเก็บเกี่ยว", "No harvest age set"),
     }[s];
   }
   function reportGroups() {
@@ -6289,7 +6306,7 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
     return state.profiles.find((p) => p.th.trim().toLowerCase() === k || (p.en || "").trim().toLowerCase() === k);
   }
   function newCultivar(n, min = null, max = null) {
-    return { id: "c" + uid().slice(0, 16), th: n, en: n, min, max, margin: 14, source: tr("ผู้ใช้กำหนด", "User-defined"), dm: null, dmSource: "", extTh: "", extEn: "", standard: false, custom: true };
+    return { id: "c" + uid().slice(0, 16), th: n, en: n, min, max, margin: 14, source: tr("ผู้ใช้ใส่เอง", "Entered by user"), dm: null, dmSource: "", extTh: "", extEn: "", standard: false, custom: true };
   }
   /** Returns {p, created, agesSet}; caller saves and rolls back on failure. */
   function resolveCultivar(n, min = null, max = null) {
@@ -6325,117 +6342,117 @@ return d.toLocaleString(currentLang === 'en' ? 'en-US' : 'th-TH', { dateStyle: '
     `<label class="hv-field" for="hv-${id}">${label}<input id="hv-${id}" type="${type}" ${attrs}></label>`;
   const SUBS = () => [
     ["home", "📅", tr("ภาพรวม", "Overview")],
-    ["track", "🌸", tr("รุ่นดอก", "Cohorts")],
+    ["track", "🌸", tr("รุ่นดอก", "Flowering")],
     ["guide", "🔍", tr("ตรวจความแก่", "Maturity")],
-    ["dm", "⚖️", tr("วัด DM", "Measure DM")],
+    ["dm", "⚖️", tr("น้ำหนักแห้ง", "Dry matter")],
   ];
 
   function homeMarkup() {
     return `<div id="hv-view-home" role="tabpanel" aria-labelledby="hv-nav-home" ${sub === "home" ? "" : "hidden"}>
 <div class="hv-today" id="hv-today"></div>
 <div id="hv-stats" class="hv-stats"></div>
-<div class="hv-card"><div class="hv-row"><h3>✅ ${tr("สิ่งที่ต้องทำ", "To do")}</h3><span class="hv-count" id="hv-todo-count"></span></div><div id="hv-todo"></div></div>
-<div class="hv-card"><div class="hv-row"><h3>🗓️ ${tr("ปฏิทินเก็บเกี่ยว 12 เดือน", "12-month harvest timeline")}</h3></div>
-<p class="hv-muted">${tr("แถบสีอ่อนคือช่วงผลกำลังพัฒนา แถบสีเข้มคือช่วงตรวจความแก่โดยประมาณ เส้นแดงคือวันนี้", "Light bars show fruit development; solid bars show the estimated maturity-check window. The red line is today.")}</p>
+<div class="hv-card"><div class="hv-row"><h3>✅ ${tr("งานที่ต้องทำ", "To do")}</h3><span class="hv-count" id="hv-todo-count"></span></div><div id="hv-todo"></div></div>
+<div class="hv-card"><div class="hv-row"><h3>🗓️ ${tr("แผนเก็บเกี่ยว 12 เดือน", "12-month harvest plan")}</h3></div>
+<p class="hv-muted">${tr("แถบจาง = ผลยังอ่อน · แถบเข้ม = ช่วงที่ควรตรวจความแก่ · เส้นแดง = วันนี้", "Pale bar = fruit still young · dark bar = time to check maturity · red line = today")}</p>
 <div id="hv-timeline" class="hv-timeline"></div></div>
 <div class="hv-card"><div class="hv-cal-head"><button type="button" class="hv-icon-btn" id="hv-cal-prev" aria-label="${tr("เดือนก่อน", "Previous month")}">‹</button><h3 id="hv-cal-title"></h3><button type="button" class="hv-icon-btn" id="hv-cal-next" aria-label="${tr("เดือนถัดไป", "Next month")}">›</button><button type="button" class="hv-btn text" id="hv-cal-today">${tr("วันนี้", "Today")}</button></div>
 <div id="hv-calendar" class="hv-calendar"></div>
-<div class="hv-legend"><span><i class="lg-win"></i>${tr("ช่วงตรวจความแก่", "Check window")}</span><span><i class="lg-bloom"></i>${tr("ดอกบาน 50%", "50% bloom")}</span><span><i class="lg-start"></i>${tr("เริ่มช่วง", "Window starts")}</span><span><i class="lg-end"></i>${tr("สิ้นสุดช่วง", "Window ends")}</span><span><i class="lg-dm"></i>${tr("วัด DM แล้ว", "DM measured")}</span></div>
+<div class="hv-legend"><span><i class="lg-win"></i>${tr("ควรตรวจความแก่", "Check maturity")}</span><span><i class="lg-bloom"></i>${tr("ดอกบาน", "Flowering")}</span><span><i class="lg-start"></i>${tr("เริ่มตรวจได้", "Start checking")}</span><span><i class="lg-end"></i>${tr("ปลายช่วง", "End of window")}</span><span><i class="lg-dm"></i>${tr("วัดน้ำหนักแห้งแล้ว", "Dry matter measured")}</span></div>
+<p class="hv-hint">${tr("แตะวันที่เพื่อดูรายละเอียด", "Tap a day to see details")}</p>
 <div id="hv-day-detail" class="hv-day-detail" aria-live="polite"></div></div>
 </div>`;
   }
 
   function trackMarkup() {
     return `<div id="hv-view-track" role="tabpanel" aria-labelledby="hv-nav-track" ${sub === "track" ? "" : "hidden"}>
-<div class="hv-card"><h3>🌸 ${tr("บันทึกวันดอกบาน", "Record flowering")}</h3><p class="hv-muted">${tr("ใช้วันที่ดอกบานประมาณ 50% ของช่อดอก แยกบันทึกแต่ละพันธุ์และรุ่นดอก", "Use the date when about 50% of flowers in the inflorescence are open. Record each cultivar and cohort separately.")}</p>
-<form id="hv-record-form" novalidate><div class="hv-grid"><label class="hv-field" for="hv-variety">${tr("พันธุ์", "Cultivar")}<select id="hv-variety">${cultivarOptions(true)}</select></label>${field(tr("วันดอกบาน 50%", "50% bloom date"), "bloom", "date", `max="${today()}" value="${today()}"`)}</div>
-<div id="hv-new-variety-box" class="hv-newvar" hidden><b>✎ ${tr("เพิ่มพันธุ์ใหม่", "Add a new cultivar")}</b>
-${field(tr("ชื่อพันธุ์", "Cultivar name"), "new-variety-name", "text", `maxlength="70" placeholder="${tr("เช่น แจสเปอร์, พันธุ์พื้นเมือง", "e.g. Jasper, local selection")}" list="hv-variety-names"`)}
-<div class="hv-grid">${field(tr("อายุเก็บเกี่ยวเริ่ม (วัน) · ไม่บังคับ", "Harvest from (days) · optional"), "new-variety-min", "number", 'min="1" max="1000" step="1" inputmode="numeric"')}${field(tr("ถึง (วัน) · ไม่บังคับ", "To (days) · optional"), "new-variety-max", "number", 'min="1" max="1000" step="1" inputmode="numeric"')}</div>
-<p class="hv-hint">${tr("นับจากวันดอกบาน 50% ถ้ายังไม่ทราบ เว้นว่างได้ ระบบจะนับอายุผลให้ และเพิ่มอายุภายหลังได้ที่ “พันธุ์และอายุเก็บเกี่ยว” ด้านล่าง", "Days after 50% bloom. Leave blank if unknown: fruit age is still tracked and you can add ages later under “Cultivars & harvest age”.")}</p></div>
+<div class="hv-card"><h3>🌸 ${tr("บันทึกวันดอกบาน", "Record flowering")}</h3><p class="hv-muted">${tr("ใส่วันที่ดอกบานราวครึ่งช่อ (50%) ระบบจะบอกว่าควรเริ่มตรวจความแก่วันไหน ถ้าในแปลงมีดอกหลายรุ่น ให้บันทึกแยกทีละรุ่น", "Enter the day about half the flowers (50%) are open. The app tells you when to start checking maturity. Record each flowering wave separately.")}</p>
+<form id="hv-record-form" novalidate><div class="hv-grid"><label class="hv-field" for="hv-variety">${tr("พันธุ์", "Variety")}<select id="hv-variety">${cultivarOptions(true)}</select></label>${field(tr("วันดอกบาน 50%", "50% flowering date"), "bloom", "date", `max="${today()}" value="${today()}"`)}</div>
+<div id="hv-new-variety-box" class="hv-newvar" hidden><b>✎ ${tr("เพิ่มพันธุ์ใหม่", "Add a variety")}</b>
+${field(tr("ชื่อพันธุ์", "Variety name"), "new-variety-name", "text", `maxlength="70" placeholder="${tr("เช่น แจสเปอร์, พันธุ์พื้นเมือง", "e.g. Jasper, local variety")}" list="hv-variety-names"`)}
+<div class="hv-field hv-age-field"><span>${tr("ผลแก่ประมาณกี่วันหลังดอกบาน (ถ้าไม่รู้ เว้นว่างได้)", "Days from flowering to maturity (leave blank if unknown)")}</span><div class="hv-range"><span>${tr("ตั้งแต่", "From")}</span><input id="hv-new-variety-min" type="number" min="1" max="1000" step="1" inputmode="numeric" aria-label="${tr("ตั้งแต่ (วัน)", "From (days)")}"><span>${tr("ถึง", "to")}</span><input id="hv-new-variety-max" type="number" min="1" max="1000" step="1" inputmode="numeric" aria-label="${tr("ถึง (วัน)", "To (days)")}"><span>${tr("วัน", "days")}</span></div></div>
+<p class="hv-hint">${tr("ถ้าเว้นว่าง ระบบจะนับอายุผลให้ แต่ยังบอกวันตรวจไม่ได้ เพิ่มทีหลังได้ที่ “พันธุ์และอายุเก็บเกี่ยว” ด้านล่าง", "If blank, fruit age is still counted but no check date is shown. Add it later under “Varieties & harvest age”.")}</p></div>
 <datalist id="hv-variety-names">${state.profiles.map((p) => `<option value="${esc(p.th)}">`).join("")}</datalist>
-<div class="hv-grid">${field(tr("แปลง / รหัสต้น", "Block / tree ID"), "plot", "text", 'maxlength="80" placeholder="A01"')}${field(tr("รุ่นดอก", "Bloom cohort"), "cohort", "text", `maxlength="60" placeholder="${tr("รุ่นที่ 1", "Cohort 1")}"`)}</div>
+<div class="hv-grid">${field(tr("แปลง", "Block"), "plot", "text", 'maxlength="80" placeholder="A01"')}${field(tr("ชื่อรุ่นดอก", "Flowering wave"), "cohort", "text", `maxlength="60" placeholder="${tr("รุ่นที่ 1", "Wave 1")}"`)}</div>
 <div id="hv-record-error" class="hv-error" role="alert"></div>
-<div class="hv-actions"><button type="submit" class="hv-btn" id="hv-record-submit">＋ ${tr("บันทึกรุ่นดอก", "Save cohort")}</button><button type="button" class="hv-btn text" id="hv-cancel-edit" hidden>${tr("ยกเลิกแก้ไข", "Cancel edit")}</button><button type="button" class="hv-btn text" id="hv-demo-toggle">${demo ? tr("กลับข้อมูลสวนของฉัน", "Back to my orchard") : tr("ดูข้อมูลสาธิต", "Try demo data")}</button></div></form></div>
-<div class="hv-card"><div class="hv-row"><h3>${tr("รุ่นดอกที่ติดตาม", "Tracked cohorts")}</h3><label class="hv-field hv-inline" for="hv-filter"><select id="hv-filter" aria-label="${tr("กรองสถานะ", "Filter status")}"><option value="all">${tr("ทุกสถานะ", "All statuses")}</option><option value="ready">${tr("ถึงช่วงตรวจ", "Check due")}</option><option value="grow">${tr("กำลังพัฒนา", "Developing")}</option><option value="late">${tr("พ้นช่วงประมาณ", "Past estimate")}</option><option value="unknown">${tr("ยังไม่ระบุอายุ", "Age not set")}</option></select></label></div><div id="hv-records"></div></div>
-<div class="hv-card" id="hv-cultivars"><div class="hv-row"><h3>🥑 ${tr("พันธุ์และอายุเก็บเกี่ยว", "Cultivars & harvest age")}</h3><button type="button" class="hv-btn secondary hv-small" id="hv-cv-add">＋ ${tr("เพิ่มพันธุ์", "Add cultivar")}</button></div>
-<p class="hv-muted">${tr("ระบบใช้อายุเหล่านี้บอกว่าแต่ละรุ่นดอกควรเริ่มตรวจความแก่เมื่อไร ถ้าสวนของคุณผลแก่เร็วหรือช้ากว่านี้ แตะ “แก้ไข” เพื่อปรับ", "These ages tell the app when each cohort should be checked. If fruit in your orchard matures earlier or later, tap “Edit”.")}</p>
+<div class="hv-actions"><button type="submit" class="hv-btn" id="hv-record-submit">＋ ${tr("บันทึก", "Save")}</button><button type="button" class="hv-btn text" id="hv-cancel-edit" hidden>${tr("ยกเลิกการแก้ไข", "Cancel edit")}</button><button type="button" class="hv-btn text" id="hv-demo-toggle">${demo ? tr("กลับไปข้อมูลของฉัน", "Back to my data") : tr("ลองดูตัวอย่าง", "Try sample data")}</button></div></form></div>
+<div class="hv-card"><div class="hv-row"><h3>${tr("รุ่นดอกของฉัน", "My flowering waves")}</h3><label class="hv-field hv-inline" for="hv-filter"><select id="hv-filter" aria-label="${tr("เลือกดู", "Show")}"><option value="all">${tr("ดูทั้งหมด", "Show all")}</option><option value="ready">${tr("ถึงเวลาตรวจ", "Time to check")}</option><option value="grow">${tr("ผลยังอ่อน", "Still young")}</option><option value="late">${tr("เลยช่วงแล้ว", "Past window")}</option><option value="unknown">${tr("ยังไม่ใส่อายุ", "No age set")}</option></select></label></div><div id="hv-records"></div></div>
+<div class="hv-card" id="hv-cultivars"><div class="hv-row"><h3>🥑 ${tr("พันธุ์และอายุเก็บเกี่ยว", "Varieties & harvest age")}</h3><button type="button" class="hv-btn secondary hv-small" id="hv-cv-add">＋ ${tr("เพิ่มพันธุ์", "Add variety")}</button></div>
+<p class="hv-muted">${tr("ตัวเลขนี้ใช้บอกว่าควรเริ่มตรวจความแก่เมื่อไร ถ้าสวนของคุณผลแก่เร็วหรือช้ากว่านี้ กด “แก้ไข”", "These numbers decide when checks start. If your fruit matures earlier or later, tap “Edit”.")}</p>
 <div id="hv-cv-list" class="hv-cv-list"></div>
 <form id="hv-profile-form" class="hv-cv-editor" novalidate hidden>
 <h4 id="hv-cv-title"></h4>
-${field(tr("ชื่อพันธุ์", "Cultivar name"), "profile-th", "text", `maxlength="70" placeholder="${tr("เช่น แจสเปอร์", "e.g. Jasper")}"`)}
-<div class="hv-field hv-age-field"><span>${tr("ผลแก่ประมาณกี่วันหลังดอกบาน 50%", "Days from 50% bloom to maturity")}</span><div class="hv-range"><span>${tr("ตั้งแต่", "From")}</span><input id="hv-profile-min" type="number" min="1" max="1000" step="1" inputmode="numeric" aria-label="${tr("อายุเริ่ม (วัน)", "From (days)")}"><span>${tr("ถึง", "to")}</span><input id="hv-profile-max" type="number" min="1" max="1000" step="1" inputmode="numeric" aria-label="${tr("อายุสิ้นสุด (วัน)", "To (days)")}"><span>${tr("วัน", "days")}</span></div><small id="hv-cv-agehint" class="hv-hint"></small></div>
+${field(tr("ชื่อพันธุ์", "Variety name"), "profile-th", "text", `maxlength="70" placeholder="${tr("เช่น แจสเปอร์", "e.g. Jasper")}"`)}
+<div class="hv-field hv-age-field"><span>${tr("ผลแก่ประมาณกี่วันหลังดอกบาน", "Days from flowering to maturity")}</span><div class="hv-range"><span>${tr("ตั้งแต่", "From")}</span><input id="hv-profile-min" type="number" min="1" max="1000" step="1" inputmode="numeric" aria-label="${tr("ตั้งแต่ (วัน)", "From (days)")}"><span>${tr("ถึง", "to")}</span><input id="hv-profile-max" type="number" min="1" max="1000" step="1" inputmode="numeric" aria-label="${tr("ถึง (วัน)", "To (days)")}"><span>${tr("วัน", "days")}</span></div><small id="hv-cv-agehint" class="hv-hint"></small></div>
 <div id="hv-cv-preview" class="hv-cv-preview" aria-live="polite"></div>
-<details class="hv-cv-more" id="hv-cv-more"><summary>${tr("ตัวเลือกเพิ่มเติม (ไม่จำเป็นต้องแก้)", "More options (usually leave as is)")}</summary>
-${field(tr("เผื่อก่อนและหลัง (วัน)", "Buffer before and after (days)"), "profile-margin", "number", 'min="0" max="90" step="1" inputmode="numeric"')}<p class="hv-hint">${tr("ระบบเริ่มเตือนก่อนอายุเริ่ม และเตือนต่อหลังอายุสิ้นสุดตามจำนวนวันนี้ ค่าปกติ 14 วัน", "Checks start this many days before the first age and continue this many days after the last. Default 14.")}</p>
-<div class="hv-grid">${field(tr("เกณฑ์ DM ของรุ่น (%)", "Lot DM threshold (%)"), "profile-dm", "number", 'min="0.1" max="99.9" step="any" inputmode="decimal"')}${field(tr("ที่มาของเกณฑ์ DM", "DM threshold source"), "profile-dmsource", "text", 'maxlength="200"')}</div><p class="hv-hint">${tr("เว้นว่างได้ ถ้าใส่เกณฑ์ ต้องบอกที่มา เช่น มกษ. หรือผลทดลองของหน่วยงาน", "Optional. A threshold needs a source, e.g. a standard or trial results.")}</p>
-${field(tr("ลักษณะผลเมื่อแก่ (สำหรับหน้าตรวจความแก่)", "Mature fruit appearance (for the maturity guide)"), "profile-extth", "text", 'maxlength="350"')}
-${field(tr("ที่มาของอายุเก็บเกี่ยว", "Source of harvest ages"), "profile-source", "text", 'maxlength="200"')}
-<div class="hv-grid">${field(tr("ชื่อภาษาอังกฤษ", "English name"), "profile-en", "text", 'maxlength="70"')}${field(tr("ลักษณะผลเมื่อแก่ (อังกฤษ)", "Appearance (English)"), "profile-exten", "text", 'maxlength="350"')}</div>
+<details class="hv-cv-more" id="hv-cv-more"><summary>${tr("ตั้งค่าเพิ่มเติม (ปกติไม่ต้องแก้)", "More settings (usually leave as is)")}</summary>
+${field(tr("เผื่อเวลาก่อนและหลัง (วัน)", "Extra days before and after"), "profile-margin", "number", 'min="0" max="90" step="1" inputmode="numeric"')}<p class="hv-hint">${tr("ระบบจะเริ่มเตือนก่อน และเตือนต่อหลังช่วงอายุตามจำนวนวันนี้ ปกติ 14 วัน", "Reminders start this many days early and continue this many days after. Usually 14.")}</p>
+<div class="hv-grid">${field(tr("เกณฑ์น้ำหนักแห้ง (%)", "Dry matter target (%)"), "profile-dm", "number", 'min="0.1" max="99.9" step="any" inputmode="decimal"')}${field(tr("เกณฑ์นี้มาจากไหน", "Where the target comes from"), "profile-dmsource", "text", 'maxlength="200"')}</div><p class="hv-hint">${tr("ไม่ใส่ก็ได้ ถ้าใส่เกณฑ์ ต้องบอกที่มา เช่น มกษ. หรือผลทดลอง", "Optional. If you set a target, say where it comes from.")}</p>
+${field(tr("ผลแก่หน้าตาเป็นอย่างไร", "What mature fruit looks like"), "profile-extth", "text", 'maxlength="350"')}
+${field(tr("อายุเก็บเกี่ยวนี้มาจากไหน", "Where these ages come from"), "profile-source", "text", 'maxlength="200"')}
+<div class="hv-grid">${field(tr("ชื่อภาษาอังกฤษ", "English name"), "profile-en", "text", 'maxlength="70"')}${field(tr("หน้าตาผลแก่ (ภาษาอังกฤษ)", "Appearance (English)"), "profile-exten", "text", 'maxlength="350"')}</div>
 </details>
 <div id="hv-profile-error" class="hv-error" role="alert"></div>
-<div class="hv-actions"><button class="hv-btn" type="submit">✓ ${tr("บันทึก", "Save")}</button><button class="hv-btn secondary" type="button" id="hv-cv-cancel">${tr("ยกเลิก", "Cancel")}</button><button class="hv-btn text" type="button" id="hv-cv-reset" hidden>↺ ${tr("คืนค่ามาตรฐาน", "Restore defaults")}</button><button class="hv-btn text danger" type="button" id="hv-profile-delete" hidden>${tr("ลบพันธุ์นี้", "Delete")}</button></div>
-</form><div class="hv-source">${tr("อายุตั้งต้น", "Default ages")}: ${source} · ${tr("เกณฑ์ DM ตั้งต้น", "Default DM")}: ${tas}</div></div>
+<div class="hv-actions"><button class="hv-btn" type="submit">✓ ${tr("บันทึก", "Save")}</button><button class="hv-btn secondary" type="button" id="hv-cv-cancel">${tr("ยกเลิก", "Cancel")}</button><button class="hv-btn text" type="button" id="hv-cv-reset" hidden>↺ ${tr("ใช้ค่ามาตรฐาน", "Use defaults")}</button><button class="hv-btn text danger" type="button" id="hv-profile-delete" hidden>${tr("ลบพันธุ์นี้", "Delete")}</button></div>
+</form><div class="hv-source">${tr("อายุเก็บเกี่ยวจาก", "Harvest ages from")} ${source} · ${tr("เกณฑ์น้ำหนักแห้งจาก", "Dry matter targets from")} ${tas}</div></div>
 </div>`;
   }
 
   function guideMarkup() {
     return `<div id="hv-view-guide" role="tabpanel" aria-labelledby="hv-nav-guide" ${sub === "guide" ? "" : "hidden"}>
-<div class="hv-card"><h3>🔍 ${tr("ตรวจความแก่ในแปลง", "Field maturity check")}</h3>
-<p class="hv-muted">${tr("เลือกรุ่นดอกเพื่อบันทึกสิ่งที่ตรวจพบ หรือเลือกพันธุ์เพื่อดูวิธีตรวจ", "Choose a cohort to record what you observe, or a cultivar to read the guide.")}</p>
-<label class="hv-field" for="hv-guide-target">${tr("ตรวจรุ่นดอก / พันธุ์", "Cohort / cultivar")}<select id="hv-guide-target"></select></label>
+<div class="hv-card"><h3>🔍 ${tr("ตรวจความแก่ในแปลง", "Check maturity in the field")}</h3>
+<p class="hv-muted">${tr("เลือกรุ่นดอก แล้วติ๊กสิ่งที่เห็น ระบบจะจำไว้และบอกขั้นต่อไป", "Pick a flowering wave and tick what you see. The app remembers and suggests the next step.")}</p>
+<label class="hv-field" for="hv-guide-target">${tr("ตรวจรุ่นไหน", "Which wave")}<select id="hv-guide-target"></select></label>
 <div id="hv-guide-card"></div></div>
-<div class="hv-card"><div class="hv-row"><h3>${tr("สัญญาณความแก่ที่ใช้ตรวจ", "Maturity signs to check")}</h3><span class="hv-count" id="hv-sign-score"></span></div>
-<div class="hv-note">${tr("หลายพันธุ์ยังเป็นสีเขียวเมื่อแก่ ไม่ใช้สีหรือขนาดอย่างเดียวตัดสิน ใช้ร่วมกับอายุผล น้ำหนักแห้ง และการทดลองบ่ม", "Many cultivars stay green when mature. Never rely on colour or size alone; combine with fruit age, dry matter and a ripening test.")}</div>
+<div class="hv-card"><div class="hv-row"><h3>${tr("ดูอะไรบ้าง", "What to check")}</h3><span class="hv-count" id="hv-sign-score"></span></div>
+<div class="hv-note">${tr("อะโวคาโดหลายพันธุ์ยังเขียวอยู่แม้แก่แล้ว อย่าดูแค่สีหรือขนาด ให้ดูหลายข้อรวมกัน", "Many avocados stay green when mature. Don't judge by colour or size alone; use several checks together.")}</div>
 <div id="hv-signs" class="hv-signs"></div>
 <div id="hv-next-step" class="hv-next" aria-live="polite"></div></div>
-<div class="hv-card"><h3>${tr("ค่าอ้างอิง DM ของรุ่นผล", "Lot DM reference values")}</h3><div class="hv-note">${tr("มกษ. 31-2567 ตาราง จ.2: น้ำหนักเนื้อแห้งของรุ่นไม่น้อยกว่าค่าที่ระบุ ไม่ใช้ตัดสินผลแต่ละผล พันธุ์อื่นใช้ลักษณะภายนอกตามข้อ จ.1.2 ไม่ยืมเกณฑ์พันธุ์ใกล้เคียง", "TAS 31-2024 Table E.2: minimum flesh DM values apply to lots, not individual fruit. Other cultivars use external signs under E.1.2; do not borrow another cultivar’s threshold.")}</div>
-<table class="hv-table"><thead><tr><th>${tr("พันธุ์", "Cultivar")}</th><th>${tr("DM ของรุ่น ไม่น้อยกว่า", "Minimum lot DM")}</th></tr></thead><tbody><tr><td>Peterson / Buccaneer / Booth 7 / Booth 8</td><td>19%</td></tr><tr><td>Pinkerton</td><td>20%</td></tr><tr><td>Hass</td><td>21%</td></tr></tbody></table><div class="hv-source">${tas} · ${tr("หน้า 17", "p. 17")}</div></div>
-<div class="hv-card"><h3>${tr("วิธีทำให้ตัวอย่างแห้ง", "Drying the sample")}</h3><label class="hv-field" for="hv-protocol-method"><select id="hv-protocol-method"><option value="micro">${tr("ไมโครเวฟ · กำลังต่ำ", "Microwave · low power")}</option><option value="oven">${tr("ตู้อบลมร้อน / เครื่องอบอาหาร", "Hot-air oven / food dehydrator")}</option></select></label><div id="hv-protocol"></div>
-<button class="hv-btn hv-full" type="button" data-hv-sub="dm">${tr("ไปหน้าวัด DM →", "Go to Measure DM →")}</button></div>
+<div class="hv-card"><h3>${tr("เกณฑ์น้ำหนักแห้งตามมาตรฐาน", "Standard dry matter targets")}</h3><div class="hv-note">${tr("ใช้ดูค่าเฉลี่ยของทั้งแปลง ไม่ใช่ตัดสินทีละลูก พันธุ์ที่ไม่มีในตารางให้ดูหน้าตาผลแทน", "Compare with the block average, not single fruit. For varieties not listed, use fruit appearance instead.")}</div>
+<table class="hv-table"><thead><tr><th>${tr("พันธุ์", "Variety")}</th><th>${tr("น้ำหนักแห้งอย่างน้อย", "At least")}</th></tr></thead><tbody><tr><td>${tr("ปีเตอร์สัน · บัคคาเนียร์ · บูท 7 · บูท 8", "Peterson · Buccaneer · Booth 7 · Booth 8")}</td><td>19%</td></tr><tr><td>${tr("พิงค์เคอร์ตัน", "Pinkerton")}</td><td>20%</td></tr><tr><td>${tr("แฮส", "Hass")}</td><td>21%</td></tr></tbody></table><div class="hv-source">${tas} · ${tr("ตาราง จ.2 หน้า 17", "Table E.2, p. 17")}</div></div>
+<div class="hv-card"><h3>${tr("วิธีอบเนื้ออะโวคาโด", "How to dry the flesh")}</h3><label class="hv-field" for="hv-protocol-method"><select id="hv-protocol-method"><option value="oven">${tr("ตู้อบลมร้อน", "Hot-air oven")}</option><option value="micro">${tr("ไมโครเวฟ", "Microwave")}</option></select></label><div id="hv-protocol"></div>
+<button class="hv-btn hv-full" type="button" data-hv-sub="dm">${tr("ไปหน้าวัดน้ำหนักแห้ง →", "Go to dry matter →")}</button></div>
 </div>`;
   }
 
   function dmMarkup() {
     return `<div id="hv-view-dm" role="tabpanel" aria-labelledby="hv-nav-dm" ${sub === "dm" ? "" : "hidden"}><div class="hv-card">
-<div class="hv-inspection-tabs"><button type="button" id="hv-dm-record-tab" aria-pressed="${dmView === "record"}">✎ ${tr("บันทึกรอบตรวจ", "Record inspection")}</button><button type="button" id="hv-dm-history-tab" aria-pressed="${dmView === "history"}">≡ ${tr("ประวัติ / พิมพ์รายงาน", "History / print")}</button></div>
-<div id="hv-dm-record-panel" ${dmView === "record" ? "" : "hidden"}><h3>${tr("บันทึกผลน้ำหนักแห้งอะโวคาโด", "Avocado dry matter inspection")}</h3><p class="hv-muted">${tr("หนึ่งรอบตรวจต่อสวน–แปลง–พันธุ์ เพิ่มผลตัวอย่างได้หลายผล และพิมพ์รายงานแยกตามรอบตรวจ", "One inspection per orchard, block and cultivar. Add multiple fruit and print a report for each inspection.")}</p>
-<form id="hv-dm-form"><h4>${tr("1. ข้อมูลสวนและรอบตรวจ", "1. Orchard and inspection details")}</h4>
-<label class="hv-field" for="hv-sample-record">${tr("เชื่อมรุ่นดอก / เลือกพันธุ์", "Link bloom cohort / select cultivar")}<select id="hv-sample-record"></select></label>
-<div id="hv-dm-new-box" class="hv-newvar" hidden>${field(tr("ชื่อพันธุ์ที่ทดสอบ", "Cultivar tested"), "dm-new-name", "text", `maxlength="70" list="hv-variety-names" placeholder="${tr("พิมพ์ชื่อพันธุ์", "Type the cultivar name")}"`)}<p class="hv-hint">${tr("ระบบจะเพิ่มพันธุ์นี้ในรายการเมื่อบันทึก ยังไม่มีเกณฑ์ DM จึงแสดงค่าโดยไม่ตัดสินผ่านหรือไม่ผ่าน", "The cultivar is added when you save. It has no DM reference, so values are shown without pass/fail.")}</p></div>
-<div class="hv-grid">${field(tr("ชื่อสวน / เจ้าของ", "Orchard / owner"), "sample-farm", "text", 'required maxlength="100"')}${field(tr("แปลง / รหัสต้น", "Block / tree ID"), "sample-plot", "text", 'maxlength="80"')}${field(tr("วันที่ทดสอบ", "Test date"), "sample-date", "date", `required value="${today()}" max="${today()}"`)}${field(tr("ผู้ตรวจ / ผู้บันทึก", "Inspector / recorder"), "sample-inspector", "text", 'maxlength="100"')}</div>
+<div class="hv-inspection-tabs"><button type="button" id="hv-dm-record-tab" aria-pressed="${dmView === "record"}">✎ ${tr("บันทึกผล", "Record")}</button><button type="button" id="hv-dm-history-tab" aria-pressed="${dmView === "history"}">≡ ${tr("ประวัติ / พิมพ์", "History / print")}</button></div>
+<div id="hv-dm-record-panel" ${dmView === "record" ? "" : "hidden"}><h3>${tr("วัดน้ำหนักแห้งอะโวคาโด", "Avocado dry matter")}</h3><p class="hv-muted">${tr("บันทึกครั้งละหนึ่งสวน หนึ่งพันธุ์ ใส่ได้หลายลูก แล้วพิมพ์รายงานได้", "One orchard and variety at a time. Add several fruit, then print a report.")}</p>
+<form id="hv-dm-form"><h4>${tr("1. สวนและพันธุ์", "1. Orchard and variety")}</h4>
+<label class="hv-field" for="hv-sample-record">${tr("รุ่นดอก หรือ พันธุ์", "Flowering wave or variety")}<select id="hv-sample-record"></select></label>
+<div id="hv-dm-new-box" class="hv-newvar" hidden>${field(tr("ชื่อพันธุ์", "Variety name"), "dm-new-name", "text", `maxlength="70" list="hv-variety-names" placeholder="${tr("พิมพ์ชื่อพันธุ์", "Type the variety name")}"`)}<p class="hv-hint">${tr("ระบบจะเพิ่มพันธุ์นี้ให้เมื่อกดบันทึก พันธุ์นี้ยังไม่มีเกณฑ์ จะแสดงเฉพาะตัวเลข", "The variety is added when you save. It has no target yet, so only numbers are shown.")}</p></div>
+<div class="hv-grid">${field(tr("ชื่อสวน / เจ้าของ", "Orchard / owner"), "sample-farm", "text", 'required maxlength="100"')}${field(tr("แปลง", "Block"), "sample-plot", "text", 'maxlength="80"')}${field(tr("วันที่ตรวจ", "Test date"), "sample-date", "date", `required value="${today()}" max="${today()}"`)}${field(tr("ผู้ตรวจ", "Tested by"), "sample-inspector", "text", 'maxlength="100"')}</div>
 <div id="hv-dm-cohort-note" class="hv-note green"></div>
-<h4>${tr("2. วิธีอบแห้ง", "2. Drying method")}</h4><div class="hv-methods"><button type="button" id="hv-method-oven" data-hv-method="oven">♨ ${tr("ตู้อบลมร้อน", "Hot-air oven")}</button><button type="button" class="active" id="hv-method-micro" data-hv-method="micro">◉ ${tr("ไมโครเวฟ", "Microwave")}</button></div><input type="hidden" id="hv-dm-method" value="micro"><p id="hv-dm-method-note" class="hv-muted"></p>
-<h4>${tr("3. น้ำหนักตัวอย่างรายผล", "3. Individual fruit measurements")}</h4>
-<label class="hv-field" for="hv-weight-mode">${tr("วิธีชั่งน้ำหนักสด", "Fresh weight convention")}<select id="hv-weight-mode"><option value="net">${tr("น้ำหนักสดสุทธิ (กด tare จานแล้ว)", "Net fresh flesh (container tared)")}</option><option value="gross">${tr("น้ำหนักสดรวมจาน (ระบบหักจานให้)", "Fresh flesh + container (subtracted for you)")}</option></select></label>
-<div class="hv-note" id="hv-weight-note"></div><div id="hv-sample-rows"></div>
-<button class="hv-btn secondary hv-full" type="button" id="hv-add-fruit">＋ ${tr("เพิ่มผลตัวอย่าง", "Add fruit")}</button>
-${field(tr("หมายเหตุรอบตรวจ (ไม่บังคับ)", "Inspection notes (optional)"), "sample-notes", "text", 'maxlength="500"')}
-<label class="hv-check"><input type="checkbox" id="hv-constant">${tr("ทุกตัวอย่างอบและชั่งซ้ำจนน้ำหนักคงที่ และไม่มีตัวอย่างไหม้", "All samples were dried and reweighed to constant mass; none are burnt.")}</label>
+<h4>${tr("2. วิธีอบแห้ง", "2. Drying method")}</h4><div class="hv-methods"><button type="button" class="active" id="hv-method-oven" data-hv-method="oven">♨ ${tr("ตู้อบลมร้อน", "Hot-air oven")}</button><button type="button" id="hv-method-micro" data-hv-method="micro">◉ ${tr("ไมโครเวฟ", "Microwave")}</button></div><input type="hidden" id="hv-dm-method" value="oven"><p id="hv-dm-method-note" class="hv-method-note"></p>
+<h4>${tr("3. น้ำหนักแต่ละลูก", "3. Weights for each fruit")}</h4>
+<div class="hv-note">⚖️ ${tr("ชั่งพร้อมจานได้เลย ไม่ต้องกด tare ระบบหักน้ำหนักจานออกให้เอง ทั้งตอนสดและตอนแห้ง", "Weigh with the plate, no need to tare. The app subtracts the plate from both the fresh and the dry weight.")}</div>
+<div id="hv-sample-rows"></div>
+<button class="hv-btn secondary hv-full" type="button" id="hv-add-fruit">＋ ${tr("เพิ่มลูก", "Add fruit")}</button>
+${field(tr("หมายเหตุ (ไม่บังคับ)", "Notes (optional)"), "sample-notes", "text", 'maxlength="500"')}
 <div class="hv-error" id="hv-dm-error" role="alert"></div>
-<div class="hv-result" aria-live="polite"><span>${tr("ค่าเฉลี่ย DM รายผล", "Mean individual-fruit DM")}</span><strong id="hv-dm-value">— %</strong><span class="hv-pill" id="hv-dm-interpret"></span><small id="hv-net"></small></div>
+<div class="hv-result" aria-live="polite"><span>${tr("น้ำหนักแห้งเฉลี่ย", "Average dry matter")}</span><strong id="hv-dm-value">— %</strong><span class="hv-pill" id="hv-dm-interpret"></span><small id="hv-net"></small></div>
 <div class="hv-note" id="hv-dm-threshold"></div>
-<div class="hv-actions"><button class="hv-btn hv-full" type="submit">▣ ${tr("คำนวณและบันทึกรอบตรวจ", "Calculate & save inspection")}</button><button type="button" class="hv-btn text" id="hv-example">${tr("ลองตัวอย่าง 2 ผล", "Try 2 example fruit")}</button></div></form>
-<p class="hv-source">${tr("ใช้เนื้ออย่างน้อย 20 กรัมต่อผล หนาประมาณ 2 มม. ข้อกำหนด DM เป็นของรุ่นผล ไม่ใช่เกณฑ์ตัดสินรายผล", "Use at least 20 g of flesh per fruit, sliced to about 2 mm. DM requirements apply to lots, not individual fruit.")}<br>${tas} · ซ.1–ซ.2 / H.1–H.2</p></div>
-<div id="hv-dm-history-panel" ${dmView === "history" ? "" : "hidden"}><div class="hv-row"><div><h3>${tr("ประวัติรอบตรวจ", "Inspection history")}</h3><span class="hv-count">${tr("เปิดดูรายงาน แล้วพิมพ์ A4 หรือบันทึก PDF", "Open a report to print A4 or save as PDF.")}</span></div><button class="hv-btn text" type="button" id="hv-csv">↓ CSV</button></div>
-<label class="hv-field hv-history-filter" for="hv-history-query">${tr("ค้นหาสวน แปลง พันธุ์ หรือเลขที่รายงาน", "Search orchard, block, cultivar or report no.")}<input id="hv-history-query" type="search" placeholder="${tr("พิมพ์คำค้น", "Search records")}"></label><div id="hv-history"></div></div></div></div>`;
+<div class="hv-actions"><button class="hv-btn hv-full" type="submit">✓ ${tr("คำนวณและบันทึก", "Calculate & save")}</button><button type="button" class="hv-btn text" id="hv-example">${tr("ลองใส่ตัวอย่าง", "Fill an example")}</button></div></form>
+<p class="hv-source">${tr("ใช้เนื้ออย่างน้อย 20 กรัมต่อลูก หั่นบางประมาณ 2 มม. · ผลนี้ใช้ช่วยตัดสินใจ ไม่ใช่ใบรับรองจากหน่วยงานรัฐ", "Use at least 20 g of flesh per fruit, sliced about 2 mm thin · decision support only, not an official certificate.")}<br>${tas}</p></div>
+<div id="hv-dm-history-panel" ${dmView === "history" ? "" : "hidden"}><div class="hv-row"><div><h3>${tr("ประวัติการตรวจ", "Test history")}</h3><span class="hv-count">${tr("กดดูรายงาน แล้วพิมพ์หรือบันทึกเป็น PDF", "Open a report to print or save as PDF.")}</span></div><button class="hv-btn text" type="button" id="hv-csv">↓ Excel (CSV)</button></div>
+<label class="hv-field hv-history-filter" for="hv-history-query">${tr("ค้นหา", "Search")}<input id="hv-history-query" type="search" placeholder="${tr("ชื่อสวน แปลง พันธุ์ หรือเลขที่รายงาน", "Orchard, block, variety or report no.")}"></label><div id="hv-history"></div></div></div></div>`;
   }
 
   function dataMarkup() {
-    return `<div class="hv-note">${tr("วันเก็บเกี่ยวเป็นค่าประมาณ ส่วนเกณฑ์ DM ตาม มกษ. 31-2567 ใช้กับรุ่นผล ไม่ใช้พิจารณาผลแต่ละผล ระบบนี้ช่วยวางแผนและคำนวณ ไม่ใช่การรับรองผ่านมาตรฐานทั้งรุ่น", "Harvest dates are estimates. TAS 31-2024 DM requirements apply to lots, not individual fruit. This tool assists planning and does not certify lot compliance.")}</div>
-<details class="hv-card" id="hv-data-details"><summary>💾 ${tr("ข้อมูลและการสำรอง", "Data & backup")}</summary><p class="hv-muted">${tr("ข้อมูลเก็บเฉพาะเบราว์เซอร์นี้ ไม่ส่งขึ้นเซิร์ฟเวอร์ ยังไม่ส่งแจ้งเตือนเมื่อปิดเว็บ การล้างข้อมูลเบราว์เซอร์หรือเปลี่ยนเครื่องอาจทำให้ข้อมูลหาย ควรสำรองเป็นระยะ", "Records stay in this browser and are not uploaded. There are no background notifications. Clearing browser data or changing devices may remove records, so back up regularly.")}</p>
-<div class="hv-actions"><button class="hv-btn secondary" id="hv-backup" type="button">↓ ${tr("สำรองข้อมูล JSON", "Download JSON backup")}</button><button class="hv-btn secondary" id="hv-restore" type="button">↑ ${tr("นำเข้าไฟล์สำรอง", "Restore JSON backup")}</button></div><input type="file" id="hv-restore-file" accept=".json,application/json" hidden>
-<p class="hv-muted">${tr("การนำเข้าจะแทนที่ข้อมูลในเครื่องนี้ โปรดสำรองไฟล์ปัจจุบันก่อน รายงานที่พิมพ์หรือ PDF ใช้เปิดอ่าน ไม่ใช่ไฟล์กู้คืนข้อมูล", "Restoring replaces records on this device. Back up first. Printed reports and PDFs are not restorable backups.")}</p>
-<p class="hv-source">${tr("อ้างอิงหลัก: มกษ. 31-2567 ภาคผนวก จ (หน้า 16–17) และ ซ (หน้า 21) • อายุผลจาก สวพส. • สัญญาณความแก่ทั่วไปจาก UC ANR", "Primary references: TAS 31-2024 Annex E (pp. 16–17) and Annex H (p. 21); fruit ages from HRDI; general maturity signs from UC ANR.")}<br>${tas}${source}${ucanr}${ucd}${au}${qld}</p></details>`;
+    return `<div class="hv-note">${tr("วันเก็บเกี่ยวในแอปเป็นการประมาณ ผลน้ำหนักแห้งใช้ช่วยตัดสินใจ ไม่ใช่ใบรับรองมาตรฐาน", "Harvest dates are estimates. Dry matter results support decisions; they are not a certificate.")}</div>
+<details class="hv-card" id="hv-data-details"><summary>💾 ${tr("สำรองข้อมูล", "Back up your data")}</summary><p class="hv-muted">${tr("ข้อมูลเก็บไว้ในเครื่องนี้เท่านั้น ถ้าล้างเบราว์เซอร์หรือเปลี่ยนเครื่อง ข้อมูลอาจหาย ควรกดสำรองไว้เป็นระยะ", "Data is kept on this device only. Clearing the browser or changing phones may lose it, so back up from time to time.")}</p>
+<div class="hv-actions"><button class="hv-btn secondary" id="hv-backup" type="button">↓ ${tr("ดาวน์โหลดไฟล์สำรอง", "Download backup")}</button><button class="hv-btn secondary" id="hv-restore" type="button">↑ ${tr("เปิดไฟล์สำรอง", "Open backup")}</button></div><input type="file" id="hv-restore-file" accept=".json,application/json" hidden>
+<p class="hv-muted">${tr("เปิดไฟล์สำรองแล้ว ข้อมูลในเครื่องนี้จะถูกแทนที่ทั้งหมด ไฟล์ PDF ใช้แทนไฟล์สำรองไม่ได้", "Opening a backup replaces all data on this device. A PDF report cannot be used as a backup.")}</p>
+<p class="hv-source">${tr("แหล่งข้อมูล: มกษ. 31-2567 · สวพส. · UC ANR · วิธีคำนวณเหมือนแอป Drymate", "Sources: TAS 31-2024 · HRDI · UC ANR · same calculation as the Drymate app")}<br>${tas}${source}${ucanr}${ucd}${au}${qld}</p></details>`;
   }
 
   function render() {
     document.getElementById("harvestTabLabel").textContent = tr("🥑 วางแผนเก็บเกี่ยว", "🥑 Harvest planner");
-    root.innerHTML = `<div class="hv-hero"><div class="hv-kicker">FLOWERING → HARVEST</div><h2>${tr("จากวันดอกบาน<br>สู่วันเก็บเกี่ยวคุณภาพ", "From flowering<br>to a quality harvest")}</h2><p>${tr("บันทึกรุ่นดอก ดูปฏิทินเก็บเกี่ยว และตรวจความแก่ก่อนเก็บ", "Record bloom cohorts, follow the harvest calendar and check maturity before picking.")}</p><svg viewBox="0 0 100 130" aria-hidden="true"><path d="M51 7C33 0 32 34 19 53C-5 85 6 121 45 126C88 132 105 99 85 61C72 39 72 15 51 7" fill="#91ad63"/><path d="M49 18C39 17 39 40 27 60C8 88 17 113 46 116C79 121 91 98 76 67C64 44 65 23 49 18" fill="#e3e8a0"/><ellipse cx="49" cy="88" rx="23" ry="26" fill="#a3754c"/><ellipse cx="44" cy="83" rx="16" ry="20" fill="#bb9062"/></svg></div>
-<div id="hv-storage" class="hv-storage" ${storage ? "hidden" : ""}>${tr("พื้นที่บันทึกไม่พร้อม ข้อมูลอาจสูญหายเมื่อปิดหน้า กรุณาสำรอง JSON", "Local storage unavailable. Download your JSON backup before leaving.")}</div>
+    root.innerHTML = `<div class="hv-hero"><div class="hv-kicker">FLOWERING → HARVEST</div><h2>${tr("ดอกบานวันไหน<br>รู้วันเก็บเกี่ยว", "Know your flowering<br>plan your harvest")}</h2><p>${tr("จดวันดอกบาน ดูว่าควรตรวจความแก่เมื่อไร และวัดน้ำหนักแห้งก่อนเก็บ", "Note flowering dates, see when to check maturity and measure dry matter before picking.")}</p><svg viewBox="0 0 100 130" aria-hidden="true"><path d="M51 7C33 0 32 34 19 53C-5 85 6 121 45 126C88 132 105 99 85 61C72 39 72 15 51 7" fill="#91ad63"/><path d="M49 18C39 17 39 40 27 60C8 88 17 113 46 116C79 121 91 98 76 67C64 44 65 23 49 18" fill="#e3e8a0"/><ellipse cx="49" cy="88" rx="23" ry="26" fill="#a3754c"/><ellipse cx="44" cy="83" rx="16" ry="20" fill="#bb9062"/></svg></div>
+<div id="hv-storage" class="hv-storage" ${storage ? "hidden" : ""}>${tr("ตอนนี้บันทึกข้อมูลในเครื่องไม่ได้ ปิดหน้าแล้วข้อมูลอาจหาย กรุณากดดาวน์โหลดไฟล์สำรอง", "Cannot save on this device right now. Download a backup before closing.")}</div>
 ${loadIssue ? `<div class="hv-storage">${esc(loadIssue)}</div>` : ""}
-<div id="hv-demo-note" class="hv-demo-banner" ${demo ? "" : "hidden"}><span>🧪 ${tr("โหมดสาธิต ข้อมูลรุ่นดอกเป็นข้อมูลสมมติ ไม่ถูกบันทึก", "Demo mode: cohorts are fictional and not saved.")}</span><button type="button" class="hv-btn text" data-hv-demo-off>${tr("ออกจากโหมดสาธิต", "Exit demo")}</button></div>
-<nav class="hv-subnav" role="tablist" aria-label="${tr("เครื่องมือเก็บเกี่ยว", "Harvest tools")}">${SUBS().map(([id, icon, label]) => `<button type="button" role="tab" id="hv-nav-${id}" aria-controls="hv-view-${id}" aria-selected="${sub === id}" data-hv-sub="${id}"><span aria-hidden="true">${icon}</span>${label}</button>`).join("")}</nav>
+<div id="hv-demo-note" class="hv-demo-banner" ${demo ? "" : "hidden"}><span>🧪 ${tr("กำลังดูข้อมูลตัวอย่าง ไม่ใช่ข้อมูลจริง และจะไม่ถูกบันทึก", "Showing sample data. Nothing here is saved.")}</span><button type="button" class="hv-btn text" data-hv-demo-off>${tr("กลับไปข้อมูลของฉัน", "Back to my data")}</button></div>
+<nav class="hv-subnav" role="tablist" aria-label="${tr("เมนูเก็บเกี่ยว", "Harvest menu")}">${SUBS().map(([id, icon, label]) => `<button type="button" role="tab" id="hv-nav-${id}" aria-controls="hv-view-${id}" aria-selected="${sub === id}" data-hv-sub="${id}"><span aria-hidden="true">${icon}</span>${label}</button>`).join("")}</nav>
 ${homeMarkup()}${trackMarkup()}${guideMarkup()}${dmMarkup()}${dataMarkup()}
 <div id="hv-toast" class="hv-toast" role="status" hidden></div>`;
     bind();
@@ -6463,7 +6480,6 @@ ${homeMarkup()}${trackMarkup()}${guideMarkup()}${dmMarkup()}${dataMarkup()}
     });
     open.forEach((id) => document.getElementById(id) && (document.getElementById(id).open = true));
     if ($("sample-record").value !== prevSample && prevSample) ensureSampleSelection(prevSample);
-    $("weight-mode").dataset.previous = $("weight-mode").value;
     guideTarget = $("guide-target").value;
     toggleNewVariety();
     renderSampleRows();
@@ -6501,8 +6517,8 @@ ${homeMarkup()}${trackMarkup()}${guideMarkup()}${dmMarkup()}${dataMarkup()}
     if (!badge) return;
     const n = state.records.filter((r) => ["ready", "late"].includes(estimate(r).status)).length;
     badge.textContent = n ? String(n) : "";
-    badge.title = tr("รุ่นดอกที่ควรตรวจความแก่", "Cohorts needing maturity checks");
-    badge.setAttribute("aria-label", n ? tr(n + " รุ่นดอกที่ควรตรวจ", n + " cohorts due") : "");
+    badge.title = tr("รุ่นดอกที่ถึงเวลาตรวจ", "Waves due for checking");
+    badge.setAttribute("aria-label", n ? tr(n + " รุ่นดอกถึงเวลาตรวจ", n + " waves due") : "");
   }
 
   /* ---------- overview dashboard, timeline and calendar ---------- */
@@ -6525,18 +6541,18 @@ ${homeMarkup()}${trackMarkup()}${guideMarkup()}${dmMarkup()}${dataMarkup()}
     const lastG = groups.slice().sort((a, b) => (a.first.date < b.first.date ? 1 : -1))[0];
     $("today").innerHTML = `<div><small>${tr("วันนี้", "Today")}</small><b>${fmt(t, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</b></div><p>${
       !infos.length
-        ? tr("ยังไม่มีรุ่นดอก เริ่มจากบันทึกวันดอกบาน หรือกดดูข้อมูลสาธิต", "No cohorts yet. Record a bloom date or try the demo data.")
+        ? tr("ยังไม่มีข้อมูล เริ่มจากจดวันดอกบาน หรือลองดูตัวอย่างก่อน", "Nothing yet. Start by noting a flowering date, or try the sample data.")
         : ready.length
-          ? tr(`มี ${ready.length} รุ่นดอกอยู่ในช่วงตรวจความแก่`, `${ready.length} cohort(s) are in the maturity-check window`) + (soon.length ? tr(` · อีก ${soon.length} รุ่นจะเริ่มใน 30 วัน`, ` · ${soon.length} more start within 30 days`) : "")
+          ? tr(`ถึงเวลาตรวจความแก่ ${ready.length} รุ่น`, `${ready.length} wave(s) ready to check`) + (soon.length ? tr(` · อีก ${soon.length} รุ่นใกล้ถึงเวลาใน 30 วัน`, ` · ${soon.length} more within 30 days`) : "")
           : soon.length
-            ? tr(`อีก ${soon.length} รุ่นดอกจะเริ่มช่วงตรวจภายใน 30 วัน`, `${soon.length} cohort(s) start checks within 30 days`)
-            : tr("ยังไม่มีรุ่นดอกที่ต้องตรวจในตอนนี้", "No cohorts need checking right now")
-    }</p>${!infos.length ? `<div class="hv-actions"><button type="button" class="hv-btn" data-hv-sub="track">🌸 ${tr("บันทึกวันดอกบาน", "Record a bloom date")}</button><button type="button" class="hv-btn secondary" data-hv-demo-on>🧪 ${tr("ดูข้อมูลสาธิต", "Try demo data")}</button></div>` : ""}`;
+            ? tr(`อีก ${soon.length} รุ่นจะถึงเวลาตรวจภายใน 30 วัน`, `${soon.length} wave(s) due within 30 days`)
+            : tr("ตอนนี้ยังไม่มีรุ่นที่ต้องตรวจ", "Nothing to check right now")
+    }</p>${!infos.length ? `<div class="hv-actions"><button type="button" class="hv-btn" data-hv-sub="track">🌸 ${tr("จดวันดอกบาน", "Note a flowering date")}</button><button type="button" class="hv-btn secondary" data-hv-demo-on>🧪 ${tr("ลองดูตัวอย่าง", "Try sample data")}</button></div>` : ""}`;
     $("stats").innerHTML = [
-      [ready.length, tr("ถึงช่วงตรวจ", "Check due"), "ready"],
-      [soon.length, tr("เริ่มใน 30 วัน", "Within 30 days"), "soon"],
-      [late.length, tr("พ้นช่วง ตรวจซ้ำ", "Past window"), "late"],
-      [groups.length, lastG ? tr("รอบวัด DM · ล่าสุด ", "DM rounds · last ") + dateShort(lastG.first.date) : tr("รอบวัด DM", "DM rounds"), "dm"],
+      [ready.length, tr("ถึงเวลาตรวจ", "Time to check"), "ready"],
+      [soon.length, tr("อีกไม่เกิน 30 วัน", "Within 30 days"), "soon"],
+      [late.length, tr("เลยช่วงแล้ว", "Past window"), "late"],
+      [groups.length, lastG ? tr("ครั้งที่วัดน้ำหนักแห้ง · ล่าสุด ", "Dry matter tests · last ") + dateShort(lastG.first.date) : tr("ครั้งที่วัดน้ำหนักแห้ง", "Dry matter tests"), "dm"],
     ].map(([n, label, k]) => `<div class="hv-stat ${k}"><b>${n}</b><span>${label}</span></div>`).join("");
 
     const todo = [
@@ -6549,15 +6565,15 @@ ${homeMarkup()}${trackMarkup()}${guideMarkup()}${dmMarkup()}${dataMarkup()}
       ? todo.map(({ i, k }) => {
           const { r, e, p } = i;
           const when =
-            k === "ready" ? tr(`อยู่ในช่วงตรวจ เหลืออีก ${day(e.end) - day(t)} วันถึงปลายช่วง`, `In window · ${day(e.end) - day(t)} days to window end`)
-            : k === "late" ? tr(`พ้นช่วงประมาณมาแล้ว ${day(t) - day(e.end)} วัน ควรตรวจซ้ำ`, `${day(t) - day(e.end)} days past estimate · recheck`)
-            : tr(`อีก ${e.left} วันเริ่มตรวจ (${dateShort(e.start)})`, `Checks start in ${e.left} days (${dateShort(e.start)})`);
+            k === "ready" ? tr(`ถึงเวลาตรวจแล้ว เหลืออีก ${day(e.end) - day(t)} วันจะหมดช่วง`, `Time to check · ${day(e.end) - day(t)} days left`)
+            : k === "late" ? tr(`เลยช่วงมาแล้ว ${day(t) - day(e.end)} วัน ควรรีบตรวจ`, `${day(t) - day(e.end)} days past the window · check soon`)
+            : tr(`อีก ${e.left} วันถึงเวลาตรวจ (${dateShort(e.start)})`, `Check in ${e.left} days (${dateShort(e.start)})`);
           const done = signCount(r);
           const g = demo ? null : latestReport(r.id);
-          const dmLine = g ? `<span class="hv-chip">⚖️ DM ${g.stats.mean.toFixed(1)}% · ${dateShort(g.first.date)}${g.first.threshold != null ? tr(" (อ้างอิงรุ่น ≥", " (lot ref ≥") + g.first.threshold + "%)" : ""}</span>` : "";
-          return `<article class="hv-todo ${k}" style="--c:${i.c}"><div class="hv-todo-main"><b>${esc(name(p))}</b> <span class="hv-muted-inline">${esc(r.plot)} · ${esc(r.cohort)}</span><p>${when}</p><div class="hv-chips"><span class="hv-chip">${tr("อายุผล", "Age")} ${e.age} ${tr("วัน", "d")}</span><span class="hv-chip">🔍 ${tr("ตรวจแล้ว", "Checked")} ${done}/6</span>${dmLine}</div></div>${k !== "soon" ? `<div class="hv-todo-actions"><button type="button" class="hv-btn secondary" data-hv-guide="${r.id}">🔍 ${tr("ตรวจความแก่", "Check maturity")}</button><button type="button" class="hv-btn text" data-hv-test="${r.id}">⚖️ ${tr("วัด DM", "Measure DM")}</button></div>` : ""}</article>`;
+          const dmLine = g ? `<span class="hv-chip">⚖️ ${tr("น้ำหนักแห้ง", "Dry matter")} ${pct2(g.stats.mean)}% · ${dateShort(g.first.date)}${g.first.threshold != null ? tr(" (เกณฑ์ ", " (target ") + g.first.threshold + "%)" : ""}</span>` : "";
+          return `<article class="hv-todo ${k}" style="--c:${i.c}"><div class="hv-todo-main"><b>${esc(name(p))}</b> <span class="hv-muted-inline">${esc(r.plot)} · ${esc(r.cohort)}</span><p>${when}</p><div class="hv-chips"><span class="hv-chip">${tr("อายุผล", "Age")} ${e.age} ${tr("วัน", "days")}</span><span class="hv-chip">🔍 ${tr("ตรวจแล้ว", "Checked")} ${done}/6</span>${dmLine}</div></div>${k !== "soon" ? `<div class="hv-todo-actions"><button type="button" class="hv-btn secondary" data-hv-guide="${r.id}">🔍 ${tr("ตรวจความแก่", "Check maturity")}</button><button type="button" class="hv-btn text" data-hv-test="${r.id}">⚖️ ${tr("วัดน้ำหนักแห้ง", "Dry matter")}</button></div>` : ""}</article>`;
         }).join("")
-      : `<div class="hv-empty">🌱 ${infos.length ? tr("ตอนนี้ยังไม่มีงานตรวจความแก่<br>ระบบจะแสดงเมื่อรุ่นดอกใกล้ถึงช่วง", "Nothing to check yet.<br>Cohorts appear here as their window approaches.") : tr("เพิ่มรุ่นดอกเพื่อเริ่มวางแผน", "Add a cohort to start planning")}</div>`;
+      : `<div class="hv-empty">🌱 ${infos.length ? tr("ยังไม่มีงานตอนนี้<br>เมื่อใกล้ถึงเวลาตรวจ จะขึ้นตรงนี้", "Nothing to check yet.<br>Cohorts appear here as their window approaches.") : tr("จดวันดอกบานเพื่อเริ่มวางแผน", "Note a flowering date to start planning")}</div>`;
     renderTimeline(infos);
     renderCalendar(infos);
     bindDynamic($("view-home"));
@@ -6589,12 +6605,12 @@ ${homeMarkup()}${trackMarkup()}${guideMarkup()}${dmMarkup()}${dataMarkup()}
           } else if (r.bloom < end) {
             bars += `<span class="hv-tl-grow unknown" style="left:${pct(r.bloom < start ? start : r.bloom)}%;right:0;--c:${c}"></span>`;
           }
-          if (r.bloom >= start && r.bloom < end) bars += `<span class="hv-tl-bloom" style="left:${pct(r.bloom)}%" title="${tr("ดอกบาน", "Bloom")} ${date(r.bloom)}">🌸</span>`;
+          if (r.bloom >= start && r.bloom < end) bars += `<span class="hv-tl-bloom" style="left:${pct(r.bloom)}%" title="${tr("ดอกบาน", "Flowering")} ${date(r.bloom)}">🌸</span>`;
           insp.filter((g) => g.first.recordId === r.id && g.first.date >= start && g.first.date < end).forEach((g) => (bars += `<span class="hv-tl-dm" style="left:${pct(g.first.date)}%" title="DM ${g.stats.mean.toFixed(1)}%"></span>`));
-          const sub = e.start ? `${dateShort(e.start)} – ${date(e.end)}` : tr("ยังไม่ระบุอายุเก็บเกี่ยว", "Harvest age not set");
+          const sub = e.start ? `${dateShort(e.start)} – ${date(e.end)}` : tr("ยังไม่ใส่อายุเก็บเกี่ยว", "No harvest age set");
           return `<div class="hv-tl-row"><div class="hv-tl-label"><i style="background:${c}"></i><div><b>${esc(name(p))} · ${esc(r.cohort)}</b><small>${esc(r.plot)} · ${sub}</small></div></div><div class="hv-tl-track">${grid}${bars}<span class="hv-tl-today" style="left:${pct(t)}%"></span></div></div>`;
         }).join("")
-      : `<div class="hv-empty">${tr("ยังไม่มีรุ่นดอกให้แสดงบนปฏิทิน", "No cohorts to show yet")}</div>`;
+      : `<div class="hv-empty">${tr("ยังไม่มีรุ่นดอกให้แสดง", "Nothing to show yet")}</div>`;
   }
 
   function dayEvents(infos) {
@@ -6630,7 +6646,7 @@ ${homeMarkup()}${trackMarkup()}${guideMarkup()}${dmMarkup()}${dataMarkup()}
       const list = ev.get(d) || [];
       const dots = [...new Set(list.map((x) => x.type))].map((tp) => `<i class="dot-${tp}"></i>`).join("");
       const cls = ["hv-day", inWin.length ? "win" : "", inWin.length > 1 ? "win2" : "", d === t ? "today" : "", d === calDay ? "sel" : ""].join(" ");
-      cells += `<button type="button" class="${cls}" data-hv-day="${d}" style="${inWin.length ? `--c:${inWin[0].c}` : ""}" aria-label="${date(d)}${inWin.length ? tr(` · ${inWin.length} รุ่นอยู่ในช่วงตรวจ`, ` · ${inWin.length} in window`) : ""}${list.length ? tr(` · ${list.length} เหตุการณ์`, ` · ${list.length} events`) : ""}" aria-pressed="${d === calDay}"><span>${n}</span><span class="hv-dots">${dots}</span></button>`;
+      cells += `<button type="button" class="${cls}" data-hv-day="${d}" style="${inWin.length ? `--c:${inWin[0].c}` : ""}" aria-label="${date(d)}${inWin.length ? tr(` · ควรตรวจ ${inWin.length} รุ่น`, ` · ${inWin.length} to check`) : ""}${list.length ? tr(` · ${list.length} รายการ`, ` · ${list.length} items`) : ""}" aria-pressed="${d === calDay}"><span>${n}</span><span class="hv-dots">${dots}</span></button>`;
     }
     $("calendar").innerHTML = cells;
     $("calendar").querySelectorAll("[data-hv-day]").forEach((b) => (b.onclick = () => {
@@ -6646,14 +6662,14 @@ ${homeMarkup()}${trackMarkup()}${guideMarkup()}${dmMarkup()}${dataMarkup()}
     const lbl = (i) => `<b style="color:${i.c}">●</b> ${esc(name(i.p))} · ${esc(i.r.plot)} · ${esc(i.r.cohort)}`;
     const items = [
       ...list.map((x) =>
-        x.type === "bloom" ? `<li>🌸 ${tr("ดอกบาน 50%", "50% bloom")}: ${lbl(x.i)}</li>`
-        : x.type === "start" ? `<li>🟢 ${tr("เริ่มช่วงตรวจความแก่", "Maturity-check window starts")}: ${lbl(x.i)}</li>`
-        : x.type === "end" ? `<li>🟠 ${tr("สิ้นสุดช่วงประมาณ", "Estimated window ends")}: ${lbl(x.i)}</li>`
-        : `<li>⚖️ ${tr("วัด DM", "DM measured")}: ${esc(x.g.first.farm || "—")} · ${esc(tr(x.g.first.varietyTh, x.g.first.varietyEn))} · ${tr("เฉลี่ย", "mean")} ${x.g.stats.mean.toFixed(2)}% (${x.g.stats.count} ${tr("ผล", "fruit")}) <button type="button" class="hv-btn text" data-hv-report="${x.g.id}">${tr("ดูรายงาน", "Report")}</button></li>`
+        x.type === "bloom" ? `<li>🌸 ${tr("ดอกบาน", "Flowering")}: ${lbl(x.i)}</li>`
+        : x.type === "start" ? `<li>🟢 ${tr("เริ่มตรวจความแก่ได้", "Start checking maturity")}: ${lbl(x.i)}</li>`
+        : x.type === "end" ? `<li>🟠 ${tr("หมดช่วงตรวจ", "End of window")}: ${lbl(x.i)}</li>`
+        : `<li>⚖️ ${tr("วัดน้ำหนักแห้ง", "Dry matter")}: ${esc(x.g.first.farm || "—")} · ${esc(tr(x.g.first.varietyTh, x.g.first.varietyEn))} · ${tr("เฉลี่ย", "mean")} ${pct2(x.g.stats.mean)}% (${x.g.stats.count} ${tr("ลูก", "fruit")}) <button type="button" class="hv-btn text" data-hv-report="${x.g.id}">${tr("ดูรายงาน", "Report")}</button></li>`
       ),
-      ...inWin.map((i) => `<li>🥑 ${tr("อยู่ในช่วงตรวจ", "In check window")}: ${lbl(i)} <small>(${tr("วันที่", "day")} ${day(d) - day(i.e.start) + 1}/${day(i.e.end) - day(i.e.start) + 1})</small></li>`),
+      ...inWin.map((i) => `<li>🥑 ${tr("ควรตรวจความแก่", "Check maturity")}: ${lbl(i)} <small>(${tr("วันที่", "day")} ${day(d) - day(i.e.start) + 1}/${day(i.e.end) - day(i.e.start) + 1})</small></li>`),
     ];
-    $("day-detail").innerHTML = `<h4>${fmt(d, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</h4>${items.length ? `<ul>${items.join("")}</ul>` : `<p class="hv-muted">${tr("ไม่มีเหตุการณ์ในวันนี้", "Nothing scheduled on this day")}</p>`}`;
+    $("day-detail").innerHTML = `<h4>${fmt(d, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</h4>${items.length ? `<ul>${items.join("")}</ul>` : `<p class="hv-muted">${tr("วันนี้ไม่มีอะไร", "Nothing on this day")}</p>`}`;
     $("day-detail").querySelectorAll("[data-hv-report]").forEach((b) => (b.onclick = () => openReport(b.dataset.hvReport)));
   }
 
@@ -6687,14 +6703,14 @@ ${homeMarkup()}${trackMarkup()}${guideMarkup()}${dmMarkup()}${dataMarkup()}
     demo = on;
     demoRows = on
       ? [
-          { id: "demo1", variety: "hass", plot: tr("แปลงสาธิต A", "Demo block A"), cohort: tr("รุ่นสาธิต 1", "Demo cohort 1"), bloom: add(today(), -240), checks: [true, false, false], signs: [true, false, true, false] },
-          { id: "demo2", variety: "peterson", plot: tr("แปลงสาธิต B", "Demo block B"), cohort: tr("รุ่นสาธิต 2", "Demo cohort 2"), bloom: add(today(), -135), checks: [], signs: [] },
-          { id: "demo3", variety: "booth7", plot: tr("แปลงสาธิต B", "Demo block B"), cohort: tr("รุ่นสาธิต 3", "Demo cohort 3"), bloom: add(today(), -60), checks: [], signs: [] },
+          { id: "demo1", variety: "hass", plot: tr("แปลงตัวอย่าง A", "Sample block A"), cohort: tr("รุ่นตัวอย่าง 1", "Sample wave 1"), bloom: add(today(), -240), checks: [true, false, false], signs: [true, false, true, false] },
+          { id: "demo2", variety: "peterson", plot: tr("แปลงตัวอย่าง B", "Sample block B"), cohort: tr("รุ่นตัวอย่าง 2", "Sample wave 2"), bloom: add(today(), -135), checks: [], signs: [] },
+          { id: "demo3", variety: "booth7", plot: tr("แปลงตัวอย่าง B", "Sample block B"), cohort: tr("รุ่นตัวอย่าง 3", "Sample wave 3"), bloom: add(today(), -60), checks: [], signs: [] },
         ].filter((r) => pf(r.variety))
       : [];
     editId = "";
     rerender();
-    notify(on ? tr("เปิดโหมดสาธิต ข้อมูลนี้ไม่ถูกบันทึก", "Demo mode on. Nothing is saved.") : tr("กลับสู่ข้อมูลสวนของฉัน", "Back to your orchard data."));
+    notify(on ? tr("กำลังดูข้อมูลตัวอย่าง ไม่มีการบันทึก", "Showing sample data. Nothing is saved.") : tr("กลับมาที่ข้อมูลของฉันแล้ว", "Back to your data."));
   }
 
   function signCount(r) {
@@ -6712,13 +6728,13 @@ ${homeMarkup()}${trackMarkup()}${guideMarkup()}${dmMarkup()}${dataMarkup()}
           const prog = d.hi ? Math.max(0, Math.min(100, (d.age / d.hi) * 100)) : 0;
           const winL = d.hi ? (d.lo / d.hi) * 100 : 0;
           return `<article class="hv-record" style="--c:${c}"><div class="hv-row"><div><h3><i class="hv-swatch" style="background:${c}"></i>${esc(name(d.p))}</h3><span class="hv-muted-inline">${esc(r.plot)} · ${esc(r.cohort)}</span></div><span class="hv-pill ${d.status}">${statusText(d.status)}</span></div>
-<div class="hv-dates"><div><small>${tr("ดอกบาน 50%", "50% bloom")}</small>${date(r.bloom)}</div><div><small>${tr("ช่วงตรวจความแก่โดยประมาณ", "Estimated check window")}</small>${d.start ? `${date(d.start)} – ${date(d.end)}` : tr("ยังไม่ระบุ", "Not set")}</div></div>
+<div class="hv-dates"><div><small>${tr("ดอกบาน", "Flowered")}</small>${date(r.bloom)}</div><div><small>${tr("ควรตรวจความแก่ช่วง", "Check maturity")}</small>${d.start ? `${date(d.start)} – ${date(d.end)}` : tr("ยังไม่ทราบ", "Not set")}</div></div>
 ${d.hi ? `<div class="hv-bar" role="img" aria-label="${tr("อายุผล", "Fruit age")} ${d.age}/${d.hi} ${tr("วัน", "days")}"><em style="left:${winL}%"></em><span style="width:${prog}%"></span></div>` : ""}
-<p class="hv-muted">${tr("อายุผล", "Fruit age")}: <b>${d.age}</b> ${tr("วัน", "days")}${d.status === "grow" ? " · " + tr(`อีก ${d.left} วันเริ่มตรวจ`, `checks start in ${d.left} days`) : d.status === "unknown" ? ` · <button type="button" class="hv-btn text" data-hv-edit-cv="${r.variety}">${tr("ใส่อายุเก็บเกี่ยว", "Set harvest age")}</button>` : ""}<br>${hasAges(d.p) ? `${tr("อายุอ้างอิง", "Reference age")}: ${d.p.min}–${d.p.max} ${tr("วัน", "days")} ±${d.p.margin} · ${esc(d.p.source)}` : ""}</p>
-${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong>🥑 ${tr("ความคืบหน้าการตรวจความแก่", "Maturity check progress")}: ${signCount(r)}/6</strong><p style="margin:6px 0">${esc(ext(d.p))}</p><div class="hv-actions"><button type="button" class="hv-btn secondary" data-hv-guide="${r.id}">🔍 ${tr("ตรวจความแก่", "Check maturity")}</button><button type="button" class="hv-btn text" data-hv-test="${r.id}">⚖️ ${tr("วัด DM", "Measure DM")}</button></div></div>` : ""}
-<div class="hv-actions"><button type="button" class="hv-btn text" data-hv-edit="${r.id}">${tr("แก้ไข", "Edit")}</button><button type="button" class="hv-btn text danger" data-hv-remove="${r.id}">${tr("ลบรุ่นดอก", "Delete cohort")}</button></div></article>`;
+<p class="hv-muted">${tr("อายุผล", "Fruit age")}: <b>${d.age}</b> ${tr("วัน", "days")}${d.status === "grow" ? " · " + tr(`อีก ${d.left} วันถึงเวลาตรวจ`, `check in ${d.left} days`) : d.status === "unknown" ? ` · <button type="button" class="hv-btn text" data-hv-edit-cv="${r.variety}">${tr("ใส่อายุเก็บเกี่ยว", "Set harvest age")}</button>` : ""}<br>${hasAges(d.p) ? `${tr("พันธุ์นี้แก่ราว", "This variety matures at")}: ${d.p.min}–${d.p.max} ${tr("วัน", "days")} ±${d.p.margin} · ${esc(d.p.source)}` : ""}</p>
+${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong>🥑 ${tr("ตรวจความแก่แล้ว", "Maturity checks done")}: ${signCount(r)}/6</strong><p style="margin:6px 0">${esc(ext(d.p))}</p><div class="hv-actions"><button type="button" class="hv-btn secondary" data-hv-guide="${r.id}">🔍 ${tr("ตรวจความแก่", "Check maturity")}</button><button type="button" class="hv-btn text" data-hv-test="${r.id}">⚖️ ${tr("วัดน้ำหนักแห้ง", "Dry matter")}</button></div></div>` : ""}
+<div class="hv-actions"><button type="button" class="hv-btn text" data-hv-edit="${r.id}">${tr("แก้ไข", "Edit")}</button><button type="button" class="hv-btn text danger" data-hv-remove="${r.id}">${tr("ลบ", "Delete")}</button></div></article>`;
         }).join("")
-      : `<div class="hv-empty">${a.length ? tr("ไม่มีรายการในสถานะนี้", "No cohorts in this view.") : tr("ยังไม่มีรุ่นดอก<br>เริ่มจากบันทึกวันดอกบานด้านบน", "No cohorts yet.<br>Start by recording a bloom date above.")}</div>`;
+      : `<div class="hv-empty">${a.length ? tr("ไม่มีรุ่นดอกในกลุ่มนี้", "Nothing in this group.") : tr("ยังไม่มีรุ่นดอก<br>เริ่มจากจดวันดอกบานด้านบน", "Nothing yet.<br>Start by noting a flowering date above.")}</div>`;
     $("records").querySelectorAll("[data-hv-edit]").forEach((b) => (b.onclick = () => editRecord(b.dataset.hvEdit)));
     $("records").querySelectorAll("[data-hv-remove]").forEach((b) => (b.onclick = () => removeRecord(b.dataset.hvRemove)));
     bindDynamic($("records"));
@@ -6733,13 +6749,13 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
     editId = "";
     $("record-form").reset();
     $("bloom").value = today();
-    $("record-submit").textContent = "＋ " + tr("บันทึกรุ่นดอก", "Save cohort");
+    $("record-submit").textContent = "＋ " + tr("บันทึก", "Save");
     $("cancel-edit").hidden = true;
     $("record-error").textContent = "";
     toggleNewVariety();
   }
   function editRecord(id) {
-    if (demo) return notify(tr("ข้อมูลสาธิตแก้ไขไม่ได้ ออกจากโหมดสาธิตเพื่อบันทึกจริง", "Demo records cannot be edited. Exit demo mode first."));
+    if (demo) return notify(tr("ข้อมูลตัวอย่างแก้ไขไม่ได้ กลับไปข้อมูลของฉันก่อน", "Sample data can't be edited. Go back to your data first."));
     const r = state.records.find((x) => x.id === id);
     if (!r) return;
     editId = id;
@@ -6755,21 +6771,21 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
   function recordSubmit(e) {
     e.preventDefault();
     const err = (s) => ($("record-error").textContent = s);
-    if (demo) return notify(tr("ออกจากโหมดสาธิตก่อนบันทึกรุ่นดอกจริง", "Exit demo mode before saving."));
+    if (demo) return notify(tr("กลับไปข้อมูลของฉันก่อน แล้วค่อยบันทึก", "Go back to your data before saving."));
     const bloom = $("bloom").value, plot = $("plot").value.trim(), cohort = $("cohort").value.trim();
-    if (!bloom || !Number.isFinite(day(bloom)) || bloom > today()) return err(tr("ระบุวันดอกบาน และต้องไม่เกินวันนี้", "Enter a bloom date that is not in the future."));
-    if (!plot || !cohort) return err(tr("กรอกแปลงและรุ่นดอกให้ครบ", "Enter the block and cohort."));
+    if (!bloom || !Number.isFinite(day(bloom)) || bloom > today()) return err(tr("ใส่วันดอกบาน (ต้องไม่เกินวันนี้)", "Enter a flowering date (not in the future)."));
+    if (!plot || !cohort) return err(tr("ใส่ชื่อแปลงและชื่อรุ่นดอกด้วย", "Enter the block and the wave name."));
     let variety = $("variety").value, resolved = null;
     if (variety === "__new") {
       const n = $("new-variety-name").value.trim();
-      if (!n) return err(tr("พิมพ์ชื่อพันธุ์ที่ต้องการเพิ่ม", "Type the cultivar name."));
+      if (!n) return err(tr("พิมพ์ชื่อพันธุ์ก่อน", "Type the variety name."));
       const ages = parseAges($("new-variety-min").value, $("new-variety-max").value);
       if (!ages.ok) return err(tr("อายุเก็บเกี่ยวต้องเป็นจำนวนเต็ม 1–1000 วัน และวันสิ้นสุดต้องไม่น้อยกว่าวันเริ่ม หรือเว้นว่างทั้งคู่", "Harvest ages must be whole days 1–1000 with end ≥ start, or both blank."));
       resolved = resolveCultivar(n.slice(0, 70), ages.min, ages.max);
       variety = resolved.p.id;
     }
     const dup = state.records.find((r) => r.id !== editId && r.variety === variety && r.plot.toLowerCase() === plot.toLowerCase() && r.cohort.toLowerCase() === cohort.toLowerCase());
-    if (dup && !confirm(tr("มีรุ่นดอกพันธุ์ แปลง และชื่อรุ่นนี้อยู่แล้ว ต้องการบันทึกซ้ำหรือไม่?", "A cohort with this cultivar, block and name already exists. Save anyway?"))) {
+    if (dup && !confirm(tr("มีรุ่นดอกนี้อยู่แล้ว (พันธุ์ แปลง และชื่อรุ่นเหมือนกัน) จะบันทึกซ้ำไหม?", "This wave already exists (same variety, block and name). Save again?"))) {
       resolved?.undo();
       return;
     }
@@ -6782,19 +6798,19 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
       if (old) Object.assign(old, before);
       else state.records.pop();
       resolved?.undo();
-      return err(tr("บันทึกไม่สำเร็จ ข้อมูลยังอยู่ในฟอร์ม", "Not saved. Your entries are still in the form."));
+      return err(tr("บันทึกไม่สำเร็จ ข้อมูลที่พิมพ์ยังอยู่", "Not saved. What you typed is still here."));
     }
     if (resolved?.created) rerender("#hv-dm-form input, #hv-dm-form select, #hv-history-query, #hv-filter, #hv-protocol-method, #hv-guide-target");
     else {
       resetRecord();
       refresh();
     }
-    notify(resolved?.created ? tr(`บันทึกรุ่นดอกและเพิ่มพันธุ์ “${resolved.p.th}” แล้ว`, `Cohort saved and cultivar “${resolved.p.th}” added.`) : tr("บันทึกรุ่นดอกแล้ว", "Cohort saved."));
+    notify(resolved?.created ? tr(`บันทึกแล้ว และเพิ่มพันธุ์ “${resolved.p.th}” ให้แล้ว`, `Saved, and variety “${resolved.p.th}” added.`) : tr("บันทึกแล้ว", "Saved."));
   }
   function removeRecord(id) {
-    if (demo) return notify(tr("ข้อมูลสาธิตไม่ได้อยู่ในข้อมูลสวนของคุณ", "Demo data is separate from your orchard."));
+    if (demo) return notify(tr("ข้อมูลตัวอย่างลบไม่ได้", "Sample data can't be deleted."));
     const r = state.records.find((x) => x.id === id);
-    if (!r || !confirm(tr("ลบรุ่นดอกนี้? ประวัติผลทดสอบ DM จะยังอยู่", "Delete this cohort? Saved DM history is kept."))) return;
+    if (!r || !confirm(tr("ลบรุ่นดอกนี้ไหม? ผลน้ำหนักแห้งที่บันทึกไว้จะยังอยู่", "Delete this wave? Saved dry matter results are kept."))) return;
     const before = state.records;
     state.records = state.records.filter((x) => x.id !== id);
     if (!save()) {
@@ -6816,8 +6832,8 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
     if (!sel) return;
     const prev = guideTarget || sel.value;
     sel.innerHTML =
-      (rows().length ? `<optgroup label="${tr("รุ่นดอก (บันทึกผลการตรวจได้)", "Cohorts (observations saved)")}">${rows().map((r) => `<option value="r:${r.id}">${esc(name(pf(r.variety)))} · ${esc(r.plot)} · ${esc(r.cohort)}</option>`).join("")}</optgroup>` : "") +
-      `<optgroup label="${tr("ดูตามพันธุ์", "By cultivar")}">${state.profiles.map((p) => `<option value="p:${p.id}">${esc(name(p))}</option>`).join("")}</optgroup>`;
+      (rows().length ? `<optgroup label="${tr("รุ่นดอกของฉัน (ระบบจำให้)", "My waves (ticks are saved)")}">${rows().map((r) => `<option value="r:${r.id}">${esc(name(pf(r.variety)))} · ${esc(r.plot)} · ${esc(r.cohort)}</option>`).join("")}</optgroup>` : "") +
+      `<optgroup label="${tr("ดูวิธีตรวจตามพันธุ์", "Guide by variety")}">${state.profiles.map((p) => `<option value="p:${p.id}">${esc(name(p))}</option>`).join("")}</optgroup>`;
     const firstCohort = rows().length ? "r:" + rows()[0].id : "";
     if (!guideChosen && firstCohort && !prev.startsWith("r:")) sel.value = firstCohort;
     else if ([...sel.options].some((o) => o.value === prev)) sel.value = prev;
@@ -6855,13 +6871,13 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
     const e = r ? estimate(r) : null;
     const c = color(p);
     const ageBox = r
-      ? `<div class="hv-age ${e.status}"><b>${tr("อายุผล", "Fruit age")} ${e.age} ${tr("วัน", "days")}</b><span>${statusText(e.status)}${e.start ? ` · ${tr("ช่วงตรวจ", "window")} ${dateShort(e.start)} – ${date(e.end)}` : ""}</span></div>`
+      ? `<div class="hv-age ${e.status}"><b>${tr("อายุผล", "Fruit age")} ${e.age} ${tr("วัน", "days")}</b><span>${statusText(e.status)}${e.start ? ` · ${tr("ควรตรวจ", "check")} ${dateShort(e.start)} – ${date(e.end)}` : ""}</span></div>`
       : "";
-    $("guide-card").innerHTML = `<div class="hv-cultivar" style="--c:${c}"><div class="hv-cultivar-head"><i class="hv-swatch" style="background:${c}"></i><h4>${esc(name(p))}${p?.custom ? ` <small>✎ ${tr("พันธุ์ที่เพิ่มเอง", "your cultivar")}</small>` : ""}</h4></div>
-<dl class="hv-facts"><div><dt>${tr("อายุเก็บเกี่ยวอ้างอิง", "Reference harvest age")}</dt><dd>${hasAges(p) ? `${p.min}${p.max !== p.min ? "–" + p.max : ""} ${tr("วันหลังดอกบาน 50%", "days after 50% bloom")} (±${p.margin})` : tr("ยังไม่ระบุ", "Not set")}</dd></div><div><dt>${tr("ค่าอ้างอิง DM ของรุ่น", "Lot DM reference")}</dt><dd>${p?.dm != null ? "≥ " + p.dm + "%" : tr("ไม่มี ใช้ลักษณะภายนอกและการบ่มประกอบ", "None; rely on external signs and ripening")}</dd></div></dl>
-<div class="hv-std"><small>${p?.standard ? tr("ลักษณะภายนอกเมื่อแก่ ตาม มกษ. 31-2567 ตาราง จ.1", "External signs per TAS 31-2024 Table E.1") : tr("ลักษณะภายนอกเมื่อแก่", "External maturity signs")}</small><p>${esc(ext(p))}</p></div>${ageBox}</div>`;
+    $("guide-card").innerHTML = `<div class="hv-cultivar" style="--c:${c}"><div class="hv-cultivar-head"><i class="hv-swatch" style="background:${c}"></i><h4>${esc(name(p))}${p?.custom ? ` <small>✎ ${tr("พันธุ์ที่เพิ่มเอง", "your variety")}</small>` : ""}</h4></div>
+<dl class="hv-facts"><div><dt>${tr("ผลแก่ราว", "Matures at about")}</dt><dd>${hasAges(p) ? `${p.min}${p.max !== p.min ? "–" + p.max : ""} ${tr("วันหลังดอกบาน", "days after flowering")} (±${p.margin})` : tr("ยังไม่ทราบ", "Not set")}</dd></div><div><dt>${tr("เกณฑ์น้ำหนักแห้ง", "Dry matter target")}</dt><dd>${p?.dm != null ? "≥ " + p.dm + "%" : tr("ไม่มี ให้ดูหน้าตาผลและลองบ่ม", "None; use appearance and a ripening test")}</dd></div></dl>
+<div class="hv-std"><small>${p?.standard ? tr("ผลแก่หน้าตาเป็นอย่างไร (ตาม มกษ. 31-2567)", "What mature fruit looks like (TAS 31-2024)") : tr("ผลแก่หน้าตาเป็นอย่างไร", "What mature fruit looks like")}</small><p>${esc(ext(p))}</p></div>${ageBox}</div>`;
     const done = signDefs.map((_, i) => signState(r, i));
-    $("signs").innerHTML = signDefs.map((s, i) => `<label class="hv-sign ${done[i] ? "on" : ""}"><input type="checkbox" data-hv-sign="${i}" ${done[i] ? "checked" : ""}><span class="hv-sign-icon" aria-hidden="true">${s.icon}</span><span class="hv-sign-body"><b>${tr(s.th, s.en)}</b><span class="look">${s.key === "dm" && p?.dm != null ? tr(`ค่าเฉลี่ยของรุ่นถึง ${p.dm}% ขึ้นไป (ค่าอ้างอิงของพันธุ์นี้)`, `Lot mean reaches at least ${p.dm}% (this cultivar's reference)`) : tr(s.lookTh, s.lookEn)}</span><span class="how">👉 ${tr(s.howTh, s.howEn)}</span><span class="src">${s.src()}</span></span></label>`).join("");
+    $("signs").innerHTML = signDefs.map((s, i) => `<label class="hv-sign ${done[i] ? "on" : ""}"><input type="checkbox" data-hv-sign="${i}" ${done[i] ? "checked" : ""}><span class="hv-sign-icon" aria-hidden="true">${s.icon}</span><span class="hv-sign-body"><b>${tr(s.th, s.en)}</b><span class="look">${s.key === "dm" && p?.dm != null ? tr(`ค่าเฉลี่ยของแปลงได้ ${p.dm}% ขึ้นไป (เกณฑ์ของพันธุ์นี้)`, `Block average reaches ${p.dm}% or more (this variety's target)`) : tr(s.lookTh, s.lookEn)}</span><span class="how">👉 ${tr(s.howTh, s.howEn)}</span><span class="src">${s.src()}</span></span></label>`).join("");
     $("signs").querySelectorAll("[data-hv-sign]").forEach((cb) => (cb.onchange = () => {
       const ctx = guideContext();
       setSign(ctx.r, +cb.dataset.hvSign, cb.checked);
@@ -6875,12 +6891,12 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
     $("sign-score").textContent = tr(`ตรวจแล้ว ${n}/6`, `${n}/6 checked`);
     const fieldN = done.slice(0, 4).filter(Boolean).length;
     let next;
-    if (r && e.status === "grow") next = tr(`อายุผลยังไม่ถึงช่วงตรวจ (อีก ${e.left} วัน) แม้เห็นลักษณะบางข้อ ควรรอแล้วตรวจซ้ำ`, `Fruit age is not yet in the window (${e.left} days to go). Wait and recheck even if some signs appear.`);
-    else if (fieldN < 2) next = tr("ขั้นถัดไป: เดินสำรวจหลายต้น ดูสีผิว ผิวสัมผัส และก้านผล แล้วผ่าผลตัวแทนดูเยื่อหุ้มเมล็ด", "Next: walk several trees, check skin colour, texture and stalks, then cut sample fruit to see the seed coat.");
-    else if (!done[4]) next = tr("ขั้นถัดไป: สุ่มอย่างน้อย 10 ผลจาก 5 ต้นขึ้นไป แล้ววัดน้ำหนักแห้ง (DM)", "Next: sample at least 10 fruit from 5+ trees and measure dry matter.");
-    else if (!done[5]) next = tr("ขั้นถัดไป: ทดลองบ่มผลตัวแทน 5–10 ผล ดูการนิ่ม คุณภาพเนื้อ และรสชาติ", "Next: ripen 5–10 representative fruit and check softening, flesh and flavour.");
-    else next = tr("ตรวจครบทุกข้อแล้ว ใช้ข้อมูลทั้งหมดประกอบการตัดสินใจเก็บเกี่ยว (ไม่ใช่การรับรองผ่านมาตรฐานของรุ่น)", "All checks recorded. Use them together to decide on harvest (this is not lot certification).");
-    $("next-step").innerHTML = `<b>${tr("คำแนะนำ", "Suggestion")}</b><p>${next}</p>${!done[4] && !(r && e.status === "grow") ? `<button type="button" class="hv-btn secondary" ${r ? `data-hv-test="${r.id}"` : 'data-hv-sub="dm"'}>⚖️ ${tr("ไปวัด DM", "Measure DM")}</button>` : ""}${r ? "" : `<p class="hv-hint">${tr("เลือกรุ่นดอกด้านบน เพื่อให้ระบบจำผลการตรวจไว้", "Choose a cohort above so these ticks are saved.")}</p>`}`;
+    if (r && e.status === "grow") next = tr(`ผลยังอ่อนอยู่ (อีก ${e.left} วันถึงเวลาตรวจ) ถึงจะเห็นบางข้อแล้ว ก็ควรรอก่อน`, `Fruit is still young (${e.left} days to go). Wait, even if some signs show.`);
+    else if (fieldN < 2) next = tr("เดินดูหลาย ๆ ต้น ดูสีผิว ผิว และขั้วผล แล้วผ่าดูเยื่อหุ้มเมล็ดสัก 2–3 ลูก", "Walk several trees, look at skin colour, skin and stalk, then cut 2–3 fruit to see the seed coat.");
+    else if (!done[4]) next = tr("เก็บมาอย่างน้อย 10 ลูก จาก 5 ต้นขึ้นไป แล้ววัดน้ำหนักแห้ง", "Pick at least 10 fruit from 5+ trees and measure dry matter.");
+    else if (!done[5]) next = tr("ลองบ่ม 5–10 ลูก ดูว่านิ่มเท่ากันไหม เนื้อและรสชาติเป็นอย่างไร", "Ripen 5–10 fruit and see if they soften evenly and taste good.");
+    else next = tr("ตรวจครบทุกข้อแล้ว ใช้ข้อมูลทั้งหมดนี้ช่วยตัดสินใจว่าจะเก็บเมื่อไร", "All checks done. Use them together to decide when to harvest.");
+    $("next-step").innerHTML = `<b>${tr("ทำอะไรต่อ", "What next")}</b><p>${next}</p>${!done[4] && !(r && e.status === "grow") ? `<button type="button" class="hv-btn secondary" ${r ? `data-hv-test="${r.id}"` : 'data-hv-sub="dm"'}>⚖️ ${tr("ไปวัดน้ำหนักแห้ง", "Measure dry matter")}</button>` : ""}${r ? "" : `<p class="hv-hint">${tr("เลือกรุ่นดอกด้านบน ระบบจะจำสิ่งที่ติ๊กไว้ให้", "Pick a flowering wave above so your ticks are saved.")}</p>`}`;
     bindDynamic($("next-step"));
   }
 
@@ -6888,15 +6904,18 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
     if (!$("protocol")) return;
     const micro = $("protocol-method").value === "micro";
     const steps = [
-      [tr("เตรียมเนื้อผลหนา 2 มม. อย่างน้อย 20 กรัมต่อผล", "Prepare 2 mm slices, at least 20 g flesh per fruit"), tr("ผ่าผลตามแนวยาว เอาเมล็ดและเยื่อชั้นในออก ปอกเปลือก หั่นเนื้อหนาประมาณ 2 มม. ให้ได้เนื้ออย่างน้อย 20 กรัมต่อผล กระจายสม่ำเสมอในภาชนะ ชั่งภาชนะเปล่าและน้ำหนักเนื้อสด", "Cut lengthwise, remove the seed and inner membrane, peel and slice the flesh to about 2 mm. Use at least 20 g per fruit, spread evenly; weigh the empty container and the fresh flesh.")],
+      [tr("เตรียมเนื้อ", "Prepare the flesh"), tr("ผ่าตามยาว เอาเมล็ดและเปลือกออก หั่นเนื้อบาง ๆ ประมาณ 2 มม. ใช้เนื้ออย่างน้อย 20 กรัมต่อลูก", "Cut lengthwise, remove seed and skin, slice the flesh about 2 mm thin. Use at least 20 g per fruit.")],
+      [tr("ชั่งก่อนอบ", "Weigh before drying"), tr("ชั่งจานเปล่าไว้ 1 ครั้ง แล้ววางเนื้อบนจาน ชั่งน้ำหนักสด + จาน ไม่ต้องกด tare", "Weigh the empty plate once, put the flesh on it and weigh fresh + plate. No need to tare.")],
       micro
-        ? [tr("ไมโครเวฟกำลังปานกลางหรือต่ำ", "Microwave at medium or low power"), tr("ตามภาคผนวก ซ.2 เริ่มอบประมาณ 15–20 นาที กำลังไฟและเวลาขึ้นกับรุ่นเครื่อง เฝ้าเครื่องและอย่าให้ตัวอย่างไหม้", "Annex H.2: about 15–20 minutes initially. Power and time depend on the appliance; attend it and prevent burning.")]
-        : [tr("ตู้อบลมร้อน 60°C อย่างน้อย 18 ชั่วโมง", "Hot-air oven at 60°C for at least 18 hours"), tr("ตามภาคผนวก ซ.1 อบที่ 60°C อย่างน้อย 18 ชั่วโมง แล้วนำออกมาทำให้เย็นและชั่งน้ำหนัก", "Annex H.1: 60°C for at least 18 hours, then cool and weigh.")],
-      [tr("อบและชั่งซ้ำจนน้ำหนักคงที่", "Repeat drying and weighing to constant mass"), tr("ทำให้เย็นก่อนชั่ง แล้วอบซ้ำจนน้ำหนักคงที่ ตัวอย่างต้องไม่ไหม้", "Cool before weighing and repeat until mass is constant. Samples must not burn.")],
+        ? [tr("อบไมโครเวฟ", "Microwave"), tr("ใช้ไฟต่ำสุด อบครั้งละ 2–3 นาที ทำ 6–8 รอบ ชั่งน้ำหนักแห้ง + จาน ทุกรอบ จนสองรอบล่าสุดต่างกันไม่เกิน 0.02 กรัม", "Lowest power, 2–3 minutes per round, 6–8 rounds. Weigh dry + plate after every round until the last two differ by 0.02 g or less.")]
+        : [tr("อบตู้อบลมร้อน", "Hot-air oven"), tr("อบที่ 60°C ต่อเนื่อง 72 ชั่วโมง แล้วชั่งน้ำหนักแห้ง + จาน ครั้งเดียว", "Dry at 60°C for 72 hours without stopping, then weigh dry + plate once.")],
+      [tr("ใส่ตัวเลขในแอป", "Enter the numbers"), tr("ระบบหักน้ำหนักจานออกให้เอง แล้วคำนวณ น้ำหนักแห้ง (%) = เนื้อแห้ง ÷ เนื้อสด × 100", "The app subtracts the plate and calculates dry matter (%) = dry flesh ÷ fresh flesh × 100.")],
     ];
     $("protocol").innerHTML = steps.map(([t, b], i) => `<div class="hv-step"><b>${i + 1}</b><div><strong>${t}</strong><p>${b}</p></div></div>`).join("") +
-      `<div class="hv-note">${tr("ระยะเวลาเริ่มต้นไม่ใช่ข้อยืนยันว่าแห้ง ไมโครเวฟอาจทำให้ตัวอย่างไหม้หรือติดไฟได้ หากไหม้ให้ทิ้งและเตรียมใหม่", "Initial time does not establish dryness. Microwaved samples can scorch or ignite; discard burnt samples.")}</div><div class="hv-source">${tas} · ${micro ? "ซ.2 / H.2" : "ซ.1 / H.1"}</div>`;
+      (micro ? `<div class="hv-note">${tr("ระวังเนื้อไหม้หรือติดไฟ ถ้าไหม้ให้ทิ้งแล้วเตรียมใหม่", "Watch for burning. If it burns, throw it away and start again.")}</div>` : "") +
+      `<div class="hv-source">${tr("วิธีเดียวกับแอป Drymate · การเตรียมตัวอย่างอ้างอิง", "Same method as the Drymate app · sample preparation per")} ${tas}</div>`;
   }
+
 
   /* ---------- cultivars & harvest age (simple list + one editor) ---------- */
   const months = (d) => (Math.round((d / 30.44) * 2) / 2).toLocaleString(tr("th-TH", "en-GB"));
@@ -6906,7 +6925,7 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
     return !!d && (p.min !== d.min || p.max !== d.max || p.margin !== d.margin || p.dm !== d.dm);
   }
   function ageText(p) {
-    if (!hasAges(p)) return tr("ยังไม่ระบุอายุเก็บเกี่ยว", "Harvest age not set");
+    if (!hasAges(p)) return tr("ยังไม่ใส่อายุเก็บเกี่ยว", "No harvest age set");
     const span = p.min === p.max ? `${p.min}` : `${p.min}–${p.max}`;
     const mo = months(p.min) === months(p.max) ? months(p.min) : `${months(p.min)}–${months(p.max)}`;
     return tr(`ผลแก่ราว ${span} วันหลังดอกบาน (ประมาณ ${mo} เดือน)`, `Matures about ${span} days after bloom (~${mo} months)`);
@@ -6925,7 +6944,7 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
     $("cv-list").innerHTML = state.profiles.map((p) => {
       const used = state.records.filter((r) => r.variety === p.id).length;
       const badge = p.custom ? `<span class="hv-badge mine">✎ ${tr("เพิ่มเอง", "Mine")}</span>` : isAdjusted(p) ? `<span class="hv-badge adj">${tr("ปรับแล้ว", "Adjusted")}</span>` : `<span class="hv-badge std">${tr("ค่ามาตรฐาน", "Default")}</span>`;
-      return `<div class="hv-cv-item ${cvEdit === p.id ? "editing" : ""}" style="--c:${color(p)}"><div class="hv-cv-main"><div class="hv-cv-title"><b><i class="hv-swatch" style="background:${color(p)}"></i>${esc(name(p))}</b>${badge}</div><span class="hv-cv-age ${hasAges(p) ? "" : "missing"}">${ageText(p)}</span><span class="hv-cv-meta">${p.dm != null ? tr("DM ของรุ่น ≥ ", "Lot DM ≥ ") + p.dm + "%" : tr("ไม่มีเกณฑ์ DM", "No DM threshold")}${used ? " · " + tr(`ใช้อยู่ ${used} รุ่นดอก`, `${used} cohort(s)`) : ""}</span></div><button type="button" class="hv-btn secondary hv-small" data-hv-edit-cv="${p.id}">${hasAges(p) ? tr("แก้ไข", "Edit") : tr("ใส่อายุ", "Set age")}</button></div>`;
+      return `<div class="hv-cv-item ${cvEdit === p.id ? "editing" : ""}" style="--c:${color(p)}"><div class="hv-cv-main"><div class="hv-cv-title"><b><i class="hv-swatch" style="background:${color(p)}"></i>${esc(name(p))}</b>${badge}</div><span class="hv-cv-age ${hasAges(p) ? "" : "missing"}">${ageText(p)}</span><span class="hv-cv-meta">${p.dm != null ? tr("เกณฑ์น้ำหนักแห้ง ", "Dry matter target ") + p.dm + "%" : tr("ไม่มีเกณฑ์น้ำหนักแห้ง", "No dry matter target")}${used ? " · " + tr(`ใช้อยู่ ${used} รุ่นดอก`, `used by ${used} wave(s)`) : ""}</span></div><button type="button" class="hv-btn secondary hv-small" data-hv-edit-cv="${p.id}">${hasAges(p) ? tr("แก้ไข", "Edit") : tr("ใส่อายุ", "Set age")}</button></div>`;
     }).join("");
     bindDynamic($("cv-list"));
     placeEditor();
@@ -6936,7 +6955,7 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
     cvEdit = id;
     const f = { th: "", en: "", min: "", max: "", margin: 14, dm: "", source: "", dmSource: "", extTh: "", extEn: "", ...(p ? Object.fromEntries(Object.entries(p).map(([k, v]) => [k, v ?? ""])) : {}) };
     for (const [elId, key] of [["th", "th"], ["en", "en"], ["min", "min"], ["max", "max"], ["margin", "margin"], ["dm", "dm"], ["source", "source"], ["dmsource", "dmSource"], ["extth", "extTh"], ["exten", "extEn"]]) $("profile-" + elId).value = f[key];
-    $("cv-title").textContent = p ? tr("แก้ไขพันธุ์ ", "Edit ") + name(p) : tr("เพิ่มพันธุ์ใหม่", "Add a cultivar");
+    $("cv-title").textContent = p ? tr("แก้ไขพันธุ์ ", "Edit ") + name(p) : tr("เพิ่มพันธุ์ใหม่", "Add a variety");
     $("cv-agehint").textContent = !p || p.custom
       ? tr("ถ้ายังไม่ทราบ เว้นว่างได้ ระบบจะนับอายุผลให้ แต่ยังไม่บอกช่วงตรวจ ถ้าแก่ในวันเดียว ใส่เลขเดียวกันทั้งสองช่อง", "Leave blank if unknown: fruit age is still counted, but no window is shown. Use the same number twice for a single age.")
       : tr(`ค่ามาตรฐานจาก สวพส.: ${defaultOf(p).min}${defaultOf(p).max !== defaultOf(p).min ? "–" + defaultOf(p).max : ""} วัน`, `HRDI default: ${defaultOf(p).min}${defaultOf(p).max !== defaultOf(p).min ? "–" + defaultOf(p).max : ""} days`);
@@ -6982,7 +7001,7 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
     $("profile-extth").value = d.extTh;
     $("profile-exten").value = d.extEn;
     cvPreview();
-    notify(tr("ใส่ค่ามาตรฐานในฟอร์มแล้ว กด “บันทึก” เพื่อใช้ค่านี้", "Defaults filled in. Tap “Save” to apply."));
+    notify(tr("ใส่ค่ามาตรฐานให้แล้ว กด “บันทึก” เพื่อใช้", "Defaults filled in. Tap “Save” to use them."));
   }
   function profileSubmit(e) {
     e.preventDefault();
@@ -6990,30 +7009,30 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
     const err = (s) => ($("profile-error").textContent = s);
     const old = cvEdit && cvEdit !== "new" ? pf(cvEdit) : null;
     const th = val("th");
-    if (!th) return err(tr("กรอกชื่อพันธุ์", "Enter the cultivar name."));
+    if (!th) return err(tr("ใส่ชื่อพันธุ์", "Enter the variety name."));
     const dup = findCultivarByName(th);
-    if (dup && dup !== old) return err(tr("มีพันธุ์ชื่อนี้อยู่แล้ว", "A cultivar with this name already exists."));
+    if (dup && dup !== old) return err(tr("มีพันธุ์ชื่อนี้อยู่แล้ว", "A variety with this name already exists."));
     const ages = parseAges(val("min"), val("max"));
     if (!ages.ok) return err(tr("อายุต้องเป็นจำนวนเต็ม 1–1000 วัน และตัวหลังต้องไม่น้อยกว่าตัวแรก", "Ages must be whole days 1–1000, second ≥ first."));
     const isCustom = old ? !!old.custom : true;
-    if (!isCustom && ages.min == null) return err(tr("พันธุ์มาตรฐานต้องมีอายุเก็บเกี่ยว กด “คืนค่ามาตรฐาน” ได้ถ้าต้องการค่าเดิม", "Built-in cultivars need harvest ages."));
+    if (!isCustom && ages.min == null) return err(tr("พันธุ์มาตรฐานต้องมีอายุเก็บเกี่ยว กด “ใช้ค่ามาตรฐาน” ถ้าต้องการค่าเดิม", "Built-in cultivars need harvest ages."));
     const margin = val("margin") === "" ? 14 : Number(val("margin"));
     if (!Number.isInteger(margin) || margin < 0 || margin > 90) {
       $("cv-more").open = true;
-      return err(tr("ช่วงเผื่อต้องเป็นจำนวนเต็ม 0–90 วัน", "Buffer must be 0–90 whole days."));
+      return err(tr("วันที่เผื่อต้องเป็นเลขจำนวนเต็ม 0–90", "Extra days must be a whole number 0–90."));
     }
     const dm = val("dm") === "" ? null : Number(val("dm"));
     if (dm !== null && (!Number.isFinite(dm) || dm <= 0 || dm >= 100)) {
       $("cv-more").open = true;
-      return err(tr("เกณฑ์ DM ต้องอยู่ระหว่าง 0–100%", "DM threshold must be between 0 and 100%."));
+      return err(tr("เกณฑ์น้ำหนักแห้งต้องอยู่ระหว่าง 0–100%", "The target must be between 0 and 100%."));
     }
     if (dm !== null && !val("dmsource")) {
       $("cv-more").open = true;
-      return err(tr("ใส่ที่มาของเกณฑ์ DM ด้วย", "Add a source for the DM threshold."));
+      return err(tr("บอกด้วยว่าเกณฑ์นี้มาจากไหน", "Say where the target comes from."));
     }
     const p = {
       id: old?.id || "c" + uid().slice(0, 16), th, en: val("en") || th, min: ages.min, max: ages.max, margin, dm,
-      source: val("source") || (isCustom ? tr("ผู้ใช้กำหนด", "User-defined") : ""), dmSource: dm === null ? "" : val("dmsource"),
+      source: val("source") || (isCustom ? tr("ผู้ใช้ใส่เอง", "Entered by user") : ""), dmSource: dm === null ? "" : val("dmsource"),
       extTh: val("extth"), extEn: val("exten"),
       standard: !!old?.standard && dm === old.dm && val("dmsource") === old.dmSource, custom: isCustom,
     };
@@ -7033,14 +7052,14 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
       row.classList.add("saved");
       row.scrollIntoView({ behavior: "smooth", block: "center" });
     }
-    notify(tr(`บันทึก “${p.th}” แล้ว ช่วงตรวจของรุ่นดอกพันธุ์นี้คำนวณใหม่แล้ว`, `Saved “${p.th}”; cohort windows updated.`));
+    notify(tr(`บันทึก “${p.th}” แล้ว วันตรวจของรุ่นดอกพันธุ์นี้อัปเดตแล้ว`, `Saved “${p.th}”; cohort windows updated.`));
   }
   function deleteProfile() {
     const p = pf(cvEdit);
     if (!p?.custom) return;
     const used = state.records.filter((r) => r.variety === p.id).length;
     if (used) return ($("profile-error").textContent = tr(`ยังมี ${used} รุ่นดอกที่ใช้พันธุ์นี้ ลบหรือเปลี่ยนพันธุ์ของรุ่นดอกก่อน`, `${used} cohort(s) still use this cultivar. Delete or change them first.`));
-    if (!confirm(tr(`ลบพันธุ์ “${p.th}”? รายงาน DM เดิมยังอยู่`, `Delete “${p.th}”? Existing DM reports are kept.`))) return;
+    if (!confirm(tr(`ลบพันธุ์ “${p.th}” ไหม? ผลน้ำหนักแห้งที่บันทึกไว้จะยังอยู่`, `Delete “${p.th}”? Saved dry matter results are kept.`))) return;
     const before = state.profiles;
     state.profiles = state.profiles.filter((x) => x !== p);
     if (!save()) {
@@ -7049,14 +7068,22 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
     }
     cvEdit = "";
     rerender();
-    notify(tr("ลบพันธุ์แล้ว", "Cultivar deleted."));
+    notify(tr("ลบพันธุ์แล้ว", "Variety deleted."));
   }
 
-  /* ---------- DM inspection ---------- */
-  const DM_LOW = 12, DM_HIGH = 45;
+  /* ---------- dry matter: same method as the Drymate app ----------
+     Every weight is entered WITH the plate (no tare). The plate weight is
+     subtracted from both the fresh and the dry reading:
+       DM% = (dry+plate − plate) / (fresh+plate − plate) × 100
+     Oven: one dry reading. Microwave: one reading per round; the last
+     round is used, and the last two rounds must differ by ≤ 0.02 g to be
+     "stable". Per-fruit % is shown to 2 decimals; the average is taken
+     from the unrounded values and rounded once. */
+  const DM_LOW = 12, DM_HIGH = 45, STABLE_G = 0.02;
   function blankSample() {
-    return { id: uid(), label: "", fruit: "", fresh: "", tare: "", dry: "", demo: false };
+    return { id: uid(), label: "", fruit: "", tare: "", fresh: "", dry: "", rounds: ["", ""], demo: false };
   }
+  const method = () => ($("dm-method")?.value === "micro" ? "micro" : "oven");
   function setDMView(view) {
     dmView = view;
     $("dm-record-panel").hidden = view !== "record";
@@ -7065,21 +7092,54 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
     $("dm-history-tab").setAttribute("aria-pressed", String(view === "history"));
     if (view === "history") history();
   }
-  function sampleField(s, key, label, type = "number", placeholder = "", required = false) {
+  function sampleField(s, key, label, placeholder = "", required = false, type = "number") {
     return `<label class="hv-field" for="hv-fruit-${s.id}-${key}">${label}<input id="hv-fruit-${s.id}-${key}" data-hv-sample-key="${key}" value="${esc(s[key])}" type="${type}" ${type === "number" ? 'min="0" step="any" inputmode="decimal"' : 'maxlength="60"'} placeholder="${esc(placeholder)}" ${required ? "required" : ""}></label>`;
   }
+  const filledRounds = (s) => (s.rounds || []).filter((v) => v !== "" && Number.isFinite(+v)).map(Number);
+  function stability(s) {
+    const v = filledRounds(s);
+    if (v.length < 2) return { ok: false, diff: null, n: v.length };
+    const diff = Math.abs(v[v.length - 1] - v[v.length - 2]);
+    return { ok: diff <= STABLE_G + 1e-9, diff, n: v.length };
+  }
   function renderSampleRows() {
-    const mode = $("weight-mode").value;
-    $("sample-rows").innerHTML = draftSamples.map((s, i) => `<article class="hv-fruit" data-hv-fruit="${s.id}"><div class="hv-row"><strong><span class="hv-fruit-no">${i + 1}</span>${tr("ผลตัวอย่างที่", "Fruit")} ${i + 1} <span class="hv-tag" id="hv-fruit-tag-${s.id}" ${s.demo ? "" : "hidden"}>${tr("ข้อมูลตัวอย่าง", "Example")}</span></strong><button type="button" class="hv-btn text" data-hv-drop-fruit="${s.id}" ${draftSamples.length === 1 ? "disabled" : ""}>${tr("ลบผลนี้", "Remove")}</button></div><div class="hv-grid">${sampleField(s, "label", tr("รหัสผล (ไม่บังคับ)", "Fruit ID (optional)"), "text", i + 1)}${sampleField(s, "fruit", tr("น้ำหนักผลทั้งลูก (kg) · ไม่บังคับ", "Whole fruit (kg) · optional"))}${sampleField(s, "tare", tr("จานเปล่า (g)", "Empty container (g)"), "number", "", true)}${sampleField(s, "fresh", mode === "net" ? tr("เนื้อสดสุทธิ (g) · tare จานแล้ว", "Net fresh flesh (g) · tared") : tr("เนื้อสด + จาน (g)", "Fresh flesh + container (g)"), "number", "", true)}${sampleField(s, "dry", tr("เนื้อแห้ง + จาน (g)", "Dry flesh + container (g)"), "number", "", true)}</div><div class="hv-fruit-result" id="hv-fruit-result-${s.id}" aria-live="polite">—</div></article>`).join("");
-    $("sample-rows").querySelectorAll("[data-hv-fruit] input").forEach((el) => (el.oninput = () => {
-      captureSamples();
-      if (["fresh", "tare", "dry", "fruit"].includes(el.dataset.hvSampleKey)) {
-        const s = draftSamples.find((x) => x.id === el.closest("[data-hv-fruit]").dataset.hvFruit);
-        if (s && s.demo) {
-          s.demo = false;
-          $("fruit-tag-" + s.id).hidden = true;
-        }
+    const m = method();
+    $("sample-rows").innerHTML = draftSamples.map((s, i) => {
+      const dryPart = m === "oven"
+        ? sampleField(s, "dry", tr("น้ำหนักแห้ง + จาน (g)", "Dry weight + plate (g)"), "9.60", true)
+        : `<div class="hv-rounds"><span class="hv-rounds-label">${tr("น้ำหนักแห้ง + จาน หลังอบแต่ละรอบ (g)", "Dry weight + plate after each round (g)")}</span>${(s.rounds || []).map((r, k) => `<div class="hv-round-row"><span class="hv-round-no">${k + 1}</span><input id="hv-fruit-${s.id}-round-${k}" data-hv-round="${k}" type="number" min="0" step="any" inputmode="decimal" value="${esc(r)}" placeholder="9.60" aria-label="${tr("รอบที่", "Round")} ${k + 1}"><button type="button" class="hv-round-del" data-hv-round-del="${k}" aria-label="${tr("ลบรอบที่", "Remove round")} ${k + 1}" ${s.rounds.length <= 1 ? "disabled" : ""}>×</button></div>`).join("")}<button type="button" class="hv-add-round" data-hv-add-round>＋ ${tr("เพิ่มรอบอบ", "Add round")}</button><p class="hv-stable" id="hv-stable-${s.id}"></p></div>`;
+      return `<article class="hv-fruit" data-hv-fruit="${s.id}"><div class="hv-row"><strong><span class="hv-fruit-no">${i + 1}</span>${tr("ลูกที่", "Fruit")} ${i + 1} <span class="hv-tag" id="hv-fruit-tag-${s.id}" ${s.demo ? "" : "hidden"}>${tr("ตัวอย่าง", "Example")}</span></strong><button type="button" class="hv-btn text" data-hv-drop-fruit="${s.id}" ${draftSamples.length === 1 ? "disabled" : ""}>${tr("ลบลูกนี้", "Remove")}</button></div>
+<div class="hv-grid">${sampleField(s, "label", tr("รหัสลูก (ไม่บังคับ)", "Fruit ID (optional)"), String(i + 1), false, "text")}${sampleField(s, "fruit", tr("น้ำหนักทั้งลูก (kg) · ไม่บังคับ", "Whole fruit (kg) · optional"), "0.30")}${sampleField(s, "fresh", tr("น้ำหนักสด + จาน (g)", "Fresh weight + plate (g)"), "25.00", true)}${sampleField(s, "tare", tr("น้ำหนักจานเปล่า (g)", "Empty plate (g)"), "5.00")}</div>${dryPart}
+<div class="hv-fruit-result" id="hv-fruit-result-${s.id}" aria-live="polite">—</div></article>`;
+    }).join("");
+    const card = (el) => draftSamples.find((x) => x.id === el.closest("[data-hv-fruit]").dataset.hvFruit);
+    const touched = (s) => {
+      if (s && s.demo) {
+        s.demo = false;
+        $("fruit-tag-" + s.id).hidden = true;
       }
+    };
+    $("sample-rows").querySelectorAll("[data-hv-sample-key], [data-hv-round]").forEach((el) => (el.oninput = () => {
+      captureSamples();
+      if (el.dataset.hvSampleKey !== "label") touched(card(el));
+      updateDM();
+    }));
+    $("sample-rows").querySelectorAll("[data-hv-add-round]").forEach((b) => (b.onclick = () => {
+      captureSamples();
+      const s = card(b);
+      if (s.rounds.length >= 30) return;
+      s.rounds.push("");
+      renderSampleRows();
+      updateDM();
+      $(`fruit-${s.id}-round-${s.rounds.length - 1}`)?.focus();
+    }));
+    $("sample-rows").querySelectorAll("[data-hv-round-del]").forEach((b) => (b.onclick = () => {
+      captureSamples();
+      const s = card(b);
+      if (s.rounds.length <= 1) return;
+      s.rounds.splice(+b.dataset.hvRoundDel, 1);
+      touched(s);
+      renderSampleRows();
       updateDM();
     }));
     $("sample-rows").querySelectorAll("[data-hv-drop-fruit]").forEach((b) => (b.onclick = () => {
@@ -7090,22 +7150,45 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
     }));
   }
   function captureSamples() {
-    root.querySelectorAll("[data-hv-fruit]").forEach((card) => {
-      const s = draftSamples.find((x) => x.id === card.dataset.hvFruit);
-      if (s) card.querySelectorAll("[data-hv-sample-key]").forEach((el) => (s[el.dataset.hvSampleKey] = el.value));
+    root.querySelectorAll("[data-hv-fruit]").forEach((cardEl) => {
+      const s = draftSamples.find((x) => x.id === cardEl.dataset.hvFruit);
+      if (!s) return;
+      cardEl.querySelectorAll("[data-hv-sample-key]").forEach((el) => (s[el.dataset.hvSampleKey] = el.value));
+      cardEl.querySelectorAll("[data-hv-round]").forEach((el) => (s.rounds[+el.dataset.hvRound] = el.value));
     });
   }
-  function sampleValue(s, mode) {
-    if (["fresh", "tare", "dry"].some((k) => s[k] === "")) return null;
-    const c = Number(s.tare), f = Number(s.fresh), d = Number(s.dry);
-    return calc(c, mode === "net" ? c + f : f, d);
+  /** Gross dry reading in use: oven = single reading, microwave = last filled round. */
+  function dryReading(s, m = method()) {
+    if (m === "oven") return s.dry === "" ? null : Number(s.dry);
+    const v = filledRounds(s);
+    return v.length ? v[v.length - 1] : null;
   }
+  function sampleValue(s, m = method()) {
+    const d = dryReading(s, m);
+    if (s.fresh === "" || d === null) return null;
+    const plate = s.tare === "" ? 0 : Number(s.tare);
+    return calc(plate, Number(s.fresh), d);
+  }
+  const METHOD_NOTE = () => ({
+    oven: tr("อบที่ 60°C ต่อเนื่อง 72 ชั่วโมง แล้วชั่งครั้งเดียว", "Dry at 60°C for 72 hours without stopping, then weigh once."),
+    micro: tr("ใช้ไฟต่ำสุด อบครั้งละ 2–3 นาที ทำ 6–8 รอบ ชั่งทุกรอบจนน้ำหนักคงที่ (สองรอบล่าสุดต่างกันไม่เกิน 0.02 กรัม) ระวังเนื้อไหม้", "Lowest power, 2–3 minutes per round, 6–8 rounds. Weigh after every round until stable (last two rounds within 0.02 g). Don't let it burn."),
+  });
   function updateMethod() {
-    const m = $("dm-method").value;
+    const m = method();
     ["oven", "micro"].forEach((id) => $("method-" + id).classList.toggle("active", m === id));
-    $("dm-method-note").textContent = m === "oven"
-      ? tr("60°C อย่างน้อย 18 ชั่วโมง จากนั้นทำให้เย็น ชั่ง และอบซ้ำจนน้ำหนักคงที่", "60°C for at least 18 hours, then cool, weigh and repeat to constant mass.")
-      : tr("กำลังปานกลางหรือต่ำ เริ่มประมาณ 15–20 นาที ปรับตามเครื่อง และอบซ้ำจนน้ำหนักคงที่ ห้ามให้ตัวอย่างไหม้", "Medium or low power, about 15–20 minutes initially. Repeat to constant mass. Do not burn the samples.");
+    $("dm-method-note").textContent = METHOD_NOTE()[m];
+  }
+  function setMethod(m) {
+    captureSamples();
+    const prev = method();
+    if (m === prev) return;
+    draftSamples.forEach((s) => {
+      if (m === "micro" && s.dry !== "" && !filledRounds(s).length) s.rounds = [s.dry, ""];
+      if (m === "oven" && s.dry === "" && filledRounds(s).length) s.dry = String(filledRounds(s).slice(-1)[0]);
+    });
+    $("dm-method").value = m;
+    renderSampleRows();
+    updateDM();
   }
   function calcContext() {
     const value = $("sample-record").value || "", i = value.indexOf(":"), kind = value.slice(0, i), id = value.slice(i + 1);
@@ -7116,7 +7199,7 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
     if (id === "__new") {
       const n = ($("dm-new-name")?.value || "").trim();
       const existing = n ? findCultivarByName(n) : null;
-      return { r: null, p: existing || { id: "__new", th: n || tr("พันธุ์ใหม่", "New cultivar"), en: n || "New cultivar", dm: null, dmSource: "", isNew: true } };
+      return { r: null, p: existing || { id: "__new", th: n || tr("พันธุ์ใหม่", "New variety"), en: n || "New variety", dm: null, dmSource: "", isNew: true } };
     }
     return { r: null, p: pf(id) };
   }
@@ -7125,18 +7208,17 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
     if (!sel) return;
     const prev = sel.value;
     sel.innerHTML =
-      (rows().length ? `<optgroup label="${tr("รุ่นดอก", "Cohorts")}">${rows().map((r) => `<option value="r:${r.id}">${esc(name(pf(r.variety)))} · ${esc(r.plot)} · ${esc(r.cohort)}</option>`).join("")}</optgroup>` : "") +
-      `<optgroup label="${tr("ทดสอบเฉพาะพันธุ์ ไม่ผูกรุ่นดอก", "Cultivar only, no cohort")}">${state.profiles.map((p) => `<option value="p:${p.id}">${esc(name(p))}</option>`).join("")}<option value="p:__new">＋ ${tr("พันธุ์อื่น พิมพ์ชื่อเอง", "Other cultivar, type a name")}</option></optgroup>`;
+      (rows().length ? `<optgroup label="${tr("รุ่นดอกของฉัน", "My flowering waves")}">${rows().map((r) => `<option value="r:${r.id}">${esc(name(pf(r.variety)))} · ${esc(r.plot)} · ${esc(r.cohort)}</option>`).join("")}</optgroup>` : "") +
+      `<optgroup label="${tr("เลือกแค่พันธุ์ (ไม่ผูกรุ่นดอก)", "Variety only (no flowering wave)")}">${state.profiles.map((p) => `<option value="p:${p.id}">${esc(name(p))}</option>`).join("")}<option value="p:__new">＋ ${tr("พันธุ์อื่น พิมพ์ชื่อเอง", "Other variety, type a name")}</option></optgroup>`;
     if (prev) ensureSampleSelection(prev);
     updateContext(false);
   }
-  /** Keep the chosen cohort/cultivar; if it disappeared, fall back to the same cultivar instead of an arbitrary cohort. */
   function ensureSampleSelection(prev) {
     const sel = $("sample-record");
     if ([...sel.options].some((o) => o.value === prev)) return (sel.value = prev);
     const fallback = sampleMemoVariety && pf(sampleMemoVariety) ? "p:" + sampleMemoVariety : "p:" + state.profiles[0].id;
     sel.value = fallback;
-    if (prev.startsWith("r:")) notify(tr("รุ่นดอกที่เลือกไว้ไม่มีแล้ว เปลี่ยนเป็นทดสอบเฉพาะพันธุ์", "The selected cohort is no longer available; switched to cultivar only."));
+    if (prev.startsWith("r:")) notify(tr("รุ่นดอกที่เลือกไว้ไม่มีแล้ว เปลี่ยนเป็นเลือกแค่พันธุ์ให้", "That flowering wave is gone; switched to variety only."));
   }
   function updateContext(fillPlot = true) {
     if (!$("sample-record")) return;
@@ -7149,85 +7231,96 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
   }
   function updateDM() {
     if (!$("sample-rows")) return;
-    const mode = $("weight-mode").value, { p, r } = calcContext();
+    const m = method(), { p, r } = calcContext();
     if (p && !p.isNew) sampleMemoVariety = p.id;
     updateMethod();
-    $("weight-note").textContent = mode === "net"
-      ? tr("น้ำหนักสดเป็นเนื้อสุทธิหลัง tare จานแล้ว ไม่หักจานจากน้ำหนักสดอีก ส่วน “เนื้อแห้ง + จาน” ระบบหักจานให้", "Fresh flesh is already net after taring. The container is subtracted only from dry + container.")
-      : tr("น้ำหนักสดและแห้งรวมจานทั้งคู่ ระบบหักจานเปล่าออกจากทั้งสองค่าก่อนคำนวณ DM", "Both fresh and dry weights include the container; it is subtracted from both.");
-    const values = [];
-    let invalid = 0, small = 0, odd = 0;
-    draftSamples.forEach((s) => {
-      const v = sampleValue(s, mode), el = $("fruit-result-" + s.id);
+    const raw = [];
+    const bad = [], small = [], odd = [], unstable = [];
+    draftSamples.forEach((s, i) => {
+      const v = sampleValue(s, m), el = $("fruit-result-" + s.id);
+      if (m === "micro") {
+        const st = stability(s), tag = $("stable-" + s.id);
+        if (tag) {
+          tag.className = "hv-stable " + (st.n < 2 ? "" : st.ok ? "ok" : "warn");
+          tag.textContent = st.n < 2 ? tr("ใส่อย่างน้อย 2 รอบ เพื่อดูว่าน้ำหนักคงที่หรือยัง", "Enter at least 2 rounds to check stability") : st.ok ? "✓ " + tr("น้ำหนักคงที่แล้ว", "Weight is stable") : `⚠ ${tr("ยังไม่คงที่ ควรอบต่อ", "Not stable yet, keep drying")} (${tr("ต่างกัน", "diff")} ${st.diff.toFixed(2)} g)`;
+        }
+        if (v && !st.ok) unstable.push(i + 1);
+      }
       if (v) {
-        values.push(v);
-        if (v.netFresh < 20 - 1e-9) small++;
+        raw.push(v.dm);
+        if (v.netFresh < 20 - 1e-9) small.push(i + 1);
         const out = v.dm < DM_LOW || v.dm > DM_HIGH;
-        if (out) odd++;
+        if (out) odd.push(i + 1);
         if (el) {
-          el.textContent = `DM ${v.dm.toFixed(2)}% · ${tr("เนื้อสดสุทธิ", "Net fresh")} ${v.netFresh.toFixed(2)} g · ${tr("เนื้อแห้งสุทธิ", "Net dry")} ${v.netDry.toFixed(2)} g${out ? " · ⚠ " + tr("ค่าผิดปกติ ตรวจตัวเลขอีกครั้ง", "unusual value, recheck") : ""}`;
+          el.innerHTML = `<b>${tr("น้ำหนักแห้ง", "Dry matter")} ${pct2(v.dm)}%</b> · ${tr("เนื้อสด", "fresh")} ${v.netFresh.toFixed(2)} g · ${tr("เนื้อแห้ง", "dry")} ${v.netDry.toFixed(2)} g${out ? " · ⚠ " + tr("ค่าแปลกไป ตรวจตัวเลขอีกครั้ง", "unusual, please recheck") : ""}`;
           el.classList.toggle("warn", out || v.netFresh < 20 - 1e-9);
         }
       } else {
-        if (["fresh", "tare", "dry"].every((k) => s[k] !== "")) invalid++;
+        const d = dryReading(s, m);
+        if (s.fresh !== "" && d !== null) bad.push(i + 1);
         if (el) {
-          el.textContent = tr("กรอกน้ำหนักให้ครบ · เนื้อแห้งสุทธิต้องมากกว่า 0 และน้อยกว่าเนื้อสดสุทธิ", "Complete the weights. Net dry must be > 0 and < net fresh.");
-          el.classList.remove("warn");
+          el.textContent = s.fresh !== "" && d !== null ? tr("ตัวเลขไม่ถูก: น้ำหนักแห้งต้องน้อยกว่าน้ำหนักสด และทั้งคู่ต้องมากกว่าน้ำหนักจาน", "Check the numbers: dry must be less than fresh, and both more than the plate.") : tr("ใส่น้ำหนักให้ครบ แล้วผลจะขึ้นตรงนี้", "Fill in the weights to see the result here.");
+          el.classList.toggle("warn", s.fresh !== "" && d !== null);
         }
       }
     });
-    const mean = values.length ? values.reduce((a, v) => a + v.dm, 0) / values.length : null;
+    const mean = raw.length ? raw.reduce((a, b) => a + b, 0) / raw.length : null;
     const example = draftSamples.some((s) => s.demo);
-    $("dm-value").textContent = mean === null ? "— %" : mean.toFixed(2) + " %";
-    $("dm-interpret").textContent = example
-      ? tr("มีข้อมูลตัวอย่างอยู่ · แก้เป็นค่าที่ชั่งจริงทุกผลก่อนบันทึก", "Example data present · replace every example fruit before saving")
-      : values.length !== draftSamples.length ? tr("กรอกให้ครบทุกผลก่อนบันทึก", "Complete all fruit before saving")
-      : !$("constant").checked ? tr("รอยืนยันน้ำหนักคงที่", "Confirm constant mass")
-      : tr("ค่าเฉลี่ยเชิงพรรณนา · ไม่รับรองรุ่นผล", "Descriptive mean · not lot certification");
-    $("net").textContent = values.length ? tr(`คำนวณแล้ว ${values.length}/${draftSamples.length} ผล · ค่าเฉลี่ยเลขคณิตรายผล ไม่ถ่วงน้ำหนัก`, `Calculated ${values.length}/${draftSamples.length} fruit · unweighted mean of fruit DM`) : "";
-    $("dm-error").textContent = invalid
-      ? tr(`มี ${invalid} ผลที่น้ำหนักผิดลำดับ กรุณาตรวจสอบ`, `Invalid weight order in ${invalid} fruit.`)
-      : small ? tr(`มี ${small} ผลที่เนื้อสดน้อยกว่า 20 กรัม ไม่ครบวิธีเตรียมตัวอย่างตามภาคผนวก ซ`, `Fresh flesh is below 20 g for ${small} fruit (Annex H).`)
-      : odd ? tr(`มี ${odd} ผลที่ DM ต่ำกว่า ${DM_LOW}% หรือสูงกว่า ${DM_HIGH}% ซึ่งพบได้น้อย อาจพิมพ์ตัวเลขผิด`, `${odd} fruit have DM below ${DM_LOW}% or above ${DM_HIGH}%, which is unusual. Check for typos.`)
-      : "";
+    $("dm-value").textContent = mean === null ? "— %" : pct2(mean) + " %";
+    $("dm-interpret").textContent = example ? tr("ยังเป็นตัวเลขตัวอย่าง แก้เป็นค่าจริงก่อนบันทึก", "Example numbers: replace them before saving")
+      : raw.length !== draftSamples.length ? tr(`ใส่แล้ว ${raw.length} จาก ${draftSamples.length} ลูก`, `${raw.length} of ${draftSamples.length} fruit filled`)
+      : p?.dm != null ? tr(`เกณฑ์ของพันธุ์นี้ ${p.dm}%`, `Target for this variety: ${p.dm}%`) : tr("พันธุ์นี้ยังไม่มีเกณฑ์ แสดงเฉพาะตัวเลข", "No target for this variety, number only");
+    $("net").textContent = raw.length ? tr(`เฉลี่ยจาก ${raw.length} ลูก`, `Average of ${raw.length} fruit`) : "";
+    const msgs = [];
+    if (bad.length) msgs.push(tr(`ลูกที่ ${bad.join(", ")}: ตัวเลขไม่ถูก`, `Fruit ${bad.join(", ")}: numbers don't add up`));
+    if (small.length) msgs.push(tr(`ลูกที่ ${small.join(", ")}: เนื้อสดน้อยกว่า 20 กรัม ควรใช้เนื้ออย่างน้อย 20 กรัม`, `Fruit ${small.join(", ")}: under 20 g of fresh flesh; use at least 20 g`));
+    if (odd.length) msgs.push(tr(`ลูกที่ ${odd.join(", ")}: น้ำหนักแห้งต่ำกว่า ${DM_LOW}% หรือสูงกว่า ${DM_HIGH}% ซึ่งพบได้น้อย อาจพิมพ์ผิด`, `Fruit ${odd.join(", ")}: below ${DM_LOW}% or above ${DM_HIGH}% is rare; check for typos`));
+    if (unstable.length) msgs.push(tr(`ลูกที่ ${unstable.join(", ")}: น้ำหนักยังไม่คงที่`, `Fruit ${unstable.join(", ")}: weight not stable yet`));
+    $("dm-error").innerHTML = msgs.map(esc).join("<br>");
     $("dm-threshold").textContent = p?.dm != null
-      ? tr(`ค่าอ้างอิง DM ของรุ่น ${p.dm}% · ${p.dmSource} ตัวเลขรายผลและค่าเฉลี่ยในหน้านี้ไม่ใช้ตัดสินผ่านมาตรฐาน ต้องชักตัวอย่างและประเมินรุ่นอย่างเหมาะสม`, `Lot DM reference ${p.dm}% · ${p.dmSource}. Individual values and this mean do not establish compliance.`)
-      : tr("พันธุ์นี้ยังไม่มีเกณฑ์ DM จึงแสดงค่าโดยไม่ตัดสินผ่านหรือไม่ผ่าน", "No DM reference for this cultivar; values are shown without pass/fail.");
+      ? tr(`📖 เกณฑ์อ้างอิงของพันธุ์นี้ ${p.dm}% (${p.dmSource || "—"}) ใช้เทียบกับค่าเฉลี่ยของทั้งแปลง ไม่ใช่ตัดสินทีละลูก`, `📖 Reference for this variety: ${p.dm}% (${p.dmSource || "—"}). Compare with the block average, not single fruit.`)
+      : tr("พันธุ์นี้ยังไม่มีเกณฑ์อ้างอิง แสดงเฉพาะตัวเลข", "No reference value for this variety; number only.");
     const e = r ? estimate(r) : null;
     $("dm-cohort-note").textContent = r
-      ? tr(`เชื่อมรุ่นดอก ${r.cohort} · ดอกบาน ${date(r.bloom)}${e.start ? ` · ช่วงตรวจประมาณ ${date(e.start)} – ${date(e.end)}` : ""}`, `Linked cohort ${r.cohort} · bloom ${date(r.bloom)}${e.start ? ` · estimated window ${date(e.start)} – ${date(e.end)}` : ""}`)
-      : tr("ทดสอบเฉพาะพันธุ์ ยังไม่เชื่อมรุ่นดอก บันทึกวันดอกบานได้ในหน้า “รุ่นดอก”", "Cultivar-only inspection, not linked to a cohort. Record flowering under Cohorts.");
+      ? tr(`รุ่นดอก “${r.cohort}” ดอกบาน ${date(r.bloom)}${e.start ? ` · ควรตรวจช่วง ${date(e.start)} – ${date(e.end)}` : ""}`, `Wave “${r.cohort}”, flowered ${date(r.bloom)}${e.start ? ` · check window ${date(e.start)} – ${date(e.end)}` : ""}`)
+      : tr("เลือกแค่พันธุ์ ยังไม่ผูกกับรุ่นดอก (บันทึกวันดอกบานได้ที่เมนู “รุ่นดอก”)", "Variety only, not linked to a flowering wave (record flowering under “Flowering”).");
   }
   function sampleSubmit(ev) {
     ev.preventDefault();
     captureSamples();
-    const mode = $("weight-mode").value, vs = draftSamples.map((s) => sampleValue(s, mode));
+    const m = method(), vs = draftSamples.map((s) => sampleValue(s, m));
     let { r, p } = calcContext();
     const testDate = $("sample-date").value, farm = $("sample-farm").value.trim();
-    if (draftSamples.some((s) => s.demo)) return notify(tr("ยังมีผลที่เป็นข้อมูลตัวอย่าง แก้เป็นค่าที่ชั่งจริงหรือลบผลนั้นก่อนบันทึก", "Some fruit still hold example data. Replace or remove them before saving."));
-    if (vs.some((v) => !v) || vs.some((v) => v.netFresh < 20 - 1e-9)) return notify(tr("ตรวจน้ำหนักทุกผล และเนื้อสดอย่างน้อย 20 กรัมต่อผล", "Check all weights and use at least 20 g fresh flesh per fruit."));
-    if (!$("constant").checked) {
-      $("constant").focus();
-      return notify(tr("ติ๊กยืนยันว่าอบและชั่งซ้ำจนน้ำหนักคงที่แล้ว", "Tick to confirm samples were dried to constant mass."));
+    if (draftSamples.some((s) => s.demo)) return notify(tr("ยังมีตัวเลขตัวอย่างอยู่ แก้เป็นค่าที่ชั่งจริง หรือลบลูกนั้นก่อน", "Example numbers are still there. Replace them or remove that fruit first."));
+    if (vs.some((v) => !v)) return notify(tr("ใส่น้ำหนักให้ครบและถูกต้องทุกลูกก่อนบันทึก", "Fill in correct weights for every fruit before saving."));
+    if (demo && r) return notify(tr("กลับไปข้อมูลของฉันก่อน แล้วค่อยบันทึกผลจริง", "Go back to your data before saving real results."));
+    if (!farm) {
+      $("sample-farm").focus();
+      return notify(tr("ใส่ชื่อสวนก่อน", "Enter the orchard name."));
     }
-    if (demo && r) return notify(tr("ออกจากโหมดสาธิตก่อนบันทึกผลจริง", "Exit demo mode before saving."));
-    if (!farm || !testDate || testDate > today() || (r && testDate < r.bloom)) return notify(tr("ระบุชื่อสวนและวันที่ทดสอบให้ถูกต้อง วันที่ตรวจต้องไม่เกินวันนี้และไม่ก่อนดอกบาน", "Enter orchard and a valid date: not after today or before bloom."));
-    if (draftSamples.some((s) => s.fruit !== "" && (!Number.isFinite(+s.fruit) || +s.fruit <= 0))) return notify(tr("น้ำหนักผลทั้งลูกต้องมากกว่า 0 หรือเว้นว่าง", "Whole fruit weight must be positive or blank."));
+    if (!testDate || testDate > today() || (r && testDate < r.bloom)) return notify(tr("วันที่ตรวจไม่ถูก ต้องไม่เกินวันนี้ และไม่ก่อนวันดอกบาน", "Check the test date: not after today and not before flowering."));
+    if (draftSamples.some((s) => s.fruit !== "" && (!Number.isFinite(+s.fruit) || +s.fruit <= 0))) return notify(tr("น้ำหนักทั้งลูกต้องมากกว่า 0 หรือเว้นว่าง", "Whole fruit weight must be above 0 or left blank."));
     const labels = draftSamples.map((s, i) => s.label.trim() || String(i + 1));
-    if (new Set(labels).size !== labels.length) return notify(tr("รหัสผลในรอบเดียวกันต้องไม่ซ้ำ", "Fruit IDs must be unique within the inspection."));
+    if (new Set(labels).size !== labels.length) return notify(tr("รหัสลูกซ้ำกัน กรุณาแก้", "Two fruit have the same ID."));
+    const warn = [];
+    const unstable = m === "micro" ? draftSamples.filter((s) => !stability(s).ok).length : 0;
+    if (unstable) warn.push(tr(`${unstable} ลูกน้ำหนักยังไม่คงที่`, `${unstable} fruit not yet stable`));
+    const small = vs.filter((v) => v.netFresh < 20 - 1e-9).length;
+    if (small) warn.push(tr(`${small} ลูกใช้เนื้อสดน้อยกว่า 20 กรัม`, `${small} fruit under 20 g fresh flesh`));
+    const odd = vs.filter((v) => v.dm < DM_LOW || v.dm > DM_HIGH).length;
+    if (odd) warn.push(tr(`${odd} ลูกได้ค่าแปลกไป (ต่ำกว่า ${DM_LOW}% หรือสูงกว่า ${DM_HIGH}%)`, `${odd} fruit with unusual values (<${DM_LOW}% or >${DM_HIGH}%)`));
     let resolved = null;
     if (p?.isNew) {
       const n = $("dm-new-name").value.trim();
       if (!n) {
         $("dm-new-name").focus();
-        return notify(tr("พิมพ์ชื่อพันธุ์ที่ทดสอบ", "Type the cultivar name."));
+        return notify(tr("พิมพ์ชื่อพันธุ์ก่อน", "Type the variety name."));
       }
       resolved = resolveCultivar(n.slice(0, 70));
       p = resolved.p;
     }
-    if (!p) return notify(tr("เลือกพันธุ์ก่อนบันทึก", "Choose a cultivar first."));
-    const odd = vs.filter((v) => v.dm < DM_LOW || v.dm > DM_HIGH).length;
-    if (odd && !confirm(tr(`มี ${odd} ผลที่ DM ต่ำกว่า ${DM_LOW}% หรือสูงกว่า ${DM_HIGH}% ซึ่งพบได้น้อย ตรวจตัวเลขแล้วและยืนยันบันทึก?`, `${odd} fruit have unusual DM (<${DM_LOW}% or >${DM_HIGH}%). Numbers checked, save anyway?`))) {
+    if (!p) return notify(tr("เลือกพันธุ์ก่อน", "Choose a variety first."));
+    if (warn.length && !confirm(tr("ตรวจพบ: ", "Please note: ") + warn.join(" · ") + tr("\n\nบันทึกเลยไหม?", "\n\nSave anyway?"))) {
       resolved?.undo();
       return;
     }
@@ -7237,9 +7330,14 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
       reportId, reportNo: no, recordId: r?.id || null, varietyTh: p.th, varietyEn: p.en || p.th, standardReference: !!p.standard,
       farm, plot: $("sample-plot").value.trim(), cohort: r?.cohort || "", bloom: r?.bloom || null, age: r ? day(testDate) - day(r.bloom) : null,
       harvestStart: d?.start || null, harvestEnd: d?.end || null, inspector: $("sample-inspector").value.trim(), notes: $("sample-notes").value.trim(),
-      date: testDate, method: $("dm-method").value, threshold: p.dm ?? null, thresholdSource: p.dmSource || "", freshMode: mode,
+      date: testDate, method: m, threshold: p.dm ?? null, thresholdSource: p.dmSource || "", freshMode: "gross",
     };
-    const added = draftSamples.map((s, i) => ({ ...common, id: uid(), name: labels[i], fruitKg: s.fruit === "" ? null : +s.fruit, tare: +s.tare, fresh: mode === "net" ? +s.tare + +s.fresh : +s.fresh, dry: +s.dry, ...vs[i] }));
+    const added = draftSamples.map((s, i) => ({
+      ...common, id: uid(), name: labels[i], fruitKg: s.fruit === "" ? null : +s.fruit,
+      tare: s.tare === "" ? 0 : +s.tare, fresh: +s.fresh, dry: dryReading(s, m),
+      rounds: m === "micro" ? filledRounds(s).map((v) => Math.round(v * 100) / 100) : null,
+      ...vs[i],
+    }));
     const checkBefore = r ? clone(r.checks || []) : null;
     state.samples.unshift(...added);
     if (r && !demo) {
@@ -7260,11 +7358,10 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
       updateContext(false);
     } else refresh();
     renderSampleRows();
-    $("constant").checked = false;
     $("sample-notes").value = "";
     updateDM();
     setDMView("history");
-    notify(tr(`บันทึกรอบตรวจ ${no} แล้ว เปิดดูรายงานเพื่อพิมพ์ได้`, `Inspection ${no} saved. Open its report to print.`));
+    notify(tr(`บันทึกแล้ว เลขที่ ${no} กดดูรายงานเพื่อพิมพ์ได้`, `Saved as ${no}. Open the report to print.`));
   }
 
   function history() {
@@ -7274,13 +7371,14 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
     $("history").innerHTML = groups.length
       ? groups.map((g) => {
           const s = g.first;
-          return `<article class="hv-round"><div class="hv-row"><div><h3>${esc(s.farm || tr("ไม่ระบุชื่อสวน", "Orchard not specified"))}</h3><span class="hv-muted-inline">${esc(tr(s.varietyTh, s.varietyEn))} · ${esc(s.plot || "—")}<br>${date(s.date)} · ${s.method === "oven" ? tr("ตู้อบลมร้อน", "Hot-air oven") : tr("ไมโครเวฟ", "Microwave")} · ${esc(reportNo(g))}</span></div><span class="hv-pill">${g.stats.count} ${tr("ผล", "fruit")}</span></div><div class="hv-round-stats"><span>${tr("เฉลี่ย", "Mean")} <b>${g.stats.mean.toFixed(2)}%</b></span><span>${tr("ช่วง", "Range")} ${g.stats.min.toFixed(2)}–${g.stats.max.toFixed(2)}%</span></div><button type="button" class="hv-btn secondary hv-full" data-hv-report="${g.id}">▤ ${tr("ดูรายงาน / พิมพ์ / บันทึก PDF", "View report / print / save PDF")}</button></article>`;
+          const ref = s.threshold != null ? `<span class="hv-chip">📖 ${tr("เกณฑ์", "target")} ${s.threshold}%</span>` : "";
+          return `<article class="hv-round"><div class="hv-row"><div><h3>${esc(s.farm || tr("ไม่ได้ใส่ชื่อสวน", "No orchard name"))}</h3><span class="hv-muted-inline">${esc(tr(s.varietyTh, s.varietyEn))}${s.plot ? " · " + esc(s.plot) : ""} · ${date(s.date)}<br>${s.method === "oven" ? tr("ตู้อบลมร้อน", "Hot-air oven") : tr("ไมโครเวฟ", "Microwave")} · ${esc(reportNo(g))}</span></div><div class="hv-round-big">${pct2(g.stats.mean)}%</div></div><div class="hv-round-stats"><span>${g.stats.count} ${tr("ลูก", "fruit")}</span><span>${tr("ต่ำสุด", "min")} ${pct2(g.stats.min)}% · ${tr("สูงสุด", "max")} ${pct2(g.stats.max)}%</span>${ref}</div><button type="button" class="hv-btn secondary hv-full" data-hv-report="${g.id}">📄 ${tr("ดูรายงาน / พิมพ์ / PDF", "Report / print / PDF")}</button></article>`;
         }).join("")
-      : `<div class="hv-empty">${state.samples.length ? tr("ไม่มีรอบตรวจที่ตรงกับคำค้น", "No matching inspections.") : tr("ยังไม่มีรอบตรวจ", "No inspections yet.")}</div>`;
+      : `<div class="hv-empty">${state.samples.length ? tr("ไม่พบที่ค้นหา", "Nothing matches your search.") : tr("ยังไม่มีผลที่บันทึกไว้<br>บันทึกผลแรกได้ที่ “บันทึกผล”", "No results yet.<br>Save your first one under “Record”.")}</div>`;
     $("history").querySelectorAll("[data-hv-report]").forEach((b) => (b.onclick = () => openReport(b.dataset.hvReport)));
   }
 
-  /* ---------- printable report ---------- */
+  /* ---------- printable report (columns follow Drymate) ---------- */
   const inApp = /\bLine\/|FBAN|FBAV|Instagram|MicroMessenger|; wv\)/i.test(navigator.userAgent);
   function openReport(id) {
     const g = reportGroups().find((x) => x.id === id);
@@ -7295,22 +7393,21 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
       panel.setAttribute("aria-modal", "true");
       document.body.appendChild(panel);
     }
-    panel.setAttribute("aria-label", tr("ตัวอย่างรายงานก่อนพิมพ์", "Print report preview"));
+    panel.setAttribute("aria-label", tr("รายงานก่อนพิมพ์", "Report preview"));
     const meth = s.method === "oven" ? tr("ตู้อบลมร้อน", "Hot-air oven") : tr("ไมโครเวฟ", "Microwave");
     const m = (label, v) => `<div><b>${label}:</b> ${v}</div>`;
-    panel.innerHTML = `<div class="hv-report-tools"><button id="hv-print-now" type="button">▣ ${tr("พิมพ์ / บันทึกเป็น PDF", "Print / save as PDF")}</button><button id="hv-close-report" type="button">× ${tr("ปิด", "Close")}</button></div>${inApp ? `<div class="hv-report-warn">${tr("ถ้ากดพิมพ์แล้วไม่มีอะไรเกิดขึ้น ให้เปิดหน้านี้ใน Chrome หรือ Safari (เมนู ⋮ หรือ ⋯ → เปิดในเบราว์เซอร์) แล้วพิมพ์อีกครั้ง", "If printing does nothing, open this page in Chrome or Safari (menu ⋮ or ⋯ → Open in browser) and print again.")}</div>` : ""}
-<article class="hv-paper"><div class="hv-report-top"><h1>AvoMate</h1><h2>${tr("รายงานผลทดสอบน้ำหนักเนื้อแห้งอะโวคาโด", "Avocado flesh dry matter test report")}</h2><div class="hv-report-ref">${tr("เลขที่รายงาน", "Report no.")}: <b>${esc(reportNo(g))}</b></div></div>
-<div class="hv-report-meta">${m(tr("สวน / เจ้าของ", "Orchard / owner"), esc(s.farm || "—"))}${m(tr("แปลง / รหัสต้น", "Block / tree ID"), esc(s.plot || "—"))}${m(tr("พันธุ์", "Cultivar"), esc(tr(s.varietyTh, s.varietyEn)))}${m(tr("วันที่ทดสอบ", "Test date"), date(s.date))}${m(tr("วิธีทำให้แห้ง", "Drying method"), meth)}${m(tr("จำนวนผลตัวอย่าง", "Fruit sampled"), g.stats.count)}${m(tr("รุ่นดอก", "Bloom cohort"), esc(s.cohort || "—"))}${m(tr("วันดอกบาน 50%", "50% bloom date"), s.bloom ? date(s.bloom) : "—")}${m(tr("อายุหลังดอกบานในวันตรวจ", "Age after bloom at testing"), s.age == null ? "—" : s.age + " " + tr("วัน", "days"))}${m(tr("ผู้ตรวจ / ผู้บันทึก", "Inspector / recorder"), esc(s.inspector || "—"))}</div>
-${s.harvestStart && s.harvestEnd ? `<p><b>${tr("ช่วงเก็บเกี่ยวโดยประมาณ", "Estimated harvest window")}:</b> ${date(s.harvestStart)} – ${date(s.harvestEnd)} <small>(${tr("ค่าที่บันทึก ณ วันตรวจ", "snapshot at inspection")})</small></p>` : ""}
-<p class="hv-report-ref">${tr("น้ำหนักเนื้อสดในตารางเป็นน้ำหนักสุทธิ ไม่รวมจาน น้ำหนักเนื้อแห้งสุทธิ = (เนื้อแห้ง + จาน) − จาน", "Fresh flesh weights are net, excluding the container. Net dry flesh = (dry flesh + container) − container.")}</p>
-<table><thead><tr><th>${tr("รหัสผล", "Fruit ID")}</th><th>${tr("ผลทั้งลูก", "Whole fruit")}<br>kg</th><th>${tr("เนื้อสดสุทธิ", "Net fresh")}<br>g</th><th>${tr("จานเปล่า", "Container")}<br>g</th><th>${tr("แห้ง + จาน", "Dry + container")}<br>g</th><th>${tr("เนื้อแห้งสุทธิ", "Net dry")}<br>g</th><th>DM<br>%</th></tr></thead><tbody>${g.samples.map((x) => `<tr><td>${esc(x.name)}</td><td>${x.fruitKg == null ? "—" : Number(x.fruitKg).toFixed(3)}</td><td>${x.netFresh.toFixed(2)}</td><td>${Number(x.tare).toFixed(2)}</td><td>${Number(x.dry).toFixed(2)}</td><td>${x.netDry.toFixed(2)}</td><td><b>${x.dm.toFixed(2)}</b></td></tr>`).join("")}</tbody></table>
-<div class="hv-report-summary"><div>${tr("ค่าเฉลี่ย DM", "Mean DM")}<b>${g.stats.mean.toFixed(2)}%</b></div><div>${tr("ต่ำสุด", "Minimum")}<b>${g.stats.min.toFixed(2)}%</b></div><div>${tr("สูงสุด", "Maximum")}<b>${g.stats.max.toFixed(2)}%</b></div></div>
-<p class="hv-report-ref">${tr("ค่าเฉลี่ยเป็นค่าเฉลี่ยเลขคณิตของ DM รายผล ไม่ถ่วงน้ำหนัก ไม่ใช่ DM ของตัวอย่างผสม", "The mean is the unweighted arithmetic mean of individual fruit DM, not a pooled-sample value.")}</p>
-<p><b>${tr("ค่าอ้างอิง DM ของรุ่นผล", "Lot DM reference")}:</b> ${s.threshold == null ? tr("ยังไม่กำหนดสำหรับพันธุ์นี้", "Not set for this cultivar") : s.threshold + "%"}<br><span class="hv-report-ref">${esc(s.thresholdSource || "—")}</span></p>
-<div class="hv-report-note">${tr("ข้อกำหนด DM ตาม มกษ. 31-2567 ตาราง จ.2 ใช้สำหรับรุ่นผล ไม่ใช้ตัดสินผลแต่ละผล ตัวเลขรายผลและค่าเฉลี่ยในรายงานนี้ไม่ใช่ผลรับรองผ่านมาตรฐาน ต้องมีการชักตัวอย่างและประเมินรุ่นอย่างเหมาะสม รายงานนี้เป็นบันทึกเพื่อช่วยตัดสินใจ ไม่ใช่เอกสารรับรองจากหน่วยงานรัฐ", "TAS 31-2024 Table E.2 DM requirements apply to lots, not individual fruit. The values in this report do not certify compliance; appropriate lot sampling and assessment are required. This is a decision-support record, not an official certificate.")}</div>
+    const plateOf = (x) => Number(x.tare) || 0;
+    panel.innerHTML = `<div class="hv-report-tools"><button id="hv-print-now" type="button">🖨 ${tr("พิมพ์ / บันทึกเป็น PDF", "Print / save as PDF")}</button><button id="hv-close-report" type="button">× ${tr("ปิด", "Close")}</button></div>${inApp ? `<div class="hv-report-warn">${tr("ถ้ากดพิมพ์แล้วไม่มีอะไรขึ้น ให้เปิดหน้านี้ใน Chrome หรือ Safari (กดเมนู ⋮ หรือ ⋯ แล้วเลือก “เปิดในเบราว์เซอร์”) แล้วกดพิมพ์อีกครั้ง", "If nothing happens when you print, open this page in Chrome or Safari (menu ⋮ or ⋯ → Open in browser) and try again.")}</div>` : ""}
+<article class="hv-paper"><div class="hv-report-top"><h1>AvoMate</h1><h2>${tr("รายงานผลตรวจน้ำหนักเนื้อแห้งอะโวคาโด", "Avocado dry matter test report")}</h2><div class="hv-report-ref">${tr("เลขที่", "No.")} <b>${esc(reportNo(g))}</b></div></div>
+<div class="hv-report-meta">${m(tr("สวน / เจ้าของ", "Orchard / owner"), esc(s.farm || "—"))}${m(tr("แปลง", "Block"), esc(s.plot || "—"))}${m(tr("พันธุ์", "Variety"), esc(tr(s.varietyTh, s.varietyEn)))}${m(tr("วันที่ตรวจ", "Test date"), date(s.date))}${m(tr("วิธีอบ", "Drying method"), meth)}${m(tr("จำนวน", "Fruit tested"), g.stats.count + " " + tr("ลูก", "fruit"))}${s.cohort ? m(tr("รุ่นดอก", "Flowering wave"), esc(s.cohort)) : ""}${s.bloom ? m(tr("วันดอกบาน", "Flowering date"), date(s.bloom)) : ""}${s.age != null ? m(tr("อายุผลวันที่ตรวจ", "Fruit age at test"), s.age + " " + tr("วัน", "days")) : ""}${m(tr("ผู้ตรวจ", "Tested by"), esc(s.inspector || "—"))}</div>
+<table><thead><tr><th>${tr("ลูกที่", "Fruit")}</th><th>${tr("น้ำหนักผล", "Fruit wt")}<br>(kg)</th><th>${tr("น้ำหนักสด", "Fresh")}<br>(g)</th><th>${tr("น้ำหนักจาน", "Plate")}<br>(g)</th><th>${tr("น้ำหนักแห้งสุทธิ", "Net dry")}<br>(g)</th><th>% ${tr("น้ำหนักแห้ง", "dry matter")}</th></tr></thead><tbody>${g.samples.map((x) => `<tr><td>${esc(x.name)}</td><td>${x.fruitKg == null ? "—" : Number(x.fruitKg).toFixed(2)}</td><td>${x.netFresh.toFixed(2)}</td><td>${plateOf(x).toFixed(2)}</td><td>${x.netDry.toFixed(2)}</td><td><b>${pct2(x.dm)}</b></td></tr>`).join("")}<tr class="hv-avg-row"><td colspan="5">${tr("ค่าเฉลี่ย", "Average")}</td><td><b>${pct2(g.stats.mean)}</b></td></tr></tbody></table>
+${s.method === "micro" ? `<p class="hv-report-ref">${tr("ไมโครเวฟ: ใช้น้ำหนักจากรอบอบสุดท้าย", "Microwave: weight from the last drying round")}</p>` : ""}
+<div class="hv-report-summary"><div>${tr("ค่าเฉลี่ย", "Average")}<b>${pct2(g.stats.mean)}%</b></div><div>${tr("ต่ำสุด", "Lowest")}<b>${pct2(g.stats.min)}%</b></div><div>${tr("สูงสุด", "Highest")}<b>${pct2(g.stats.max)}%</b></div></div>
+<p><b>📖 ${tr("เกณฑ์อ้างอิง", "Reference")}:</b> ${s.threshold == null ? tr("ไม่มีเกณฑ์อ้างอิง แสดงเฉพาะตัวเลข", "No reference value, number only") : s.threshold + "% " + `<span class="hv-report-ref">(${esc(s.thresholdSource || "—")})</span>`}</p>
+<div class="hv-report-note">${tr("ผลนี้ใช้ช่วยตัดสินใจเบื้องต้น ไม่ใช่ผลตรวจรับรองจากหน่วยงานรัฐ เกณฑ์ตาม มกษ. ใช้เทียบกับทั้งแปลง ไม่ใช่ตัดสินทีละลูก", "Decision support only, not an official certified result. Standard targets apply to the whole block, not single fruit.")}</div>
 ${s.notes ? `<p><b>${tr("หมายเหตุ", "Notes")}:</b> ${esc(s.notes)}</p>` : ""}
-<div class="hv-signatures"><div><div class="hv-line">${esc(s.inspector || "")}</div>${tr("ผู้ตรวจ / ผู้บันทึกผล", "Inspector / recorder")}<br>${tr("วันที่", "Date")} __________________</div><div><div class="hv-line"></div>${tr("ผู้รับทราบ / เจ้าของสวน", "Acknowledged by / orchard owner")}<br>${tr("วันที่", "Date")} __________________</div></div>
-<div class="hv-report-footer">${tr("จัดทำจากบันทึกใน AvoMate · พิมพ์เมื่อ", "Generated from AvoMate records · printed on")} ${new Intl.DateTimeFormat(tr("th-TH", "en-GB"), { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Bangkok" }).format(new Date())}<br>${tr("อ้างอิงวิธี: มกษ. 31-2567 ภาคผนวก ซ; ตัวอย่างเนื้ออย่างน้อย 20 g/ผล หนาประมาณ 2 mm อบซ้ำจนน้ำหนักคงที่", "Method reference: TAS 31-2024 Annex H; at least 20 g flesh/fruit, about 2 mm slices, dried repeatedly to constant mass.")}<br>https://panawatsik-sik.github.io/Avocado-Irrigation/</div></article>`;
+<div class="hv-signatures"><div><div class="hv-line">${esc(s.inspector || "")}</div>${tr("ผู้ตรวจ", "Tested by")}<br>${tr("วันที่", "Date")} __________________</div><div><div class="hv-line"></div>${tr("เจ้าของสวน", "Orchard owner")}<br>${tr("วันที่", "Date")} __________________</div></div>
+<div class="hv-report-footer">${tr("พิมพ์จาก AvoMate เมื่อ", "Printed from AvoMate on")} ${new Intl.DateTimeFormat(tr("th-TH", "en-GB"), { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Bangkok" }).format(new Date())} · ${tr("คำนวณแบบเดียวกับแอป Drymate", "Same calculation as the Drymate app")}<br>https://panawatsik-sik.github.io/Avocado-Irrigation/</div></article>`;
     panel.hidden = false;
     document.body.classList.add("hv-printing", "hv-report-open");
     [...document.body.children].forEach((el) => {
@@ -7320,7 +7417,7 @@ ${s.notes ? `<p><b>${tr("หมายเหตุ", "Notes")}:</b> ${esc(s.notes
       }
     });
     document.getElementById("hv-print-now").onclick = () => {
-      try { window.print(); } catch (e) { notify(tr("เบราว์เซอร์นี้สั่งพิมพ์ไม่ได้ ลองเปิดใน Chrome หรือ Safari", "This browser cannot print. Try Chrome or Safari.")); }
+      try { window.print(); } catch (e) { notify(tr("เบราว์เซอร์นี้พิมพ์ไม่ได้ ลองเปิดใน Chrome หรือ Safari", "This browser can't print. Try Chrome or Safari.")); }
     };
     document.getElementById("hv-close-report").onclick = closeReport;
     document.getElementById("hv-close-report").focus();
@@ -7372,25 +7469,26 @@ ${s.notes ? `<p><b>${tr("หมายเหตุ", "Notes")}:</b> ${esc(s.notes
     setTimeout(() => URL.revokeObjectURL(url), 1500);
   }
   function csv() {
-    if (!state.samples.length) return notify(tr("ยังไม่มีผลทดสอบให้ส่งออก", "No test results to export."));
-    const r2 = (v) => (typeof v === "number" ? Number(v.toFixed(2)) : v), r4 = (v) => (typeof v === "number" ? Number(v.toFixed(4)) : v);
+    if (!state.samples.length) return notify(tr("ยังไม่มีผลให้ดาวน์โหลด", "No results to download yet."));
+    const r2 = (v) => (typeof v === "number" ? Math.round(v * 100) / 100 : v);
     const cols = [
-      ["report_no", (s) => s.reportNo], ["test_date", (s) => s.date], ["orchard", (s) => s.farm], ["block", (s) => s.plot], ["cultivar_th", (s) => s.varietyTh], ["cultivar_en", (s) => s.varietyEn],
-      ["cohort", (s) => s.cohort], ["bloom_50pct", (s) => s.bloom], ["age_days", (s) => s.age], ["drying_method", (s) => s.method], ["fruit_id", (s) => s.name], ["whole_fruit_kg", (s) => s.fruitKg],
-      ["container_g", (s) => r4(s.tare)], ["fresh_plus_container_g", (s) => r4(s.fresh)], ["dry_plus_container_g", (s) => r4(s.dry)], ["net_fresh_g", (s) => r2(s.netFresh)], ["net_dry_g", (s) => r2(s.netDry)], ["dm_percent", (s) => r2(s.dm)],
-      ["lot_dm_reference_percent", (s) => s.threshold], ["reference_source", (s) => s.thresholdSource], ["fresh_entry_mode", (s) => s.freshMode], ["inspector", (s) => s.inspector], ["notes", (s) => s.notes], ["report_uid", (s) => s.reportId],
+      ["report_no", (s) => s.reportNo], ["test_date", (s) => s.date], ["orchard", (s) => s.farm], ["block", (s) => s.plot], ["variety_th", (s) => s.varietyTh], ["variety_en", (s) => s.varietyEn],
+      ["flowering_wave", (s) => s.cohort], ["flowering_date", (s) => s.bloom], ["age_days", (s) => s.age], ["drying_method", (s) => s.method], ["fruit_id", (s) => s.name], ["whole_fruit_kg", (s) => s.fruitKg],
+      ["fresh_g", (s) => r2(s.netFresh)], ["plate_g", (s) => r2(s.tare)], ["net_dry_g", (s) => r2(s.netDry)], ["dry_matter_pct", (s) => r2(s.dm)],
+      ["fresh_plus_plate_g", (s) => r2(s.fresh)], ["dry_plus_plate_g", (s) => r2(s.dry)], ["microwave_rounds_g", (s) => (s.rounds || []).join(" | ")],
+      ["reference_pct", (s) => s.threshold], ["reference_source", (s) => s.thresholdSource], ["tested_by", (s) => s.inspector], ["notes", (s) => s.notes], ["report_uid", (s) => s.reportId],
     ];
     const cell = (v) => '"' + String(v ?? "").replace(/^[=+\-@\t\r]/, "'$&").replace(/"/g, '""') + '"';
-    download("﻿" + [cols.map((c) => c[0]), ...state.samples.map((s) => cols.map((c) => c[1](s)))].map((a) => a.map(cell).join(",")).join("\r\n"), "avomate-harvest-dm-" + today() + ".csv", "text/csv;charset=utf-8");
+    download("﻿" + [cols.map((c) => c[0]), ...state.samples.map((s) => cols.map((c) => c[1](s)))].map((a) => a.map(cell).join(",")).join("\r\n"), "avomate-dry-matter-" + today() + ".csv", "text/csv;charset=utf-8");
   }
   async function restoreBackup(file) {
     if (!file) return;
     try {
-      if (file.size > 10000000) throw Error(tr("ไฟล์ใหญ่เกิน 10 MB", "File exceeds 10 MB."));
+      if (file.size > 10000000) throw Error(tr("ไฟล์ใหญ่เกิน 10 MB", "File is over 10 MB."));
       let parsed;
-      try { parsed = JSON.parse(await file.text()); } catch (e) { throw Error(tr("ไฟล์ไม่ใช่ JSON ที่อ่านได้", "Not a readable JSON file.")); }
+      try { parsed = JSON.parse(await file.text()); } catch (e) { throw Error(tr("ไฟล์นี้ไม่ใช่ไฟล์สำรองของแอป", "This is not an app backup file.")); }
       const n = normaliseBackup(parsed, true);
-      if (!confirm(tr(`นำเข้าข้อมูล ${n.records.length} รุ่นดอก และ ${n.samples.length} ผลทดสอบ? ข้อมูลในเบราว์เซอร์นี้จะถูกแทนที่ ควรดาวน์โหลดสำรองข้อมูลปัจจุบันก่อน`, `Restore ${n.records.length} cohorts and ${n.samples.length} samples? This replaces current browser records. Download a backup first.`))) return;
+      if (!confirm(tr(`เปิดไฟล์สำรอง: ${n.records.length} รุ่นดอก และผลตรวจ ${n.samples.length} ลูก\nข้อมูลเดิมในเครื่องนี้จะถูกแทนที่ทั้งหมด ทำต่อไหม?`, `Open backup: ${n.records.length} flowering waves and ${n.samples.length} fruit results.\nThis replaces all data on this device. Continue?`))) return;
       const old = state;
       state = { profiles: n.profiles, records: n.records, samples: n.samples };
       if (!save()) {
@@ -7403,9 +7501,9 @@ ${s.notes ? `<p><b>${tr("หมายเหตุ", "Notes")}:</b> ${esc(s.notes
       editId = "";
       loadIssue = "";
       rerender();
-      notify(tr("นำเข้าข้อมูลสำรองแล้ว", "Backup restored."));
+      notify(tr("เปิดไฟล์สำรองเรียบร้อย", "Backup opened."));
     } catch (e) {
-      notify(tr("นำเข้าไม่ได้: ", "Restore failed: ") + e.message);
+      notify(tr("เปิดไฟล์ไม่ได้: ", "Could not open: ") + e.message);
     } finally {
       if ($("restore-file")) $("restore-file").value = "";
     }
@@ -7431,7 +7529,6 @@ ${s.notes ? `<p><b>${tr("หมายเหตุ", "Notes")}:</b> ${esc(s.notes
     $("sample-record").onchange = () => { $("sample-plot").value = ""; updateContext(true); if ($("sample-record").value === "p:__new") $("dm-new-name").focus(); };
     $("dm-new-name").oninput = () => updateDM();
     $("sample-date").onchange = updateDM;
-    $("constant").onchange = () => updateDM();
     $("dm-form").onsubmit = sampleSubmit;
     $("cv-add").onclick = () => openCultivarEditor("new");
     $("cv-cancel").onclick = closeCultivarEditor;
@@ -7442,49 +7539,26 @@ ${s.notes ? `<p><b>${tr("หมายเหตุ", "Notes")}:</b> ${esc(s.notes
     $("dm-record-tab").onclick = () => setDMView("record");
     $("dm-history-tab").onclick = () => setDMView("history");
     $("history-query").oninput = history;
-    root.querySelectorAll("[data-hv-method]").forEach((b) => (b.onclick = () => { $("dm-method").value = b.dataset.hvMethod; updateDM(); }));
-    $("weight-mode").dataset.previous = $("weight-mode").value;
-    $("weight-mode").onchange = () => {
-      captureSamples();
-      const sel = $("weight-mode"), next = sel.value, prev = sel.dataset.previous || "net";
-      if (next === prev) return;
-      const filled = draftSamples.filter((s) => s.fresh !== "");
-      if (filled.some((s) => s.tare === "" || !Number.isFinite(+s.tare))) {
-        sel.value = prev;
-        return notify(tr("กรอกน้ำหนักจานเปล่าให้ครบทุกผลที่มีน้ำหนักสดก่อน แล้วจึงเปลี่ยนวิธีชั่ง", "Enter the empty-container weight for every fruit with a fresh weight before switching."));
-      }
-      const conv = filled.map((s) => [s, prev === "net" ? +s.fresh + +s.tare : +s.fresh - +s.tare]);
-      if (conv.some(([, v]) => !(v > 0))) {
-        sel.value = prev;
-        return notify(tr("น้ำหนักสดรวมจานบางผลน้อยกว่าน้ำหนักจาน ตรวจตัวเลขก่อนเปลี่ยนวิธีชั่ง", "Some fresh + container weights are below the container weight. Check before switching."));
-      }
-      conv.forEach(([s, v]) => (s.fresh = String(Number(v.toFixed(8)))));
-      sel.dataset.previous = next;
-      if (filled.length) notify(tr("แปลงน้ำหนักสดตามจานของแต่ละผลแล้ว ค่า DM คงเดิม", "Fresh weights converted using each container; DM unchanged."));
-      renderSampleRows();
-      updateDM();
-    };
+    root.querySelectorAll("[data-hv-method]").forEach((b) => (b.onclick = () => setMethod(b.dataset.hvMethod)));
     $("add-fruit").onclick = () => {
       captureSamples();
-      if (draftSamples.length >= 100) return notify(tr("หนึ่งรอบตรวจรองรับสูงสุด 100 ผล", "Up to 100 fruit per inspection."));
+      if (draftSamples.length >= 100) return notify(tr("ใส่ได้สูงสุด 100 ลูกต่อครั้ง", "Up to 100 fruit at a time."));
       draftSamples.push(blankSample());
       renderSampleRows();
       updateDM();
-      $("fruit-" + draftSamples[draftSamples.length - 1].id + "-tare")?.focus();
+      $("fruit-" + draftSamples[draftSamples.length - 1].id + "-fresh")?.focus();
     };
     $("example").onclick = () => {
+      const micro = method() === "micro";
       draftSamples = [
-        { id: uid(), label: "DEMO-01", fruit: "0.30", fresh: "20", tare: "10", dry: "14.2", demo: true },
-        { id: uid(), label: "DEMO-02", fruit: "0.32", fresh: "20", tare: "12", dry: "16.8", demo: true },
+        { id: uid(), label: "DEMO-01", fruit: "0.30", fresh: "25.00", tare: "5.00", dry: micro ? "" : "9.60", rounds: micro ? ["10.40", "9.85", "9.62", "9.60"] : ["", ""], demo: true },
+        { id: uid(), label: "DEMO-02", fruit: "0.32", fresh: "27.20", tare: "5.20", dry: micro ? "" : "10.40", rounds: micro ? ["11.30", "10.62", "10.41", "10.40"] : ["", ""], demo: true },
       ];
-      $("weight-mode").value = "net";
-      $("weight-mode").dataset.previous = "net";
-      $("constant").checked = false;
       renderSampleRows();
       updateDM();
     };
     $("csv").onclick = csv;
-    $("backup").onclick = () => download(JSON.stringify({ ...state, format: "avomate-harvest", version: 3, exportedAt: new Date().toISOString() }, null, 2), "avomate-harvest-backup-" + today() + ".json", "application/json");
+    $("backup").onclick = () => download(JSON.stringify({ ...state, format: "avomate-harvest", version: 4, exportedAt: new Date().toISOString() }, null, 2), "avomate-backup-" + today() + ".json", "application/json");
     $("restore").onclick = () => $("restore-file").click();
     $("restore-file").onchange = (e) => restoreBackup(e.target.files[0]);
     renderSampleRows();
