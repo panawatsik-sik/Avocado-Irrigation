@@ -6675,7 +6675,7 @@ ${field(tr("หมายเหตุ (ไม่บังคับ)", "Notes (opt
 <div class="hv-result" aria-live="polite"><span>${tr("น้ำหนักแห้งเฉลี่ย", "Average dry matter")}</span><strong id="hv-dm-value">— %</strong><span class="hv-pill" id="hv-dm-interpret"></span><small id="hv-net"></small></div>
 <div class="hv-note" id="hv-dm-threshold"></div>
 <div class="hv-actions"><button class="hv-btn hv-full" type="submit">✓ ${tr("คำนวณและบันทึก", "Calculate & save")}</button><button type="button" class="hv-btn text" id="hv-example">${tr("ลองใส่ตัวอย่าง", "Fill an example")}</button></div></form>
-<p class="hv-source">${tr("ใช้เนื้ออย่างน้อย 20 กรัมต่อลูก หั่นบางประมาณ 2 มม. · ผลนี้ใช้ช่วยตัดสินใจ ไม่ใช่ใบรับรองจากหน่วยงานรัฐ", "Use at least 20 g of flesh per fruit, sliced about 2 mm thin · decision support only, not an official certificate.")}<br>${tas}</p></div>
+<p class="hv-source">${tr("ใช้เนื้ออย่างน้อย 10 กรัมต่อลูก หั่นบางประมาณ 2 มม. · ผลนี้ใช้ช่วยตัดสินใจ ไม่ใช่ใบรับรองจากหน่วยงานรัฐ", "Use at least 10 g of flesh per fruit, sliced about 2 mm thin · decision support only, not an official certificate.")}<br>${tas}</p></div>
 <div id="hv-dm-history-panel" ${dmView === "history" ? "" : "hidden"}><div class="hv-row"><div><h3>${tr("ประวัติการตรวจ", "Test history")}</h3><span class="hv-count">${tr("กดดูรายงาน แล้วพิมพ์หรือบันทึกเป็น PDF", "Open a report to print or save as PDF.")}</span></div><button class="hv-btn text" type="button" id="hv-csv">↓ Excel (CSV)</button></div>
 <label class="hv-field hv-history-filter" for="hv-history-query">${tr("ค้นหา", "Search")}<input id="hv-history-query" type="search" placeholder="${tr("ชื่อสวน แปลง พันธุ์ หรือเลขที่รายงาน", "Orchard, block, variety or report no.")}"></label><div id="hv-history"></div></div></div></div>`;
   }
@@ -7146,7 +7146,7 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
     if (!$("protocol")) return;
     const micro = $("protocol-method").value === "micro";
     const steps = [
-      [tr("เตรียมเนื้อ", "Prepare the flesh"), tr("ผ่าตามยาว เอาเมล็ดและเปลือกออก หั่นเนื้อบาง ๆ ประมาณ 2 มม. ใช้เนื้ออย่างน้อย 20 กรัมต่อลูก", "Cut lengthwise, remove seed and skin, slice the flesh about 2 mm thin. Use at least 20 g per fruit.")],
+      [tr("เตรียมเนื้อ", "Prepare the flesh"), tr("ผ่าตามยาว เอาเมล็ดและเปลือกออก หั่นเนื้อบาง ๆ ประมาณ 2 มม. ใช้เนื้ออย่างน้อย 10 กรัมต่อลูก", "Cut lengthwise, remove seed and skin, slice the flesh about 2 mm thin. Use at least 10 g per fruit.")],
       [tr("ชั่งก่อนอบ", "Weigh before drying"), tr("ชั่งจานเปล่าไว้ 1 ครั้ง แล้ววางเนื้อบนจาน ชั่งน้ำหนักสด + จาน ไม่ต้องกด tare", "Weigh the empty plate once, put the flesh on it and weigh fresh + plate. No need to tare.")],
       micro
         ? [tr("อบไมโครเวฟ", "Microwave"), tr("ใช้ไฟต่ำสุด อบครั้งละ 2–3 นาที ทำ 6–8 รอบ ชั่งน้ำหนักแห้ง + จาน ทุกรอบ จนสองรอบล่าสุดต่างกันไม่เกิน 0.02 กรัม", "Lowest power, 2–3 minutes per round, 6–8 rounds. Weigh dry + plate after every round until the last two differ by 0.02 g or less.")]
@@ -7321,9 +7321,9 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
      round is used, and the last two rounds must differ by ≤ 0.02 g to be
      "stable". Per-fruit % is shown to 2 decimals; the average is taken
      from the unrounded values and rounded once. */
-  const DM_LOW = 12, DM_HIGH = 45, STABLE_G = 0.02;
+  const DM_LOW = 12, DM_HIGH = 45, STABLE_G = 0.02, MIN_FRESH_G = 10;
   function blankSample() {
-    return { id: uid(), label: "", fruit: "", tare: "", fresh: "", dry: "", rounds: ["", ""], demo: false };
+    return { id: uid(), label: "", tare: "", fresh: "", dry: "", rounds: ["", ""], demo: false };
   }
   const method = () => ($("dm-method")?.value === "micro" ? "micro" : "oven");
   function setDMView(view) {
@@ -7351,7 +7351,7 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
         ? sampleField(s, "dry", tr("น้ำหนักแห้ง + จาน (g)", "Dry weight + plate (g)"), "9.60", true)
         : `<div class="hv-rounds"><span class="hv-rounds-label">${tr("น้ำหนักแห้ง + จาน หลังอบแต่ละรอบ (g)", "Dry weight + plate after each round (g)")}</span>${(s.rounds || []).map((r, k) => `<div class="hv-round-row"><span class="hv-round-no">${k + 1}</span><input id="hv-fruit-${s.id}-round-${k}" data-hv-round="${k}" type="number" min="0" step="any" inputmode="decimal" value="${esc(r)}" placeholder="9.60" aria-label="${tr("รอบที่", "Round")} ${k + 1}"><button type="button" class="hv-round-del" data-hv-round-del="${k}" aria-label="${tr("ลบรอบที่", "Remove round")} ${k + 1}" ${s.rounds.length <= 1 ? "disabled" : ""}>×</button></div>`).join("")}<button type="button" class="hv-add-round" data-hv-add-round>＋ ${tr("เพิ่มรอบอบ", "Add round")}</button><p class="hv-stable" id="hv-stable-${s.id}"></p></div>`;
       return `<article class="hv-fruit" data-hv-fruit="${s.id}"><div class="hv-row"><strong><span class="hv-fruit-no">${i + 1}</span>${tr("ลูกที่", "Fruit")} ${i + 1} <span class="hv-tag" id="hv-fruit-tag-${s.id}" ${s.demo ? "" : "hidden"}>${tr("ตัวอย่าง", "Example")}</span></strong><button type="button" class="hv-btn text" data-hv-drop-fruit="${s.id}" ${draftSamples.length === 1 ? "disabled" : ""}>${tr("ลบลูกนี้", "Remove")}</button></div>
-<div class="hv-grid">${sampleField(s, "label", tr("รหัสลูก (ไม่บังคับ)", "Fruit ID (optional)"), String(i + 1), false, "text")}${sampleField(s, "fruit", tr("น้ำหนักทั้งลูก (kg) · ไม่บังคับ", "Whole fruit (kg) · optional"), "0.30")}${sampleField(s, "fresh", tr("น้ำหนักสด + จาน (g)", "Fresh weight + plate (g)"), "25.00", true)}${sampleField(s, "tare", tr("น้ำหนักจานเปล่า (g)", "Empty plate (g)"), "5.00")}</div>${dryPart}
+<div class="hv-grid">${sampleField(s, "label", tr("รหัสลูก (ไม่บังคับ)", "Fruit ID (optional)"), String(i + 1), false, "text")}${sampleField(s, "fresh", tr("น้ำหนักสด + จาน (g)", "Fresh weight + plate (g)"), "25.00", true)}${sampleField(s, "tare", tr("น้ำหนักจานเปล่า (g)", "Empty plate (g)"), "5.00")}</div>${dryPart}
 <div class="hv-fruit-result" id="hv-fruit-result-${s.id}" aria-live="polite">—</div></article>`;
     }).join("");
     const card = (el) => draftSamples.find((x) => x.id === el.closest("[data-hv-fruit]").dataset.hvFruit);
@@ -7490,12 +7490,12 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
       }
       if (v) {
         raw.push(v.dm);
-        if (v.netFresh < 20 - 1e-9) small.push(i + 1);
+        if (v.netFresh < MIN_FRESH_G - 1e-9) small.push(i + 1);
         const out = v.dm < DM_LOW || v.dm > DM_HIGH;
         if (out) odd.push(i + 1);
         if (el) {
           el.innerHTML = `<b>${tr("น้ำหนักแห้ง", "Dry matter")} ${pct2(v.dm)}%</b> · ${tr("เนื้อสด", "fresh")} ${v.netFresh.toFixed(2)} g · ${tr("เนื้อแห้ง", "dry")} ${v.netDry.toFixed(2)} g${out ? " · ⚠ " + tr("ค่าแปลกไป ตรวจตัวเลขอีกครั้ง", "unusual, please recheck") : ""}`;
-          el.classList.toggle("warn", out || v.netFresh < 20 - 1e-9);
+          el.classList.toggle("warn", out || v.netFresh < MIN_FRESH_G - 1e-9);
         }
       } else {
         const d = dryReading(s, m);
@@ -7515,7 +7515,7 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
     $("net").textContent = raw.length ? tr(`เฉลี่ยจาก ${raw.length} ลูก`, `Average of ${raw.length} fruit`) : "";
     const msgs = [];
     if (bad.length) msgs.push(tr(`ลูกที่ ${bad.join(", ")}: ตัวเลขไม่ถูก`, `Fruit ${bad.join(", ")}: numbers don't add up`));
-    if (small.length) msgs.push(tr(`ลูกที่ ${small.join(", ")}: เนื้อสดน้อยกว่า 20 กรัม ควรใช้เนื้ออย่างน้อย 20 กรัม`, `Fruit ${small.join(", ")}: under 20 g of fresh flesh; use at least 20 g`));
+    if (small.length) msgs.push(tr(`ลูกที่ ${small.join(", ")}: เนื้อสดน้อยกว่า ${MIN_FRESH_G} กรัม ควรใช้เนื้ออย่างน้อย ${MIN_FRESH_G} กรัม`, `Fruit ${small.join(", ")}: under ${MIN_FRESH_G} g of fresh flesh; use at least ${MIN_FRESH_G} g`));
     if (odd.length) msgs.push(tr(`ลูกที่ ${odd.join(", ")}: น้ำหนักแห้งต่ำกว่า ${DM_LOW}% หรือสูงกว่า ${DM_HIGH}% ซึ่งพบได้น้อย อาจพิมพ์ผิด`, `Fruit ${odd.join(", ")}: below ${DM_LOW}% or above ${DM_HIGH}% is rare; check for typos`));
     if (unstable.length) msgs.push(tr(`ลูกที่ ${unstable.join(", ")}: น้ำหนักยังไม่คงที่`, `Fruit ${unstable.join(", ")}: weight not stable yet`));
     $("dm-error").innerHTML = msgs.map(esc).join("<br>");
@@ -7541,14 +7541,13 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
       return notify(tr("ใส่ชื่อสวนก่อน", "Enter the orchard name."));
     }
     if (!testDate || testDate > today() || (r && testDate < r.bloom)) return notify(tr("วันที่ตรวจไม่ถูก ต้องไม่เกินวันนี้ และไม่ก่อนวันดอกบาน", "Check the test date: not after today and not before flowering."));
-    if (draftSamples.some((s) => s.fruit !== "" && (!Number.isFinite(+s.fruit) || +s.fruit <= 0))) return notify(tr("น้ำหนักทั้งลูกต้องมากกว่า 0 หรือเว้นว่าง", "Whole fruit weight must be above 0 or left blank."));
     const labels = draftSamples.map((s, i) => s.label.trim() || String(i + 1));
     if (new Set(labels).size !== labels.length) return notify(tr("รหัสลูกซ้ำกัน กรุณาแก้", "Two fruit have the same ID."));
     const warn = [];
     const unstable = m === "micro" ? draftSamples.filter((s) => !stability(s).ok).length : 0;
     if (unstable) warn.push(tr(`${unstable} ลูกน้ำหนักยังไม่คงที่`, `${unstable} fruit not yet stable`));
-    const small = vs.filter((v) => v.netFresh < 20 - 1e-9).length;
-    if (small) warn.push(tr(`${small} ลูกใช้เนื้อสดน้อยกว่า 20 กรัม`, `${small} fruit under 20 g fresh flesh`));
+    const small = vs.filter((v) => v.netFresh < MIN_FRESH_G - 1e-9).length;
+    if (small) warn.push(tr(`${small} ลูกใช้เนื้อสดน้อยกว่า ${MIN_FRESH_G} กรัม`, `${small} fruit under ${MIN_FRESH_G} g fresh flesh`));
     const odd = vs.filter((v) => v.dm < DM_LOW || v.dm > DM_HIGH).length;
     if (odd) warn.push(tr(`${odd} ลูกได้ค่าแปลกไป (ต่ำกว่า ${DM_LOW}% หรือสูงกว่า ${DM_HIGH}%)`, `${odd} fruit with unusual values (<${DM_LOW}% or >${DM_HIGH}%)`));
     let resolved = null;
@@ -7575,7 +7574,7 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
       date: testDate, method: m, threshold: p.dm ?? null, thresholdSource: p.dmSource || "", freshMode: "gross",
     };
     const added = draftSamples.map((s, i) => ({
-      ...common, id: uid(), name: labels[i], fruitKg: s.fruit === "" ? null : +s.fruit,
+      ...common, id: uid(), name: labels[i], fruitKg: null,
       tare: s.tare === "" ? 0 : +s.tare, fresh: +s.fresh, dry: dryReading(s, m),
       rounds: m === "micro" ? filledRounds(s).map((v) => Math.round(v * 100) / 100) : null,
       ...vs[i],
@@ -7639,10 +7638,12 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
     const meth = s.method === "oven" ? tr("ตู้อบลมร้อน", "Hot-air oven") : tr("ไมโครเวฟ", "Microwave");
     const m = (label, v) => `<div><b>${label}:</b> ${v}</div>`;
     const plateOf = (x) => Number(x.tare) || 0;
+    // Whole-fruit weight is no longer asked for; keep the column only for older records that have it.
+    const hasKg = g.samples.some((x) => x.fruitKg != null);
     panel.innerHTML = `<div class="hv-report-tools"><button id="hv-print-now" type="button">🖨 ${tr("พิมพ์ / บันทึกเป็น PDF", "Print / save as PDF")}</button><button id="hv-close-report" type="button">× ${tr("ปิด", "Close")}</button></div>${inApp ? `<div class="hv-report-warn">${tr("ถ้ากดพิมพ์แล้วไม่มีอะไรขึ้น ให้เปิดหน้านี้ใน Chrome หรือ Safari (กดเมนู ⋮ หรือ ⋯ แล้วเลือก “เปิดในเบราว์เซอร์”) แล้วกดพิมพ์อีกครั้ง", "If nothing happens when you print, open this page in Chrome or Safari (menu ⋮ or ⋯ → Open in browser) and try again.")}</div>` : ""}
 <article class="hv-paper"><div class="hv-report-top"><h1>AvoMate</h1><h2>${tr("รายงานผลตรวจน้ำหนักเนื้อแห้งอะโวคาโด", "Avocado dry matter test report")}</h2><div class="hv-report-ref">${tr("เลขที่", "No.")} <b>${esc(reportNo(g))}</b></div></div>
 <div class="hv-report-meta">${m(tr("สวน / เจ้าของ", "Orchard / owner"), esc(s.farm || "—"))}${m(tr("แปลง", "Block"), esc(s.plot || "—"))}${m(tr("พันธุ์", "Variety"), esc(tr(s.varietyTh, s.varietyEn)))}${m(tr("วันที่ตรวจ", "Test date"), date(s.date))}${m(tr("วิธีอบ", "Drying method"), meth)}${m(tr("จำนวน", "Fruit tested"), g.stats.count + " " + tr("ลูก", "fruit"))}${s.cohort ? m(tr("รุ่นดอก", "Flowering wave"), esc(s.cohort)) : ""}${s.bloom ? m(tr("วันดอกบาน", "Flowering date"), date(s.bloom)) : ""}${s.age != null ? m(tr("อายุผลวันที่ตรวจ", "Fruit age at test"), s.age + " " + tr("วัน", "days")) : ""}${m(tr("ผู้ตรวจ", "Tested by"), esc(s.inspector || "—"))}</div>
-<table><thead><tr><th>${tr("ลูกที่", "Fruit")}</th><th>${tr("น้ำหนักผล", "Fruit wt")}<br>(kg)</th><th>${tr("น้ำหนักสด", "Fresh")}<br>(g)</th><th>${tr("น้ำหนักจาน", "Plate")}<br>(g)</th><th>${tr("น้ำหนักแห้งสุทธิ", "Net dry")}<br>(g)</th><th>% ${tr("น้ำหนักแห้ง", "dry matter")}</th></tr></thead><tbody>${g.samples.map((x) => `<tr><td>${esc(x.name)}</td><td>${x.fruitKg == null ? "—" : Number(x.fruitKg).toFixed(2)}</td><td>${x.netFresh.toFixed(2)}</td><td>${plateOf(x).toFixed(2)}</td><td>${x.netDry.toFixed(2)}</td><td><b>${pct2(x.dm)}</b></td></tr>`).join("")}<tr class="hv-avg-row"><td colspan="5">${tr("ค่าเฉลี่ย", "Average")}</td><td><b>${pct2(g.stats.mean)}</b></td></tr></tbody></table>
+<table><thead><tr><th>${tr("ลูกที่", "Fruit")}</th>${hasKg ? `<th>${tr("น้ำหนักผล", "Fruit wt")}<br>(kg)</th>` : ""}<th>${tr("น้ำหนักสด", "Fresh")}<br>(g)</th><th>${tr("น้ำหนักจาน", "Plate")}<br>(g)</th><th>${tr("น้ำหนักแห้งสุทธิ", "Net dry")}<br>(g)</th><th>% ${tr("น้ำหนักแห้ง", "dry matter")}</th></tr></thead><tbody>${g.samples.map((x) => `<tr><td>${esc(x.name)}</td>${hasKg ? `<td>${x.fruitKg == null ? "—" : Number(x.fruitKg).toFixed(2)}</td>` : ""}<td>${x.netFresh.toFixed(2)}</td><td>${plateOf(x).toFixed(2)}</td><td>${x.netDry.toFixed(2)}</td><td><b>${pct2(x.dm)}</b></td></tr>`).join("")}<tr class="hv-avg-row"><td colspan="${hasKg ? 5 : 4}">${tr("ค่าเฉลี่ย", "Average")}</td><td><b>${pct2(g.stats.mean)}</b></td></tr></tbody></table>
 ${s.method === "micro" ? `<p class="hv-report-ref">${tr("ไมโครเวฟ: ใช้น้ำหนักจากรอบอบสุดท้าย", "Microwave: weight from the last drying round")}</p>` : ""}
 <div class="hv-report-summary"><div>${tr("ค่าเฉลี่ย", "Average")}<b>${pct2(g.stats.mean)}%</b></div><div>${tr("ต่ำสุด", "Lowest")}<b>${pct2(g.stats.min)}%</b></div><div>${tr("สูงสุด", "Highest")}<b>${pct2(g.stats.max)}%</b></div></div>
 <p><b>📖 ${tr("เกณฑ์อ้างอิง", "Reference")}:</b> ${s.threshold == null ? tr("ไม่มีเกณฑ์อ้างอิง แสดงเฉพาะตัวเลข", "No reference value, number only") : s.threshold + "% " + `<span class="hv-report-ref">(${esc(s.thresholdSource || "—")})</span>`}</p>
@@ -7793,8 +7794,8 @@ ${s.notes ? `<p><b>${tr("หมายเหตุ", "Notes")}:</b> ${esc(s.notes
     $("example").onclick = () => {
       const micro = method() === "micro";
       draftSamples = [
-        { id: uid(), label: "DEMO-01", fruit: "0.30", fresh: "25.00", tare: "5.00", dry: micro ? "" : "9.60", rounds: micro ? ["10.40", "9.85", "9.62", "9.60"] : ["", ""], demo: true },
-        { id: uid(), label: "DEMO-02", fruit: "0.32", fresh: "27.20", tare: "5.20", dry: micro ? "" : "10.40", rounds: micro ? ["11.30", "10.62", "10.41", "10.40"] : ["", ""], demo: true },
+        { id: uid(), label: "DEMO-01", fresh: "25.00", tare: "5.00", dry: micro ? "" : "9.60", rounds: micro ? ["10.40", "9.85", "9.62", "9.60"] : ["", ""], demo: true },
+        { id: uid(), label: "DEMO-02", fresh: "27.20", tare: "5.20", dry: micro ? "" : "10.40", rounds: micro ? ["11.30", "10.62", "10.41", "10.40"] : ["", ""], demo: true },
       ];
       renderSampleRows();
       updateDM();
