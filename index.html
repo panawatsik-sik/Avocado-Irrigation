@@ -7351,7 +7351,7 @@ ${["ready", "late", "unknown"].includes(d.status) ? `<div class="hv-due"><strong
         ? sampleField(s, "dry", tr("น้ำหนักแห้ง + จาน (g)", "Dry weight + plate (g)"), "9.60", true)
         : `<div class="hv-rounds"><span class="hv-rounds-label">${tr("น้ำหนักแห้ง + จาน หลังอบแต่ละรอบ (g)", "Dry weight + plate after each round (g)")}</span>${(s.rounds || []).map((r, k) => `<div class="hv-round-row"><span class="hv-round-no">${k + 1}</span><input id="hv-fruit-${s.id}-round-${k}" data-hv-round="${k}" type="number" min="0" step="any" inputmode="decimal" value="${esc(r)}" placeholder="9.60" aria-label="${tr("รอบที่", "Round")} ${k + 1}"><button type="button" class="hv-round-del" data-hv-round-del="${k}" aria-label="${tr("ลบรอบที่", "Remove round")} ${k + 1}" ${s.rounds.length <= 1 ? "disabled" : ""}>×</button></div>`).join("")}<button type="button" class="hv-add-round" data-hv-add-round>＋ ${tr("เพิ่มรอบอบ", "Add round")}</button><p class="hv-stable" id="hv-stable-${s.id}"></p></div>`;
       return `<article class="hv-fruit" data-hv-fruit="${s.id}"><div class="hv-row"><strong><span class="hv-fruit-no">${i + 1}</span>${tr("ลูกที่", "Fruit")} ${i + 1} <span class="hv-tag" id="hv-fruit-tag-${s.id}" ${s.demo ? "" : "hidden"}>${tr("ตัวอย่าง", "Example")}</span></strong><button type="button" class="hv-btn text" data-hv-drop-fruit="${s.id}" ${draftSamples.length === 1 ? "disabled" : ""}>${tr("ลบลูกนี้", "Remove")}</button></div>
-<div class="hv-grid">${sampleField(s, "label", tr("รหัสลูก (ไม่บังคับ)", "Fruit ID (optional)"), String(i + 1), false, "text")}${sampleField(s, "fresh", tr("น้ำหนักสด + จาน (g)", "Fresh weight + plate (g)"), "25.00", true)}${sampleField(s, "tare", tr("น้ำหนักจานเปล่า (g)", "Empty plate (g)"), "5.00")}</div>${dryPart}
+<div class="hv-grid">${sampleField(s, "label", tr("รหัสลูก (ไม่บังคับ)", "Fruit ID (optional)"), String(i + 1), false, "text")}${sampleField(s, "tare", tr("น้ำหนักจานเปล่า (g)", "Empty plate (g)"), "5.00")}${sampleField(s, "fresh", tr("น้ำหนักสด + จาน (g)", "Fresh weight + plate (g)"), "25.00", true)}</div>${dryPart}
 <div class="hv-fruit-result" id="hv-fruit-result-${s.id}" aria-live="polite">—</div></article>`;
     }).join("");
     const card = (el) => draftSamples.find((x) => x.id === el.closest("[data-hv-fruit]").dataset.hvFruit);
@@ -7789,7 +7789,7 @@ ${s.notes ? `<p><b>${tr("หมายเหตุ", "Notes")}:</b> ${esc(s.notes
       draftSamples.push(blankSample());
       renderSampleRows();
       updateDM();
-      $("fruit-" + draftSamples[draftSamples.length - 1].id + "-fresh")?.focus();
+      $("fruit-" + draftSamples[draftSamples.length - 1].id + "-tare")?.focus();
     };
     $("example").onclick = () => {
       const micro = method() === "micro";
